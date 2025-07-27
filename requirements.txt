@@ -1,0 +1,9 @@
+# Core dependencies
+langchain>=0.2.0
+langgraph>=0.1.0
+mcp>=0.1.0
+langchain-mcp-adapters>=0.1.0
+modelforge>=0.1.0
+
+# Optional but recommended
+python-dotenv>=1.0.0

@@ -1,0 +1,14 @@
+"""
+Browser Pilot - AI-powered browser automation framework
+
+A streamlined approach to browser test automation using natural language
+test scenarios executed by AI agents.
+"""
+
+__version__ = "2.0.0"
+__author__ = "Browser Pilot Team"
+
+from .core import BrowserPilot
+from .cli import main as cli_main
+
+__all__ = ["BrowserPilot", "cli_main"]

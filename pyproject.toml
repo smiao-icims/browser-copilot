@@ -1,0 +1,85 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "browser-pilot"
+version = "2.0.0"
+authors = [
+    {name = "Browser Pilot Team"},
+]
+description = "AI-powered browser test automation framework"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "langchain>=0.2.0",
+    "langgraph>=0.1.0",
+    "mcp>=0.1.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "model-forge-llm>=2.2.1",
+    "pyyaml>=6.0",
+    "markupsafe<3.0",  # Pin to avoid jinja2 compatibility issues
+    "jinja2<3.1",      # Pin to compatible version
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "isort>=5.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.0",
+]
+dotenv = [
+    "python-dotenv>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/browser-pilot"
+"Bug Reports" = "https://github.com/yourusername/browser-pilot/issues"
+Documentation = "https://github.com/yourusername/browser-pilot#readme"
+Source = "https://github.com/yourusername/browser-pilot"
+
+[project.scripts]
+browser-pilot = "browser_pilot.cli:main"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]  # Line too long
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["."]
