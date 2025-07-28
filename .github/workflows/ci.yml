@@ -41,10 +41,10 @@ jobs:
         uv run ruff format --check .
 
     - name: Run type checking
-      run: uv run mypy browser_pilot/
+      run: uv run mypy browser_copilot/
 
     - name: Run tests
-      run: uv run pytest tests/ --cov=browser_pilot --cov-report=xml --cov-report=term-missing
+      run: uv run pytest tests/ --cov=browser_copilot --cov-report=xml --cov-report=term-missing
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -69,7 +69,7 @@ jobs:
       run: uv sync --extra dev
 
     - name: Run Bandit security check
-      run: uv run bandit -r browser_pilot/ -f json -o bandit-report.json || true
+      run: uv run bandit -r browser_copilot/ -f json -o bandit-report.json || true
 
     - name: Run Safety security check
       run: uv run safety check --json --output safety-report.json || true

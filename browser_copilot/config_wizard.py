@@ -1,9 +1,9 @@
-"""Configuration wizard for Browser Pilot."""
+"""Configuration wizard for Browser Copilot."""
 
 import asyncio
 import sys
 
-from browser_pilot.wizard import WizardFlow
+from browser_copilot.wizard import WizardFlow
 
 
 def run_config_wizard() -> bool:

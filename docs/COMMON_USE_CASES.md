@@ -1,4 +1,4 @@
-# Browser Pilot - Common Use Cases 🎯
+# Browser Copilot - Common Use Cases 🎯
 
 Real-world examples and patterns for effective browser automation testing.
 
@@ -77,7 +77,7 @@ Real-world examples and patterns for effective browser automation testing.
 
 **Run with:**
 ```bash
-browser-pilot ecommerce-flow.md --headless --output-format html --output-file purchase-report.html
+browser-copilot ecommerce-flow.md --headless --output-format html --output-file purchase-report.html
 ```
 
 ### Inventory & Stock Testing
@@ -380,7 +380,7 @@ browser-pilot ecommerce-flow.md --headless --output-format html --output-file pu
 
 **Run mobile test:**
 ```bash
-browser-pilot mobile-test.md --device "iPhone 12" --output-format html
+browser-copilot mobile-test.md --device "iPhone 12" --output-format html
 ```
 
 ### Touch Gestures
@@ -688,22 +688,22 @@ browser-pilot mobile-test.md --device "iPhone 12" --output-format html
 
 ### Basic Execution
 ```bash
-browser-pilot use-case.md
+browser-copilot use-case.md
 ```
 
 ### With Specific Options
 ```bash
 # Headless with HTML report
-browser-pilot use-case.md --headless --output-format html --output-file report.html
+browser-copilot use-case.md --headless --output-format html --output-file report.html
 
 # Mobile testing
-browser-pilot mobile-case.md --device "iPhone 12"
+browser-copilot mobile-case.md --device "iPhone 12"
 
 # With high compression for cost savings
-browser-pilot long-test.md --compression-level high
+browser-copilot long-test.md --compression-level high
 
 # Verbose mode for debugging
-browser-pilot failing-test.md --verbose
+browser-copilot failing-test.md --verbose
 ```
 
 ### Custom System Prompts
@@ -719,4 +719,4 @@ You are testing an e-commerce site. Always:
 5. Handle pop-ups for newsletters or promotions
 ```
 
-Use: `browser-pilot shop-test.md --system-prompt ecommerce-prompt.txt`
+Use: `browser-copilot shop-test.md --system-prompt ecommerce-prompt.txt`

@@ -28,7 +28,7 @@ jobs:
       run: |
         uv run pytest tests/
         uv run ruff check .
-        uv run mypy browser_pilot/
+        uv run mypy browser_copilot/
 
     - name: Build package
       run: uv build
@@ -48,7 +48,7 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'published'
     environment:
       name: pypi
-      url: https://pypi.org/p/browser-pilot-llm
+      url: https://pypi.org/p/browser-copilot
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
 

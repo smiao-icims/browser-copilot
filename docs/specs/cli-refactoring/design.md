@@ -62,7 +62,7 @@ graph TD
 #### 2.3.1 Test Handler (Orchestrator)
 
 ```python
-# browser_pilot/cli/handlers/test_handler.py
+# browser_copilot/cli/handlers/test_handler.py
 
 from dataclasses import dataclass
 from typing import Optional
@@ -130,12 +130,12 @@ class TestHandler:
 #### 2.3.2 Input Validator
 
 ```python
-# browser_pilot/cli/validators/input_validator.py
+# browser_copilot/cli/validators/input_validator.py
 
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Any
-from browser_pilot.types import BrowserType, OutputFormat
+from browser_copilot.types import BrowserType, OutputFormat
 
 @dataclass
 class ValidationResult:
@@ -221,7 +221,7 @@ class InputValidator:
 #### 2.3.3 Test Loader
 
 ```python
-# browser_pilot/cli/loaders/test_loader.py
+# browser_copilot/cli/loaders/test_loader.py
 
 import aiofiles
 from pathlib import Path
@@ -286,9 +286,9 @@ class TestLoader:
 #### 2.3.4 Test Executor
 
 ```python
-# browser_pilot/cli/executors/test_executor.py
+# browser_copilot/cli/executors/test_executor.py
 
-from browser_pilot.core import BrowserPilot
+from browser_copilot.core import BrowserPilot
 from ..models import ExecutionContext, TestResults
 
 class TestExecutor:
@@ -359,7 +359,7 @@ class TestExecutor:
 #### 2.3.5 Report Handler
 
 ```python
-# browser_pilot/cli/reporters/report_handler.py
+# browser_copilot/cli/reporters/report_handler.py
 
 from typing import Optional
 from pathlib import Path

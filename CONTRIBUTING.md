@@ -1,6 +1,6 @@
-# Contributing to Browser Pilot
+# Contributing to Browser Copilot
 
-Thank you for your interest in contributing to Browser Pilot! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Browser Copilot! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -18,7 +18,7 @@ By participating in this project, you agree to abide by our Code of Conduct:
 1. **Check existing issues** first to avoid duplicates
 2. **Use issue templates** when available
 3. **Provide details**:
-   - Browser Pilot version
+   - Browser Copilot version
    - Python version
    - Operating system
    - Steps to reproduce
@@ -38,8 +38,8 @@ By participating in this project, you agree to abide by our Code of Conduct:
 
 ```bash
 # Clone the repository
-git clone https://github.com/smiao-icims/browser-pilot.git
-cd browser-pilot
+git clone https://github.com/smiao-icims/browser-copilot.git
+cd browser-copilot
 
 # Install uv (if not already installed)
 # On macOS and Linux:
@@ -68,14 +68,14 @@ uv run pre-commit install
 4. **Run tests**:
    ```bash
    uv run pytest tests/
-   uv run pytest --cov=browser_pilot tests/  # With coverage
+   uv run pytest --cov=browser_copilot tests/  # With coverage
    ```
 5. **Format and lint**:
    ```bash
-   uv run black browser_pilot/
-   uv run isort browser_pilot/
-   uv run ruff check browser_pilot/
-   uv run mypy browser_pilot/
+   uv run black browser_copilot/
+   uv run isort browser_copilot/
+   uv run ruff check browser_copilot/
+   uv run mypy browser_copilot/
    ```
 6. **Commit changes**:
    ```bash
@@ -154,7 +154,7 @@ def process_results(
 Example test:
 ```python
 import pytest
-from browser_pilot.core import BrowserPilot
+from browser_copilot.core import BrowserPilot
 
 @pytest.fixture
 def pilot():
@@ -224,7 +224,7 @@ uv run pytest -s tests/
 
 ### Debugging
 
-1. Use `--verbose` flag when running browser-pilot
+1. Use `--verbose` flag when running browser-copilot
 2. Enable Python logging:
    ```python
    import logging
@@ -302,4 +302,4 @@ Contributors are recognized in:
 - Release notes
 - Project website
 
-Thank you for contributing to Browser Pilot! 🚀
+Thank you for contributing to Browser Copilot! 🚀

@@ -4,10 +4,10 @@ import os
 
 import questionary
 
-from browser_pilot.wizard.base import WizardStep
-from browser_pilot.wizard.state import WizardState
-from browser_pilot.wizard.styles import BROWSER_PILOT_STYLE
-from browser_pilot.wizard.types import StepResult, WizardAction
+from browser_copilot.wizard.base import WizardStep
+from browser_copilot.wizard.state import WizardState
+from browser_copilot.wizard.styles import BROWSER_PILOT_STYLE
+from browser_copilot.wizard.types import StepResult, WizardAction
 
 
 class AuthenticationStep(WizardStep):
@@ -196,7 +196,7 @@ class AuthenticationStep(WizardStep):
         if not api_key:
             # User wants to set later
             skip_validation = await questionary.confirm(
-                "Skip validation? You'll need to set the API key before using Browser Pilot.",
+                "Skip validation? You'll need to set the API key before using Browser Copilot.",
                 default=False,
                 style=BROWSER_PILOT_STYLE,
             ).unsafe_ask_async()

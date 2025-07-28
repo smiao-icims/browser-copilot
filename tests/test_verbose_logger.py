@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 # Add parent directory to path to import modules directly
-sys.path.insert(0, str(Path(__file__).parent.parent / "browser_pilot"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "browser_copilot"))
 from verbose_logger import VerboseLogger
 
 
@@ -36,7 +36,7 @@ class TestVerboseLogger:
         assert self.log_dir.exists()
         assert self.logger.log_file.exists()
         assert self.logger.log_file.suffix == ".log"
-        assert "browser_pilot_" in self.logger.log_file.name
+        assert "browser_copilot_" in self.logger.log_file.name
 
     def test_log_step(self, caplog):
         """Test step logging"""

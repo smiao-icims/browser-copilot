@@ -1,4 +1,4 @@
-# Browser Pilot Configuration Guide ⚙️
+# Browser Copilot Configuration Guide ⚙️
 
 Advanced configuration options for power users.
 
@@ -17,21 +17,21 @@ Advanced configuration options for power users.
 
 ## Configuration Hierarchy
 
-Browser Pilot uses a hierarchical configuration system (highest priority first):
+Browser Copilot uses a hierarchical configuration system (highest priority first):
 
 1. **Command Line Arguments** - Override everything
 2. **Environment Variables** - Override config files
-3. **User Settings File** - `~/.browser_pilot/settings/config.json`
-4. **Project Config File** - `./browser-pilot-config.json`
+3. **User Settings File** - `~/.browser_copilot/settings/config.json`
+4. **Project Config File** - `./browser-copilot-config.json`
 5. **Default Values** - Built-in defaults
 
 ## Settings File
 
 ### Location
 
-- **macOS**: `~/Library/Application Support/browser_pilot/settings/config.json`
-- **Linux**: `~/.browser_pilot/settings/config.json`
-- **Windows**: `%LOCALAPPDATA%\browser_pilot\settings\config.json`
+- **macOS**: `~/Library/Application Support/browser_copilot/settings/config.json`
+- **Linux**: `~/.browser_copilot/settings/config.json`
+- **Windows**: `%LOCALAPPDATA%\browser_copilot\settings\config.json`
 
 ### Example Configuration
 
@@ -63,11 +63,11 @@ Browser Pilot uses a hierarchical configuration system (highest priority first):
 
 ```bash
 # Create with current options
-browser-pilot test.md --provider openai --model gpt-4 --headless --save-config
+browser-copilot test.md --provider openai --model gpt-4 --headless --save-config
 
 # Edit directly
-mkdir -p ~/.browser_pilot/settings
-nano ~/.browser_pilot/settings/config.json
+mkdir -p ~/.browser_copilot/settings
+nano ~/.browser_copilot/settings/config.json
 ```
 
 ## Environment Variables
@@ -118,7 +118,7 @@ Load automatically:
 uv sync --extra dotenv
 
 # Run with .env
-browser-pilot test.md  # Automatically loads .env
+browser-copilot test.md  # Automatically loads .env
 ```
 
 ## Command Line Options
@@ -126,7 +126,7 @@ browser-pilot test.md  # Automatically loads .env
 ### Complete Options Reference
 
 ```bash
-browser-pilot [OPTIONS] test_scenario
+browser-copilot [OPTIONS] test_scenario
 
 Positional Arguments:
   test_scenario         Test file path or '-' for stdin
@@ -223,16 +223,16 @@ uv run modelforge config add --provider anthropic --model claude-3-opus
 
 ```bash
 # For simple tests (fast, cheap)
-browser-pilot simple-test.md --provider openai --model gpt-3.5-turbo
+browser-copilot simple-test.md --provider openai --model gpt-3.5-turbo
 
 # For complex tests (reliable, smart)
-browser-pilot complex-test.md --provider anthropic --model claude-3-opus
+browser-copilot complex-test.md --provider anthropic --model claude-3-opus
 
 # For long tests (large context)
-browser-pilot long-test.md --provider anthropic --model claude-3-opus
+browser-copilot long-test.md --provider anthropic --model claude-3-opus
 
 # For cost-sensitive (with optimization)
-browser-pilot test.md --provider openai --model gpt-3.5-turbo --compression-level high
+browser-copilot test.md --provider openai --model gpt-3.5-turbo --compression-level high
 ```
 
 ## Browser Configuration
@@ -242,44 +242,44 @@ browser-pilot test.md --provider openai --model gpt-3.5-turbo --compression-leve
 #### Chromium/Chrome
 ```bash
 # Best compatibility
-browser-pilot test.md --browser chromium
+browser-copilot test.md --browser chromium
 
 # With extensions support
-browser-pilot test.md --browser chrome --no-isolated
+browser-copilot test.md --browser chrome --no-isolated
 ```
 
 #### Firefox
 ```bash
 # Better privacy
-browser-pilot test.md --browser firefox
+browser-copilot test.md --browser firefox
 
 # With specific profile
-FFIREFOX_PROFILE_PATH=/path/to/profile browser-pilot test.md --browser firefox
+FFIREFOX_PROFILE_PATH=/path/to/profile browser-copilot test.md --browser firefox
 ```
 
 #### Safari/WebKit
 ```bash
 # macOS testing
-browser-pilot test.md --browser safari  # or webkit
+browser-copilot test.md --browser safari  # or webkit
 
 # Mobile Safari emulation
-browser-pilot test.md --browser webkit --device "iPhone 12"
+browser-copilot test.md --browser webkit --device "iPhone 12"
 ```
 
 ### Mobile Device Emulation
 
 ```bash
 # iPhone testing
-browser-pilot test.md --device "iPhone 12 Pro"
-browser-pilot test.md --device "iPhone 13 Pro Max"
+browser-copilot test.md --device "iPhone 12 Pro"
+browser-copilot test.md --device "iPhone 13 Pro Max"
 
 # Android testing
-browser-pilot test.md --device "Pixel 5"
-browser-pilot test.md --device "Galaxy S21"
+browser-copilot test.md --device "Pixel 5"
+browser-copilot test.md --device "Galaxy S21"
 
 # Tablet testing
-browser-pilot test.md --device "iPad Pro"
-browser-pilot test.md --device "Galaxy Tab S7"
+browser-copilot test.md --device "iPad Pro"
+browser-copilot test.md --device "Galaxy Tab S7"
 
 # List all devices
 npx playwright devices
@@ -289,17 +289,17 @@ npx playwright devices
 
 ```bash
 # Desktop sizes
-browser-pilot test.md --viewport-width 1920 --viewport-height 1080  # Full HD
-browser-pilot test.md --viewport-width 2560 --viewport-height 1440  # 2K
-browser-pilot test.md --viewport-width 3840 --viewport-height 2160  # 4K
+browser-copilot test.md --viewport-width 1920 --viewport-height 1080  # Full HD
+browser-copilot test.md --viewport-width 2560 --viewport-height 1440  # 2K
+browser-copilot test.md --viewport-width 3840 --viewport-height 2160  # 4K
 
 # Mobile sizes
-browser-pilot test.md --viewport-width 375 --viewport-height 667   # iPhone 6/7/8
-browser-pilot test.md --viewport-width 414 --viewport-height 896   # iPhone XR/11
+browser-copilot test.md --viewport-width 375 --viewport-height 667   # iPhone 6/7/8
+browser-copilot test.md --viewport-width 414 --viewport-height 896   # iPhone XR/11
 
 # Tablet sizes
-browser-pilot test.md --viewport-width 768 --viewport-height 1024  # iPad
-browser-pilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
+browser-copilot test.md --viewport-width 768 --viewport-height 1024  # iPad
+browser-copilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
 ```
 
 ## Storage Configuration
@@ -307,7 +307,7 @@ browser-pilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
 ### Directory Structure
 
 ```
-~/.browser_pilot/
+~/.browser_copilot/
 ├── sessions/
 │   ├── test-name_20250126_143022/
 │   │   ├── reports/
@@ -319,7 +319,7 @@ browser-pilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
 │   │   └── logs/
 │   │       └── execution.log
 ├── logs/
-│   └── browser_pilot_20250126_143022.log
+│   └── browser_copilot_20250126_143022.log
 ├── settings/
 │   └── config.json
 ├── cache/
@@ -345,14 +345,14 @@ browser-pilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
 
 ```bash
 # Clean all old files
-browser-pilot --cleanup --cleanup-days 7
+browser-copilot --cleanup --cleanup-days 7
 
 # Clean specific types
-rm -rf ~/.browser_pilot/sessions/*/screenshots/
-rm -rf ~/.browser_pilot/logs/*.log
+rm -rf ~/.browser_copilot/sessions/*/screenshots/
+rm -rf ~/.browser_copilot/logs/*.log
 
 # Keep only recent sessions
-find ~/.browser_pilot/sessions -type d -mtime +30 -exec rm -rf {} +
+find ~/.browser_copilot/sessions -type d -mtime +30 -exec rm -rf {} +
 ```
 
 ## Performance Tuning
@@ -361,7 +361,7 @@ find ~/.browser_pilot/sessions -type d -mtime +30 -exec rm -rf {} +
 
 ```bash
 # Maximum performance (may reduce reliability)
-browser-pilot test.md \
+browser-copilot test.md \
   --compression-level high \
   --no-screenshots \
   --headless \
@@ -369,14 +369,14 @@ browser-pilot test.md \
   --model gpt-3.5-turbo
 
 # Balanced performance
-browser-pilot test.md \
+browser-copilot test.md \
   --compression-level medium \
   --headless \
   --viewport-width 1280 \
   --viewport-height 720
 
 # Maximum reliability (higher cost)
-browser-pilot test.md \
+browser-copilot test.md \
   --no-token-optimization \
   --verbose \
   --provider anthropic \
@@ -404,12 +404,12 @@ export BROWSER_PILOT_TIMEOUT=0
 ```bash
 # Run 3 tests in parallel
 for test in test1.md test2.md test3.md; do
-  browser-pilot "$test" --headless &
+  browser-copilot "$test" --headless &
 done
 wait
 
 # Using GNU parallel
-parallel -j 4 browser-pilot {} --headless ::: tests/*.md
+parallel -j 4 browser-copilot {} --headless ::: tests/*.md
 ```
 
 ## Custom System Prompts
@@ -468,14 +468,14 @@ Domain knowledge:
 
 ```bash
 # Single test
-browser-pilot test.md --system-prompt reliable-testing.txt
+browser-copilot test.md --system-prompt reliable-testing.txt
 
 # Set as default
 export BROWSER_PILOT_SYSTEM_PROMPT="/path/to/reliable-testing.txt"
 
 # Combine prompts
 cat general-rules.txt domain-specific.txt > combined-prompt.txt
-browser-pilot test.md --system-prompt combined-prompt.txt
+browser-copilot test.md --system-prompt combined-prompt.txt
 ```
 
 ## CI/CD Configuration
@@ -523,7 +523,7 @@ jobs:
     
     - name: Run tests
       run: |
-        uv run browser-pilot tests/smoke-test.md \
+        uv run browser-copilot tests/smoke-test.md \
           --headless \
           --output-format junit \
           --output-file test-results.xml \
@@ -536,8 +536,8 @@ jobs:
         name: test-results
         path: |
           test-results.xml
-          ~/.browser_pilot/sessions/*/reports/
-          ~/.browser_pilot/sessions/*/screenshots/
+          ~/.browser_copilot/sessions/*/reports/
+          ~/.browser_copilot/sessions/*/screenshots/
 ```
 
 ### Jenkins Pipeline
@@ -566,7 +566,7 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    uv run browser-pilot tests/*.md \
+                    uv run browser-copilot tests/*.md \
                         --output-format junit \
                         --output-file results.xml
                 '''
@@ -577,7 +577,7 @@ pipeline {
     post {
         always {
             junit 'results.xml'
-            archiveArtifacts artifacts: '~/.browser_pilot/sessions/*/reports/*'
+            archiveArtifacts artifacts: '~/.browser_copilot/sessions/*/reports/*'
         }
     }
 }
@@ -609,7 +609,7 @@ RUN uv sync
 RUN npx playwright install --with-deps chromium
 
 # Run tests
-CMD ["uv", "run", "browser-pilot", "test.md", "--headless"]
+CMD ["uv", "run", "browser-copilot", "test.md", "--headless"]
 ```
 
 ### Environment-Specific Configs
@@ -653,11 +653,11 @@ CMD ["uv", "run", "browser-pilot", "test.md", "--headless"]
 Usage:
 ```bash
 # Development
-browser-pilot test.md --config config.dev.json
+browser-copilot test.md --config config.dev.json
 
 # Staging
-browser-pilot test.md --config config.staging.json
+browser-copilot test.md --config config.staging.json
 
 # Production
-browser-pilot test.md --config config.prod.json
+browser-copilot test.md --config config.prod.json
 ```

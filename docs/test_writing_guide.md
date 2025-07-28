@@ -1,10 +1,10 @@
 # Test Writing Guide
 
-This guide covers best practices for writing effective test suites for Browser Pilot.
+This guide covers best practices for writing effective test suites for Browser Copilot.
 
 ## Test Structure
 
-Browser Pilot tests are written in Markdown format with numbered steps. Each test should have:
+Browser Copilot tests are written in Markdown format with numbered steps. Each test should have:
 
 1. **Clear Title**: Descriptive name for the test scenario
 2. **Numbered Steps**: Sequential actions to perform

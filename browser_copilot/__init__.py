@@ -1,12 +1,12 @@
 """
-Browser Pilot - AI-powered browser automation framework
+Browser Copilot - AI-powered browser automation copilot
 
 A streamlined approach to browser test automation using natural language
 test scenarios executed by AI agents.
 """
 
 __version__ = "1.0.1"
-__author__ = "Browser Pilot Team"
+__author__ = "Browser Copilot Team"
 
 from .cli import main as cli_main
 from .core import BrowserPilot

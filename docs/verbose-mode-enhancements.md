@@ -2,7 +2,7 @@
 
 ## Overview
 
-Enhanced verbose mode for Browser Pilot provides detailed step-by-step debugging information for QA engineers.
+Enhanced verbose mode for Browser Copilot provides detailed step-by-step debugging information for QA engineers.
 
 ## What's New
 
@@ -64,18 +64,18 @@ For each tool invocation:
 
 ```bash
 # Enable verbose mode
-browser-pilot test.md --verbose
+browser-copilot test.md --verbose
 
 # Combine with other options
-browser-pilot test.md --verbose --headless --output-format json
+browser-copilot test.md --verbose --headless --output-format json
 ```
 
 ## Log Files
 
 Verbose logs are saved to:
-- **macOS**: `~/Library/Application Support/browser_pilot/logs/`
-- **Windows**: `%LOCALAPPDATA%\browser_pilot\logs\`
-- **Linux**: `~/.browser_pilot/logs/`
+- **macOS**: `~/Library/Application Support/browser_copilot/logs/`
+- **Windows**: `%LOCALAPPDATA%\browser_copilot\logs\`
+- **Linux**: `~/.browser_copilot/logs/`
 
 Log files include:
 - Timestamp for each action

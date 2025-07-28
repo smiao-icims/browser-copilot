@@ -1,5 +1,5 @@
 """
-Command-line interface for Browser Pilot
+Command-line interface for Browser Copilot
 
 This module provides the CLI entry point for running browser
 automation tests from the command line.
@@ -50,7 +50,7 @@ def _normalize_test_name_for_path(test_name: str) -> str:
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
-        description="Browser Pilot - AI-powered browser test automation",
+        description="Browser Copilot - AI-powered browser test automation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -303,8 +303,8 @@ async def run_test_async(args: argparse.Namespace) -> int:
         stream.write("Provider and model must be specified", "error")
         return 1
 
-    # Initialize Browser Pilot
-    stream.write(f"Initializing Browser Pilot with {provider}/{model}", "info")
+    # Initialize Browser Copilot
+    stream.write(f"Initializing Browser Copilot with {provider}/{model}", "info")
 
     try:
         pilot = BrowserPilot(
@@ -315,7 +315,7 @@ async def run_test_async(args: argparse.Namespace) -> int:
             stream=stream,
         )
     except Exception as e:
-        stream.write(f"Failed to initialize Browser Pilot: {e}", "error")
+        stream.write(f"Failed to initialize Browser Copilot: {e}", "error")
         return 1
 
     # Execute test
@@ -414,7 +414,7 @@ async def run_test_async(args: argparse.Namespace) -> int:
         duration = result.get("duration_seconds", 0)
 
         console_summary = f"""
-# Browser Pilot Test Report
+# Browser Copilot Test Report
 
 ## Test Summary
 
@@ -554,7 +554,7 @@ def handle_cleanup(args: argparse.Namespace) -> int:
     """
     storage = StorageManager()
 
-    print("\n🧹 Browser Pilot Cleanup")
+    print("\n🧹 Browser Copilot Cleanup")
     print("=" * 40)
 
     try:

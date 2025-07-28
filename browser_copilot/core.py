@@ -1,5 +1,5 @@
 """
-Core browser automation engine for Browser Pilot
+Core browser automation engine for Browser Copilot
 
 This module contains the main BrowserPilot class that orchestrates
 AI-powered browser test automation.

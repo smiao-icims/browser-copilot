@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-This document describes the technical design for implementing custom exceptions in Browser Pilot, including class hierarchy, implementation patterns, and integration approach.
+This document describes the technical design for implementing custom exceptions in Browser Copilot, including class hierarchy, implementation patterns, and integration approach.
 
 ## 2. Architecture
 
@@ -38,14 +38,14 @@ BrowserPilotError (base)
 ### 2.2 Base Exception Class
 
 ```python
-# browser_pilot/exceptions.py
+# browser_copilot/exceptions.py
 
 from typing import Any, Optional
 import json
 from datetime import datetime
 
 class BrowserPilotError(Exception):
-    """Base exception for all Browser Pilot errors.
+    """Base exception for all Browser Copilot errors.
     
     Provides context information and optional suggestions for resolution.
     """

@@ -1,5 +1,5 @@
 """
-Input/Output Handlers for Browser Pilot
+Input/Output Handlers for Browser Copilot
 
 Manages reading test scenarios from various sources and formatting output.
 """
@@ -234,7 +234,7 @@ class OutputHandler:
             testsuites,
             "testsuite",
             {
-                "name": "Browser Pilot Tests",
+                "name": "Browser Copilot Tests",
                 "tests": "1",
                 "failures": "1" if status == "failed" else "0",
                 "errors": "1" if status == "error" else "0",
@@ -284,7 +284,7 @@ class OutputHandler:
         html = f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>Browser Pilot Test Report</title>
+    <title>Browser Copilot Test Report</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
         .header {{ background-color: #f8f9fa; padding: 20px; border-radius: 5px; }}
@@ -298,7 +298,7 @@ class OutputHandler:
 </head>
 <body>
     <div class="header">
-        <h1>Browser Pilot Test Report</h1>
+        <h1>Browser Copilot Test Report</h1>
         <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
     </div>
     
@@ -393,7 +393,7 @@ class OutputHandler:
             )
             execution_time_info = f"- **Duration:** {duration:.2f} seconds"
 
-        md = f"""# Browser Pilot Test Report
+        md = f"""# Browser Copilot Test Report
 
 ## Test Summary
 

@@ -1,48 +1,48 @@
-# Browser Pilot 🎯
+# Browser Copilot 🎯
 
 A streamlined browser automation framework that uses AI-powered agents to execute natural language test scenarios.
 
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://badge.fury.io/py/browser-pilot-llm.svg)](https://pypi.org/project/browser-pilot-llm/)
-[![CI Status](https://github.com/smiao-icims/browser-pilot/workflows/CI/badge.svg)](https://github.com/smiao-icims/browser-pilot/actions)
+[![PyPI Version](https://badge.fury.io/py/browser-copilot-llm.svg)](https://pypi.org/project/browser-copilot-llm/)
+[![CI Status](https://github.com/smiao-icims/browser-copilot/workflows/CI/badge.svg)](https://github.com/smiao-icims/browser-copilot/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Code Coverage](https://codecov.io/gh/smiao-icims/browser-pilot/branch/main/graph/badge.svg)](https://codecov.io/gh/smiao-icims/browser-pilot)
+[![Code Coverage](https://codecov.io/gh/smiao-icims/browser-copilot/branch/main/graph/badge.svg)](https://codecov.io/gh/smiao-icims/browser-copilot)
 
 ## 🎯 Getting Started in 3 Minutes
 
 ### Option 1: Install from PyPI (Recommended)
 ```bash
-# 1. Install Browser Pilot from PyPI
-pip install browser-pilot-llm
+# 1. Install Browser Copilot from PyPI
+pip install browser-copilot-llm
 
 # 2. Run the setup wizard (2 minutes)
-browser-pilot --setup-wizard
+browser-copilot --setup-wizard
 
 # 3. Create a test file (test.md)
 cat > test.md << 'EOF'
 # My First Test
 1. Go to https://www.google.com
-2. Search for "Browser Pilot AI testing"
+2. Search for "Browser Copilot AI testing"
 3. Click on the first result
 4. Take a screenshot
 EOF
 
 # 4. Run your test!
-browser-pilot test.md
+browser-copilot test.md
 ```
 
 ### Option 2: Install from Source
 ```bash
 # 1. Clone and install
-git clone https://github.com/smiao-icims/browser-pilot.git
-cd browser-pilot
+git clone https://github.com/smiao-icims/browser-copilot.git
+cd browser-copilot
 uv sync
 
 # 2. Run the setup wizard
-uv run browser-pilot --setup-wizard
+uv run browser-copilot --setup-wizard
 
 # 3. Create and run your test
-uv run browser-pilot test.md
+uv run browser-copilot test.md
 ```
 
 That's it! You've just automated your first browser test. 🎉
@@ -63,22 +63,22 @@ That's it! You've just automated your first browser test. 🎉
 
 ## 🚀 Quick Start - Get Testing in 3 Minutes!
 
-### 1️⃣ Install Browser Pilot
+### 1️⃣ Install Browser Copilot
 
 #### Option A: Install from PyPI (Recommended)
 ```bash
 # Install with pip
-pip install browser-pilot-llm
+pip install browser-copilot-llm
 
 # Or with uv (faster)
-uv pip install browser-pilot-llm
+uv pip install browser-copilot-llm
 ```
 
 #### Option B: Install from Source
 ```bash
 # Clone and install
-git clone https://github.com/smiao-icims/browser-pilot.git
-cd browser-pilot
+git clone https://github.com/smiao-icims/browser-copilot.git
+cd browser-copilot
 curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv if needed
 uv sync  # Install dependencies
 ```
@@ -87,10 +87,10 @@ uv sync  # Install dependencies
 
 ```bash
 # If installed from PyPI:
-browser-pilot --setup-wizard
+browser-copilot --setup-wizard
 
 # If installed from source:
-uv run browser-pilot --setup-wizard
+uv run browser-copilot --setup-wizard
 ```
 
 The wizard will guide you through:
@@ -116,10 +116,10 @@ Create a file `my-test.md` with natural language instructions:
 
 ```bash
 # If installed from PyPI:
-browser-pilot my-test.md
+browser-copilot my-test.md
 
 # If installed from source:
-uv run browser-pilot my-test.md
+uv run browser-copilot my-test.md
 
 # That's it! 🎉 You've just automated your first browser test.
 ```
@@ -129,17 +129,17 @@ uv run browser-pilot my-test.md
 > **Note**: If you installed from PyPI, first download the examples:
 > ```bash
 > # Download examples
-> curl -O https://raw.githubusercontent.com/smiao-icims/browser-pilot/main/examples/saucedemo-shopping.md
-> curl -O https://raw.githubusercontent.com/smiao-icims/browser-pilot/main/examples/google-ai-search.md
+> curl -O https://raw.githubusercontent.com/smiao-icims/browser-copilot/main/examples/saucedemo-shopping.md
+> curl -O https://raw.githubusercontent.com/smiao-icims/browser-copilot/main/examples/google-ai-search.md
 > ```
 
 #### E-commerce Shopping Flow
 ```bash
 # Run a complete shopping cart test
-browser-pilot saucedemo-shopping.md
+browser-copilot saucedemo-shopping.md
 
 # Or from source repository:
-uv run browser-pilot examples/saucedemo-shopping.md
+uv run browser-copilot examples/saucedemo-shopping.md
 ```
 
 This example demonstrates:
@@ -151,10 +151,10 @@ This example demonstrates:
 #### AI-Powered Search
 ```bash
 # Test Google's AI search features
-browser-pilot google-ai-search.md
+browser-copilot google-ai-search.md
 
 # Or from source repository:
-uv run browser-pilot examples/google-ai-search.md
+uv run browser-copilot examples/google-ai-search.md
 ```
 
 This example shows:
@@ -169,9 +169,9 @@ This example shows:
 
 ```bash
 # Save typing with an alias
-alias bp="browser-pilot"  # For PyPI installation
+alias bp="browser-copilot"  # For PyPI installation
 # or
-alias bp="uv run browser-pilot"  # For source installation
+alias bp="uv run browser-copilot"  # For source installation
 
 # Run any test headless
 bp your-test.md --headless
@@ -210,7 +210,7 @@ Tests are written in simple markdown format with numbered steps:
 
 ```
 ╔═══════════════════════════════════════════╗
-║      Browser Pilot v2.0                   ║
+║      Browser Copilot v2.0                   ║
 ║   Simple • Reliable • Token Efficient     ║
 ╚═══════════════════════════════════════════╝
 
@@ -251,39 +251,39 @@ Steps: 15
 ### 🔍 Enhanced Verbose Mode
 ```bash
 # Enable detailed step-by-step logging
-browser-pilot test.md --verbose
+browser-copilot test.md --verbose
 
-# Logs are saved to ~/.browser_pilot/logs/
+# Logs are saved to ~/.browser_copilot/logs/
 # Both console and file output for debugging
 ```
 
 ### 💰 Token Optimization
 ```bash
 # Control optimization level
-browser-pilot test.md --compression-level high  # 30% reduction
-browser-pilot test.md --compression-level medium # 20% reduction (default)
-browser-pilot test.md --compression-level low   # 10% reduction
-browser-pilot test.md --no-token-optimization   # Disable
+browser-copilot test.md --compression-level high  # 30% reduction
+browser-copilot test.md --compression-level medium # 20% reduction (default)
+browser-copilot test.md --compression-level low   # 10% reduction
+browser-copilot test.md --no-token-optimization   # Disable
 ```
 
 ### 📤 Flexible Output Options
 ```bash
 # Different output formats
-browser-pilot test.md --output-format json
-browser-pilot test.md --output-format yaml
-browser-pilot test.md --output-format xml
-browser-pilot test.md --output-format junit
-browser-pilot test.md --output-format html
-browser-pilot test.md --output-format markdown
+browser-copilot test.md --output-format json
+browser-copilot test.md --output-format yaml
+browser-copilot test.md --output-format xml
+browser-copilot test.md --output-format junit
+browser-copilot test.md --output-format html
+browser-copilot test.md --output-format markdown
 
 # Output to file instead of console
-browser-pilot test.md --output-file results.json
+browser-copilot test.md --output-file results.json
 ```
 
 ### 🎛️ Custom System Prompts
 ```bash
 # Use custom instructions
-browser-pilot test.md --system-prompt custom-prompt.txt
+browser-copilot test.md --system-prompt custom-prompt.txt
 
 # Example prompt file:
 cat > prompt.txt << EOF
@@ -296,10 +296,10 @@ EOF
 ### 🔧 Configuration Management
 ```bash
 # Save current settings as defaults
-browser-pilot test.md --provider openai --model gpt-4 --save-config
+browser-copilot test.md --provider openai --model gpt-4 --save-config
 
 # Use custom config file
-browser-pilot test.md --config my-config.json
+browser-copilot test.md --config my-config.json
 
 # Environment variables (override config file)
 export BROWSER_PILOT_PROVIDER=anthropic
@@ -346,7 +346,7 @@ options:
 ### Setting up ModelForge
 
 ```bash
-# ModelForge is already installed with Browser Pilot (via model-forge-llm package)
+# ModelForge is already installed with Browser Copilot (via model-forge-llm package)
 # Just configure a provider:
 
 # Configure a provider (e.g., GitHub Copilot)
@@ -359,7 +359,7 @@ modelforge config show
 ## 📁 Project Structure
 
 ```
-browser-pilot/
+browser-copilot/
 ├── browser_pilot/          # Main package
 │   ├── __init__.py
 │   ├── __main__.py        # CLI entry point
@@ -382,15 +382,15 @@ browser-pilot/
 
 ## 📂 Local Storage
 
-Browser Pilot stores data in platform-specific locations:
+Browser Copilot stores data in platform-specific locations:
 
 - **macOS**: `~/Library/Application Support/browser_pilot/`
 - **Windows**: `%LOCALAPPDATA%\browser_pilot\`
-- **Linux**: `~/.browser_pilot/`
+- **Linux**: `~/.browser_copilot/`
 
 Storage structure:
 ```
-~/.browser_pilot/
+~/.browser_copilot/
 ├── logs/         # Verbose execution logs
 ├── settings/     # Configuration files
 ├── reports/      # Test reports
@@ -430,12 +430,12 @@ AI-powered search testing:
 Run any example:
 ```bash
 # With PyPI installation (after downloading examples):
-browser-pilot saucedemo-shopping.md
-browser-pilot google-ai-search.md --headless
+browser-copilot saucedemo-shopping.md
+browser-copilot google-ai-search.md --headless
 
 # With source installation:
-uv run browser-pilot examples/saucedemo-shopping.md
-uv run browser-pilot examples/google-ai-search.md --headless
+uv run browser-copilot examples/saucedemo-shopping.md
+uv run browser-copilot examples/google-ai-search.md --headless
 ```
 
 ## 🤝 Contributing
@@ -467,7 +467,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <p align="center">
-  <strong>Browser Pilot</strong> - Making browser testing as easy as writing a todo list 📝
+  <strong>Browser Copilot</strong> - Making browser testing as easy as writing a todo list 📝
   <br>
-  Made with ❤️ by the Browser Pilot Team
+  Made with ❤️ by the Browser Copilot Team
 </p>

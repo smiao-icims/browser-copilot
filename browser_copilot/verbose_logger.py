@@ -1,5 +1,5 @@
 """
-Verbose Logger for Browser Pilot
+Verbose Logger for Browser Copilot
 
 Provides enhanced logging with dual output (console + file) for debugging.
 """
@@ -19,7 +19,7 @@ try:
 except ImportError:
     # For standalone testing
     try:
-        from browser_pilot.storage_manager import StorageManager
+        from browser_copilot.storage_manager import StorageManager
     except ImportError:
         # For unit testing
         from storage_manager import (  # type: ignore[no-redef]
@@ -54,7 +54,7 @@ class VerboseLogger:
         # Create unique log file for this session
         self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.log_file = (
-            self.storage.get_logs_dir() / f"browser_pilot_{self.session_id}.log"
+            self.storage.get_logs_dir() / f"browser_copilot_{self.session_id}.log"
         )
 
         # Setup loggers
@@ -67,7 +67,7 @@ class VerboseLogger:
 
     def _setup_logger(self) -> None:
         """Configure Python logging with dual outputs"""
-        self.logger = logging.getLogger(f"browser_pilot_{self.session_id}")
+        self.logger = logging.getLogger(f"browser_copilot_{self.session_id}")
         self.logger.setLevel(self.log_level)
         self.logger.handlers.clear()  # Clear any existing handlers
 

@@ -1,5 +1,5 @@
 """
-Main entry point for browser_pilot module
+Main entry point for browser_copilot module
 """
 
 from .cli import main

@@ -1,5 +1,5 @@
 """
-Test Suite Enhancer for Browser Pilot
+Test Suite Enhancer for Browser Copilot
 
 Placeholder module for future test enhancement capabilities.
 Currently returns input unchanged (no-op implementation).
@@ -11,8 +11,8 @@ try:
 except ImportError:
     # For standalone testing
     try:
-        from browser_pilot.config_manager import ConfigManager
-        from browser_pilot.token_optimizer import OptimizationLevel, TokenOptimizer
+        from browser_copilot.config_manager import ConfigManager
+        from browser_copilot.token_optimizer import OptimizationLevel, TokenOptimizer
     except ImportError:
         # For unit testing
         from config_manager import (  # type: ignore[no-redef]

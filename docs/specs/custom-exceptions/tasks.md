@@ -13,7 +13,7 @@ This document breaks down the implementation of custom exceptions into specific,
 **Estimate**: 2 hours  
 **Assignee**: TBD
 
-- [ ] Create `browser_pilot/exceptions.py`
+- [ ] Create `browser_copilot/exceptions.py`
 - [ ] Create `tests/test_exceptions.py`
 - [ ] Add exceptions module to `__init__.py` exports
 - [ ] Create basic project structure
@@ -172,7 +172,7 @@ This document breaks down the implementation of custom exceptions into specific,
 - [ ] Verify no breaking changes
 
 **Files to update**:
-- `browser_pilot/cli.py`
+- `browser_copilot/cli.py`
 - `tests/test_cli.py`
 
 **Acceptance Criteria**:
@@ -192,7 +192,7 @@ This document breaks down the implementation of custom exceptions into specific,
 - [ ] Maintain compatibility
 
 **Files to update**:
-- `browser_pilot/core.py`
+- `browser_copilot/core.py`
 - `tests/test_core.py`
 
 **Acceptance Criteria**:
@@ -211,7 +211,7 @@ This document breaks down the implementation of custom exceptions into specific,
 - [ ] Update error messages
 
 **Files to update**:
-- `browser_pilot/config_manager.py`
+- `browser_copilot/config_manager.py`
 - `tests/test_config_manager.py`
 
 ### Phase 5: Documentation (Sprint 3)

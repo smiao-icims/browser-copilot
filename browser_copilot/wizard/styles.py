@@ -2,7 +2,7 @@
 
 from prompt_toolkit.styles import Style
 
-# Browser Pilot branded color scheme
+# Browser Copilot branded color scheme
 BROWSER_PILOT_STYLE = Style(
     [
         ("qmark", "fg:#0084ff bold"),  # Question mark (blue)

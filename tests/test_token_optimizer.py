@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 
 # Add parent directory to path to import modules directly
-sys.path.insert(0, str(Path(__file__).parent.parent / "browser_pilot"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "browser_copilot"))
 from token_optimizer import OptimizationLevel, OptimizationPresets, TokenOptimizer
 
 
@@ -242,7 +242,7 @@ class TestTokenOptimizer:
             unknown_preset["level"] == OptimizationLevel.MEDIUM
         )  # Falls back to balanced
 
-    @patch("browser_pilot.token_optimizer.LANGCHAIN_AVAILABLE", True)
+    @patch("browser_copilot.token_optimizer.LANGCHAIN_AVAILABLE", True)
     def test_langchain_message_optimization(self, mock_langchain_imports):
         """Test optimization of LangChain messages"""
         # Since we can't easily mock the isinstance checks for langchain types,

@@ -1,7 +1,7 @@
-# Model-Forge Enhancement Requirements from Browser Pilot
+# Model-Forge Enhancement Requirements from Browser Copilot
 
 ## Overview
-Browser Pilot needs enhanced model metadata and configuration capabilities from model-forge to provide better insights and control for QA engineers using LLM-powered test automation.
+Browser Copilot needs enhanced model metadata and configuration capabilities from model-forge to provide better insights and control for QA engineers using LLM-powered test automation.
 
 ## Core Requirements
 
@@ -90,11 +90,11 @@ def estimate_cost(self, input_tokens: int, output_tokens: int) -> float:
     pass
 ```
 
-## Use Cases in Browser Pilot
+## Use Cases in Browser Copilot
 
 ### 1. Context Length Awareness
 ```python
-# Browser Pilot can warn users about context limits
+# Browser Copilot can warn users about context limits
 llm = registry.get_llm("github_copilot", "gpt-4o")
 context_limit = llm.context_length  # 128000
 if prompt_tokens > context_limit * 0.8:
@@ -156,4 +156,4 @@ else:
 3. Expose via properties and methods
 4. Add parameter setters that work across all providers
 
-This enhancement will make Browser Pilot more intelligent about model selection, cost management, and test optimization.
+This enhancement will make Browser Copilot more intelligent about model selection, cost management, and test optimization.

@@ -13,7 +13,7 @@ This document breaks down the CLI refactoring into specific tasks with clear del
 **Estimate**: 2 hours  
 **Assignee**: TBD
 
-- [ ] Create `browser_pilot/cli/` directory
+- [ ] Create `browser_copilot/cli/` directory
 - [ ] Create subdirectories: `handlers/`, `validators/`, `loaders/`, `executors/`, `reporters/`, `formatters/`, `models/`, `utils/`
 - [ ] Add `__init__.py` files to all directories
 - [ ] Update imports in main `cli.py`

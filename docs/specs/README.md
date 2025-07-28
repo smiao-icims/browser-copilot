@@ -1,6 +1,6 @@
-# Browser Pilot Refactoring Specifications
+# Browser Copilot Refactoring Specifications
 
-This directory contains detailed specifications for refactoring Browser Pilot following a specs-driven development approach. Each feature has its own directory with requirements, design, and tasks documents.
+This directory contains detailed specifications for refactoring Browser Copilot following a specs-driven development approach. Each feature has its own directory with requirements, design, and tasks documents.
 
 ## 📋 Specification Structure
 
@@ -58,7 +58,7 @@ Implement context managers for proper cleanup.
 
 ```mermaid
 gantt
-    title Browser Pilot Refactoring Timeline
+    title Browser Copilot Refactoring Timeline
     dateFormat  YYYY-MM-DD
     section Phase 1
     Custom Exceptions    :a1, 2024-01-01, 2w

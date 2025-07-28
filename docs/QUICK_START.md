@@ -1,6 +1,6 @@
-# Browser Pilot Quick Start Guide 🚀
+# Browser Copilot Quick Start Guide 🚀
 
-Get up and running with Browser Pilot in 3 minutes! This guide shows you the fastest way to start testing.
+Get up and running with Browser Copilot in 3 minutes! This guide shows you the fastest way to start testing.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -30,12 +30,12 @@ uv --version      # Should show version
 
 ## 🎯 The 3-Minute Setup
 
-### Step 1: Install Browser Pilot
+### Step 1: Install Browser Copilot
 
 ```bash
 # Clone the repository
-git clone https://github.com/smiao-icims/browser-pilot.git
-cd browser-pilot
+git clone https://github.com/smiao-icims/browser-copilot.git
+cd browser-copilot
 
 # Install dependencies with uv
 uv sync
@@ -44,7 +44,7 @@ uv sync
 ### Step 2: Run the Setup Wizard
 
 ```bash
-uv run browser-pilot --setup-wizard
+uv run browser-copilot --setup-wizard
 ```
 
 The interactive wizard will:
@@ -70,10 +70,10 @@ Create a file called `test.md` with natural language instructions:
 ### Step 4: Run Your Test!
 
 ```bash
-uv run browser-pilot test.md
+uv run browser-copilot test.md
 ```
 
-That's it! You should see Browser Pilot:
+That's it! You should see Browser Copilot:
 1. Open a browser window
 2. Navigate to example.com
 3. Verify the title
@@ -82,7 +82,7 @@ That's it! You should see Browser Pilot:
 
 ## 📝 Writing Tests in Natural Language
 
-Browser Pilot understands tests written in plain English. Just number your steps:
+Browser Copilot understands tests written in plain English. Just number your steps:
 
 ### Example: Wikipedia Search Test
 
@@ -113,16 +113,16 @@ Browser Pilot understands tests written in plain English. Just number your steps
 
 ```bash
 # Basic run (with browser window)
-uv run browser-pilot wikipedia-test.md
+uv run browser-copilot wikipedia-test.md
 
 # Run headless (no browser window)
-uv run browser-pilot wikipedia-test.md --headless
+uv run browser-copilot wikipedia-test.md --headless
 
 # Run with detailed debugging
-uv run browser-pilot wikipedia-test.md --verbose
+uv run browser-copilot wikipedia-test.md --verbose
 
 # Generate HTML report
-uv run browser-pilot wikipedia-test.md --output-format html --output-file report.html
+uv run browser-copilot wikipedia-test.md --output-format html --output-file report.html
 ```
 
 ## Common Use Cases
@@ -133,10 +133,10 @@ We provide a complete e-commerce example that you can run immediately:
 
 ```bash
 # Run the SauceDemo shopping example
-uv run browser-pilot examples/saucedemo-shopping.md
+uv run browser-copilot examples/saucedemo-shopping.md
 
 # Run it headless with HTML report
-uv run browser-pilot examples/saucedemo-shopping.md --headless --output-format html --output-file report.html
+uv run browser-copilot examples/saucedemo-shopping.md --headless --output-format html --output-file report.html
 ```
 
 **What this example tests:**
@@ -160,7 +160,7 @@ uv run browser-pilot examples/saucedemo-shopping.md --headless --output-format h
 5. Click on the "Email" field
 6. Type "john.doe@example.com"
 7. Click on the "Message" field
-8. Type "This is a test message from Browser Pilot"
+8. Type "This is a test message from Browser Copilot"
 9. Click the "Submit" button
 10. Wait for confirmation message
 11. Verify "Thank you" message appears
@@ -190,10 +190,10 @@ Test modern AI search features with our Google AI example:
 
 ```bash
 # Run the Google AI search example
-uv run browser-pilot examples/google-ai-search.md
+uv run browser-copilot examples/google-ai-search.md
 
 # Try with your own search query
-uv run browser-pilot examples/google-ai-search.md --verbose
+uv run browser-copilot examples/google-ai-search.md --verbose
 ```
 
 **What this example demonstrates:**
@@ -211,9 +211,9 @@ uv run browser-pilot examples/google-ai-search.md --verbose
 
 ```bash
 # Add to your ~/.bashrc or ~/.zshrc
-alias bp="uv run browser-pilot"
-alias bph="uv run browser-pilot --headless"
-alias bpv="uv run browser-pilot --verbose"
+alias bp="uv run browser-copilot"
+alias bph="uv run browser-copilot --headless"
+alias bpv="uv run browser-copilot --verbose"
 
 # Usage
 bp my-test.md
@@ -279,7 +279,7 @@ bp failed-test.md --verbose --no-token-optimization
 bp failed-test.md --save-trace --save-session
 
 # Check logs
-cat ~/Library/Application\ Support/browser_pilot/logs/browser_pilot_*.log
+cat ~/Library/Application\ Support/browser_copilot/logs/browser_copilot_*.log
 ```
 
 ### 6. CI/CD Integration
@@ -311,7 +311,7 @@ done
 
 ## Getting Help
 
-- **Issue with Browser Pilot?** Check our [GitHub Issues](https://github.com/smiao-icims/browser-pilot/issues)
+- **Issue with Browser Copilot?** Check our [GitHub Issues](https://github.com/smiao-icims/browser-copilot/issues)
 - **ModelForge Problems?** Run `uv run modelforge config check`
 - **Playwright Issues?** Try `npx playwright install`
 

@@ -1,5 +1,5 @@
 """
-Storage Manager for Browser Pilot
+Storage Manager for Browser Copilot
 
 Manages local storage for logs, settings, memory, and other persistent data.
 Cross-platform compatible (Windows, macOS, Linux).
@@ -15,7 +15,7 @@ from typing import Any
 
 
 class StorageManager:
-    """Manages local storage for Browser Pilot with cross-platform support"""
+    """Manages local storage for Browser Copilot with cross-platform support"""
 
     def __init__(self, base_dir: Path | None = None):
         """
@@ -30,7 +30,7 @@ class StorageManager:
 
     def _get_default_base_dir(self) -> Path:
         """
-        Get default storage directory - using ~/.browser_pilot for all platforms
+        Get default storage directory - using ~/.browser_copilot for all platforms
 
         This provides:
         - Consistency across all platforms
@@ -39,9 +39,9 @@ class StorageManager:
         - Simple to remember and type
 
         Returns:
-            Path to ~/.browser_pilot directory
+            Path to ~/.browser_copilot directory
         """
-        return Path.home() / ".browser_pilot"
+        return Path.home() / ".browser_copilot"
 
     def _ensure_directory_structure(self) -> None:
         """Create necessary directories with proper permissions"""

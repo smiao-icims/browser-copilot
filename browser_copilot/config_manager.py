@@ -1,10 +1,10 @@
 """
-Configuration Manager for Browser Pilot
+Configuration Manager for Browser Copilot
 
 Manages configuration settings with priority order:
 1. Command-line arguments (highest priority)
 2. Environment variables
-3. Config file (~/.browser_pilot/settings/config.json)
+3. Config file (~/.browser_copilot/settings/config.json)
 4. Smart defaults (lowest priority)
 """
 
@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from browser_pilot.storage_manager import StorageManager
+    from browser_copilot.storage_manager import StorageManager
 except ImportError:
     # For testing, when imported directly
     from storage_manager import StorageManager  # type: ignore[no-redef]
@@ -364,7 +364,7 @@ class ConfigManager:
         if self._config_cache:
             return True
 
-        # Check for any Browser Pilot environment variables
+        # Check for any Browser Copilot environment variables
         for env_key in os.environ:
             if env_key.startswith(self.ENV_PREFIX):
                 return True

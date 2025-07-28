@@ -1,4 +1,4 @@
-# Browser Pilot MVP Implementation Tasks
+# Browser Copilot MVP Implementation Tasks
 
 **Date**: January 26, 2025  
 **Version**: 1.0  
@@ -87,7 +87,7 @@
 - [ ] Create unit tests for both classes
 
 **Acceptance Criteria**:
-- ~/.browser_pilot/ directory structure created
+- ~/.browser_copilot/ directory structure created
 - Logs saved to both console and file
 - Console shows color-coded output
 - File contains JSON-structured logs

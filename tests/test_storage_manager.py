@@ -14,7 +14,7 @@ from unittest.mock import patch
 import pytest
 
 # Add parent directory to path to import storage_manager directly
-sys.path.insert(0, str(Path(__file__).parent.parent / "browser_pilot"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "browser_copilot"))
 from storage_manager import StorageManager
 
 
@@ -43,8 +43,8 @@ class TestStorageManager:
             os.environ, {"LOCALAPPDATA": "C:\\Users\\Test\\AppData\\Local"}
         ):
             storage = StorageManager()
-            # Implementation uses ~/.browser_pilot for all platforms for consistency
-            expected = Path.home() / ".browser_pilot"
+            # Implementation uses ~/.browser_copilot for all platforms for consistency
+            expected = Path.home() / ".browser_copilot"
             assert storage.base_dir == expected
 
     @patch("platform.system")
@@ -54,8 +54,8 @@ class TestStorageManager:
 
         with patch("pathlib.Path.home", return_value=Path("/Users/test")):
             storage = StorageManager()
-            # Implementation uses ~/.browser_pilot for all platforms for consistency
-            expected = Path("/Users/test/.browser_pilot")
+            # Implementation uses ~/.browser_copilot for all platforms for consistency
+            expected = Path("/Users/test/.browser_copilot")
             assert storage.base_dir == expected
 
     @patch("platform.system")
@@ -65,7 +65,7 @@ class TestStorageManager:
 
         with patch("pathlib.Path.home", return_value=Path("/home/test")):
             storage = StorageManager()
-            expected = Path("/home/test/.browser_pilot")
+            expected = Path("/home/test/.browser_copilot")
             assert storage.base_dir == expected
 
     def test_save_and_get_setting(self, temp_dir):

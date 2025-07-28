@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-This document defines requirements for implementing a custom exception hierarchy in Browser Pilot to replace generic exceptions with domain-specific ones that provide better context and debugging information.
+This document defines requirements for implementing a custom exception hierarchy in Browser Copilot to replace generic exceptions with domain-specific ones that provide better context and debugging information.
 
 ## 2. Goals
 

@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 # Add parent directory to path to import modules directly
-sys.path.insert(0, str(Path(__file__).parent.parent / "browser_pilot"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "browser_copilot"))
 import reporter
 from config_manager import ConfigManager
 from io_handlers import InputHandler, OutputHandler

@@ -1,6 +1,6 @@
-# Browser Pilot Configuration Wizard Guide 🎯
+# Browser Copilot Configuration Wizard Guide 🎯
 
-The Browser Pilot Configuration Wizard provides an interactive, user-friendly way to set up Browser Pilot in less than 2 minutes. No prior knowledge of LLM providers or configuration files required!
+The Browser Copilot Configuration Wizard provides an interactive, user-friendly way to set up Browser Copilot in less than 2 minutes. No prior knowledge of LLM providers or configuration files required!
 
 ## Table of Contents
 
@@ -16,16 +16,16 @@ The Browser Pilot Configuration Wizard provides an interactive, user-friendly wa
 
 ### First-Time Setup
 
-If you're running Browser Pilot for the first time without any configuration, you'll be prompted automatically:
+If you're running Browser Copilot for the first time without any configuration, you'll be prompted automatically:
 
 ```bash
-browser-pilot examples/google-ai-search.md
+browser-copilot examples/google-ai-search.md
 
 # Output:
 ⚠️  No configuration found.
 
 Would you like to run the setup wizard? It takes less than 2 minutes.
-You can also run it anytime with: browser-pilot --setup-wizard
+You can also run it anytime with: browser-copilot --setup-wizard
 
 Run setup wizard now? [Y/n]: y
 ```
@@ -35,7 +35,7 @@ Run setup wizard now? [Y/n]: y
 You can run the wizard anytime:
 
 ```bash
-browser-pilot --setup-wizard
+browser-copilot --setup-wizard
 ```
 
 ## What the Wizard Does
@@ -64,11 +64,11 @@ The wizard helps you:
 
 ```
 ╔═══════════════════════════════════════════╗
-║      🎯 Browser Pilot Setup Wizard        ║
+║      🎯 Browser Copilot Setup Wizard        ║
 ║   Simple • Reliable • Token Efficient     ║
 ╚═══════════════════════════════════════════╝
 
-This wizard will help you set up Browser Pilot in less than 2 minutes.
+This wizard will help you set up Browser Copilot in less than 2 minutes.
 You can press Enter to accept defaults or use arrow keys to change selections.
 
 Ready to begin setup? (Y/n) ▏
@@ -216,7 +216,7 @@ Viewport:        1920x1080
 
 Save this configuration? [Y/n]: y
 
-✅ Configuration saved to: /Users/you/.browser_pilot/settings/config.json
+✅ Configuration saved to: /Users/you/.browser_copilot/settings/config.json
 ```
 
 ### Step 10: Next Steps
@@ -227,22 +227,22 @@ Save this configuration? [Y/n]: y
 You're ready to start testing. Try:
 
 1. Quick test:
-   browser-pilot --quick-test
+   browser-copilot --quick-test
 
 2. Run an example:
-   browser-pilot examples/google-ai-search.md
+   browser-copilot examples/google-ai-search.md
 
 3. Create your own test:
-   echo "Navigate to example.com and verify the title" | browser-pilot -
+   echo "Navigate to example.com and verify the title" | browser-copilot -
 
-Need help? Run: browser-pilot --help
+Need help? Run: browser-copilot --help
 ```
 
 ## Common Scenarios
 
 ### Scenario 1: New User with GitHub Account
 
-1. Run `browser-pilot --setup-wizard`
+1. Run `browser-copilot --setup-wizard`
 2. Select `github_copilot` (already highlighted)
 3. Select `gpt-4o` model
 4. Complete GitHub device flow authentication
@@ -254,7 +254,7 @@ Need help? Run: browser-pilot --help
 ### Scenario 2: Existing OpenAI User
 
 1. Set environment variable: `export OPENAI_API_KEY="sk-..."`
-2. Run `browser-pilot --setup-wizard`
+2. Run `browser-copilot --setup-wizard`
 3. Select `openai`
 4. Select `gpt-4` or `gpt-3.5-turbo`
 5. Wizard detects API key automatically
@@ -265,7 +265,7 @@ Need help? Run: browser-pilot --help
 
 ### Scenario 3: Reconfiguring Existing Setup
 
-1. Run `browser-pilot --setup-wizard`
+1. Run `browser-copilot --setup-wizard`
 2. Navigate through steps (current values shown as defaults)
 3. Change only what you need
 4. Previous config is backed up automatically
@@ -332,7 +332,7 @@ export BROWSER_PILOT_COMPRESSION_LEVEL=medium
 
 ### Option 2: Configuration File
 
-Create `~/.browser_pilot/settings/config.json`:
+Create `~/.browser_copilot/settings/config.json`:
 
 ```json
 {
@@ -377,16 +377,16 @@ cat > config.json << EOF
 }
 EOF
 
-# Copy to Browser Pilot config location
-mkdir -p ~/.browser_pilot/settings
-cp config.json ~/.browser_pilot/settings/
+# Copy to Browser Copilot config location
+mkdir -p ~/.browser_copilot/settings
+cp config.json ~/.browser_copilot/settings/
 ```
 
 ## Getting Help
 
 - **GitHub Issues**: Report bugs or request features
 - **Documentation**: See other guides in the `docs/` directory
-- **Quick Help**: Run `browser-pilot --help`
+- **Quick Help**: Run `browser-copilot --help`
 
 ---
 

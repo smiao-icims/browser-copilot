@@ -1,4 +1,4 @@
-# Browser Pilot Troubleshooting Guide 🔧
+# Browser Copilot Troubleshooting Guide 🔧
 
 Quick solutions to common issues.
 
@@ -158,14 +158,14 @@ npm --version
 **Solution**:
 ```bash
 # Run with debugging
-browser-pilot test.md --save-trace --verbose
+browser-copilot test.md --save-trace --verbose
 
 # Try different browser
-browser-pilot test.md --browser firefox
+browser-copilot test.md --browser firefox
 
 # Disable GPU acceleration (Linux)
 export DISPLAY=:0
-browser-pilot test.md --browser chromium
+browser-copilot test.md --browser chromium
 ```
 
 ### Headless Mode Issues
@@ -175,10 +175,10 @@ browser-pilot test.md --browser chromium
 **Solution**:
 ```bash
 # Increase viewport size
-browser-pilot test.md --headless --viewport-width 1920 --viewport-height 1080
+browser-copilot test.md --headless --viewport-width 1920 --viewport-height 1080
 
 # Disable web security (testing only)
-browser-pilot test.md --headless --ignore-https-errors
+browser-copilot test.md --headless --ignore-https-errors
 
 # Add wait time for dynamic content
 # In your test file, add explicit waits:
@@ -218,10 +218,10 @@ browser-pilot test.md --headless --ignore-https-errors
 **Solution**:
 ```bash
 # Set explicit timeout
-browser-pilot test.md --timeout 60  # 60 seconds
+browser-copilot test.md --timeout 60  # 60 seconds
 
 # Run with verbose to see where it hangs
-browser-pilot test.md --verbose
+browser-copilot test.md --verbose
 
 # Check for infinite loops in test
 # Avoid: "Keep clicking until X appears"
@@ -245,7 +245,7 @@ Always follow these rules for reliable test execution:
 6. Scroll elements into view before clicking
 ```
 
-Use: `browser-pilot test.md --system-prompt reliable.txt`
+Use: `browser-copilot test.md --system-prompt reliable.txt`
 
 ## Token & Cost Issues
 
@@ -256,7 +256,7 @@ Use: `browser-pilot test.md --system-prompt reliable.txt`
 **Solutions**:
 ```bash
 # Use high compression
-browser-pilot large-test.md --compression-level high
+browser-copilot large-test.md --compression-level high
 
 # Split into smaller tests
 # Instead of one 100-step test, create five 20-step tests
@@ -272,14 +272,14 @@ uv run modelforge config add --provider anthropic --model claude-3-opus  # 200k 
 **Solutions**:
 ```bash
 # Enable compression (30% reduction)
-browser-pilot test.md --compression-level high
+browser-copilot test.md --compression-level high
 
 # Reduce verbosity in tests
 # Bad: "Navigate to the homepage at https://example.com and wait for it to fully load"
 # Good: "Navigate to https://example.com"
 
 # Monitor usage
-browser-pilot test.md --verbose  # Shows token usage
+browser-copilot test.md --verbose  # Shows token usage
 
 # Use cheaper models for simple tests
 uv run modelforge config add --provider openai --model gpt-3.5-turbo
@@ -292,13 +292,13 @@ uv run modelforge config add --provider openai --model gpt-3.5-turbo
 **Solution**:
 ```bash
 # Verify optimization is enabled
-browser-pilot test.md --verbose | grep "Token optimization"
+browser-copilot test.md --verbose | grep "Token optimization"
 
 # Check that it's not disabled
 # Remove: --no-token-optimization
 
 # Try maximum compression
-browser-pilot test.md --compression-level high --verbose
+browser-copilot test.md --compression-level high --verbose
 ```
 
 ## Output & Reporting
@@ -313,11 +313,11 @@ browser-pilot test.md --compression-level high --verbose
 ls -la $(dirname output.html)
 
 # Use absolute path
-browser-pilot test.md --output-file /absolute/path/to/output.html
+browser-copilot test.md --output-file /absolute/path/to/output.html
 
 # Create directory first
 mkdir -p reports
-browser-pilot test.md --output-file reports/output.html
+browser-copilot test.md --output-file reports/output.html
 ```
 
 ### Reports Missing Information
@@ -327,13 +327,13 @@ browser-pilot test.md --output-file reports/output.html
 **Solution**:
 ```bash
 # Ensure test completes successfully
-browser-pilot test.md --output-format json --verbose
+browser-copilot test.md --output-format json --verbose
 
 # Check for errors in verbose output
 # Look for "Test execution failed"
 
 # Try different format
-browser-pilot test.md --output-format yaml  # More readable for debugging
+browser-copilot test.md --output-format yaml  # More readable for debugging
 ```
 
 ### Screenshots Not Saved
@@ -350,9 +350,9 @@ browser-pilot test.md --output-format yaml  # More readable for debugging
 # "Capture a screenshot showing the error"
 
 # Check screenshot directory
-ls ~/.browser_pilot/sessions/*/screenshots/
+ls ~/.browser_copilot/sessions/*/screenshots/
 # or on Windows:
-# dir %LOCALAPPDATA%\browser_pilot\sessions\*\screenshots\
+# dir %LOCALAPPDATA%\browser_copilot\sessions\*\screenshots\
 ```
 
 ## Performance Issues
@@ -364,10 +364,10 @@ ls ~/.browser_pilot/sessions/*/screenshots/
 **Solutions**:
 ```bash
 # Use headless mode (faster)
-browser-pilot test.md --headless
+browser-copilot test.md --headless
 
 # Enable token optimization
-browser-pilot test.md --compression-level high
+browser-copilot test.md --compression-level high
 
 # Reduce screenshot frequency
 # Only screenshot important states, not every step
@@ -378,14 +378,14 @@ uv run modelforge config add --provider openai --model gpt-3.5-turbo
 
 ### High Memory Usage
 
-**Problem**: Browser Pilot consuming too much RAM.
+**Problem**: Browser Copilot consuming too much RAM.
 
 **Solution**:
 ```bash
 # Close other applications
 # Run one test at a time
 # Use headless mode
-browser-pilot test.md --headless
+browser-copilot test.md --headless
 
 # Limit browser cache
 export PLAYWRIGHT_BROWSERS_PATH=/tmp/playwright
@@ -406,7 +406,7 @@ uv pip install questionary
 pip install questionary
 
 # Then run wizard again
-browser-pilot --setup-wizard
+browser-copilot --setup-wizard
 ```
 
 ### Wizard Doesn't Show Arrow Navigation
@@ -425,28 +425,28 @@ browser-pilot --setup-wizard
 **Solution**:
 ```bash
 # Check if config exists
-ls ~/.browser_pilot/settings/config.json
+ls ~/.browser_copilot/settings/config.json
 
 # Run wizard and ensure you save at the end
-browser-pilot --setup-wizard
+browser-copilot --setup-wizard
 
 # Verify configuration was saved
-cat ~/.browser_pilot/settings/config.json
+cat ~/.browser_copilot/settings/config.json
 ```
 
 ## Common Error Messages
 
-### "No module named 'browser_pilot'"
+### "No module named 'browser_copilot'"
 
 ```bash
 # Ensure you're in the project directory
-cd /path/to/browser-pilot
+cd /path/to/browser-copilot
 
 # Reinstall
 uv sync
 
 # Or use python directly
-python -m browser_pilot.cli test.md
+python -m browser_copilot.cli test.md
 ```
 
 ### "MCP server failed to start"
@@ -467,7 +467,7 @@ node --version  # Must be 18+
 ```bash
 # Your test is too large. Solutions:
 # 1. Use high compression
-browser-pilot test.md --compression-level high
+browser-copilot test.md --compression-level high
 
 # 2. Split the test
 # 3. Use model with larger context
@@ -494,10 +494,10 @@ sudo ufw status  # Linux
 
 ```bash
 # Maximum verbosity
-browser-pilot test.md --verbose --save-trace --save-session
+browser-copilot test.md --verbose --save-trace --save-session
 
 # Check logs
-tail -f ~/.browser_pilot/logs/browser_pilot_*.log
+tail -f ~/.browser_copilot/logs/browser_copilot_*.log
 ```
 
 ### Collect Diagnostic Information
@@ -511,18 +511,18 @@ python --version
 node --version
 npx playwright --version
 
-# Browser Pilot info
-cd browser-pilot && git rev-parse HEAD  # Git commit
+# Browser Copilot info
+cd browser-copilot && git rev-parse HEAD  # Git commit
 uv run modelforge config show  # Model config
 
 # Error details
-browser-pilot test.md --verbose 2>&1 | tee error.log
+browser-copilot test.md --verbose 2>&1 | tee error.log
 ```
 
 ### Community Support
 
-1. **GitHub Issues**: [github.com/smiao-icims/browser-pilot/issues](https://github.com/smiao-icims/browser-pilot/issues)
-2. **Discussions**: [github.com/smiao-icims/browser-pilot/discussions](https://github.com/smiao-icims/browser-pilot/discussions)
+1. **GitHub Issues**: [github.com/smiao-icims/browser-copilot/issues](https://github.com/smiao-icims/browser-copilot/issues)
+2. **Discussions**: [github.com/smiao-icims/browser-copilot/discussions](https://github.com/smiao-icims/browser-copilot/discussions)
 3. **ModelForge Issues**: [github.com/smiao-icims/model-forge](https://github.com/smiao-icims/model-forge)
 
 ### Quick Fixes Checklist
@@ -534,6 +534,6 @@ browser-pilot test.md --verbose 2>&1 | tee error.log
 ☐ ModelForge configured with `modelforge config show`?
 ☐ Playwright browsers installed with `npx playwright install`?
 ☐ Test file exists and readable?
-☐ Running from browser-pilot directory?
+☐ Running from browser-copilot directory?
 ☐ Internet connection for API calls?
 ☐ Sufficient disk space for logs/screenshots?

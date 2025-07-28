@@ -1,4 +1,4 @@
-# Browser Pilot MVP Technical Design
+# Browser Copilot MVP Technical Design
 
 **Date**: January 26, 2025  
 **Version**: 1.0  
@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document describes the technical design for implementing the Browser Pilot MVP enhancements outlined in requirements.md. The design focuses on maintaining backward compatibility while adding new features for improved debugging, flexibility, and user experience.
+This document describes the technical design for implementing the Browser Copilot MVP enhancements outlined in requirements.md. The design focuses on maintaining backward compatibility while adding new features for improved debugging, flexibility, and user experience.
 
 ## Architecture Changes
 
@@ -28,7 +28,7 @@ CLI (cli.py) → InputHandler → BrowserPilot (core.py) → LangChain Agent →
   StorageManager                    ↓
                               EnhancedReporter (reporter.py)
                                     ↓
-                               ~/.browser_pilot/
+                               ~/.browser_copilot/
                                ├── logs/
                                ├── settings/
                                ├── memory/
@@ -105,7 +105,7 @@ class VerboseLogger:
         self.test_id = test_id or self.start_time.strftime("%Y%m%d_%H%M%S")
         
         # Setup local storage
-        self.storage_dir = Path.home() / ".browser_pilot"
+        self.storage_dir = Path.home() / ".browser_copilot"
         self.logs_dir = self.storage_dir / "logs"
         self.logs_dir.mkdir(parents=True, exist_ok=True)
         
@@ -116,7 +116,7 @@ class VerboseLogger:
         
     def _setup_file_logger(self):
         """Configure file-based logging"""
-        self.file_logger = logging.getLogger(f"browser_pilot.{self.test_id}")
+        self.file_logger = logging.getLogger(f"browser_copilot.{self.test_id}")
         self.file_logger.setLevel(logging.DEBUG)
         
         # File handler with detailed formatting
@@ -176,10 +176,10 @@ class VerboseLogger:
 
 ```python
 class StorageManager:
-    """Manages local storage for Browser Pilot"""
+    """Manages local storage for Browser Copilot"""
     
     def __init__(self):
-        self.base_dir = Path.home() / ".browser_pilot"
+        self.base_dir = Path.home() / ".browser_copilot"
         self._ensure_directory_structure()
     
     def _ensure_directory_structure(self):
@@ -626,10 +626,10 @@ class OutputHandler:
 6. BrowserPilot initialized with verbose logger
 7. Test execution with streaming callbacks
    - Console output for immediate feedback
-   - Detailed logs saved to ~/.browser_pilot/logs/
+   - Detailed logs saved to ~/.browser_copilot/logs/
 8. EnhancedReporter generates comprehensive report
 9. OutputHandler writes to specified destination
-10. Optional: Save report copy to ~/.browser_pilot/reports/
+10. Optional: Save report copy to ~/.browser_copilot/reports/
 
 ### Enhanced Test Suite Flow
 

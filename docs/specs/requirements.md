@@ -1,8 +1,8 @@
-# Browser Pilot Refactoring Requirements
+# Browser Copilot Refactoring Requirements
 
 ## 1. Project Overview
 
-This document defines the requirements for refactoring Browser Pilot to improve code quality, maintainability, and reliability while preserving all existing functionality.
+This document defines the requirements for refactoring Browser Copilot to improve code quality, maintainability, and reliability while preserving all existing functionality.
 
 ## 2. Business Requirements
 

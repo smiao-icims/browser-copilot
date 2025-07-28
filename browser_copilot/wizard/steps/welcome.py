@@ -2,10 +2,10 @@
 
 import questionary
 
-from browser_pilot.wizard.base import WizardStep
-from browser_pilot.wizard.state import WizardState
-from browser_pilot.wizard.styles import BROWSER_PILOT_STYLE
-from browser_pilot.wizard.types import StepResult, WizardAction
+from browser_copilot.wizard.base import WizardStep
+from browser_copilot.wizard.state import WizardState
+from browser_copilot.wizard.styles import BROWSER_PILOT_STYLE
+from browser_copilot.wizard.types import StepResult, WizardAction
 
 
 class WelcomeStep(WizardStep):
@@ -16,13 +16,13 @@ class WelcomeStep(WizardStep):
         # ASCII art banner
         banner = """
 ╔═══════════════════════════════════════════╗
-║      🎯 Browser Pilot Setup Wizard        ║
+║      🎯 Browser Copilot Setup Wizard      ║
 ║   Simple • Reliable • Token Efficient     ║
 ╚═══════════════════════════════════════════╝
         """
 
         print(banner)
-        print("This wizard will help you set up Browser Pilot in less than 2 minutes.")
+        print("This wizard will help you set up Browser Copilot in less than 2 minutes.")
         print(
             "You can press Enter to accept defaults or use arrow keys to change selections."
         )

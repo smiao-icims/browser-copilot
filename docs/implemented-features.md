@@ -1,4 +1,4 @@
-# Browser Pilot - Implemented Features Status
+# Browser Copilot - Implemented Features Status
 
 ## ✅ Fully Implemented Features
 
@@ -59,9 +59,9 @@
 
 ### 10. Local Storage Management (REQ-010) ✅
 - Creates platform-specific directories:
-  - macOS: ~/Library/Application Support/browser_pilot/
-  - Windows: %LOCALAPPDATA%\browser_pilot\
-  - Linux: ~/.browser_pilot/
+  - macOS: ~/Library/Application Support/browser_copilot/
+  - Windows: %LOCALAPPDATA%\browser_copilot\
+  - Linux: ~/.browser_copilot/
 - Directory structure: logs/, settings/, reports/, screenshots/, cache/, memory/
 - Automatic cleanup of old files
 - Session-based organization

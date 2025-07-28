@@ -4,7 +4,7 @@ Tests for Test Suite Enhancer (No-op implementation)
 
 import pytest
 
-from browser_pilot.test_enhancer import TestSuiteEnhancer
+from browser_copilot.test_enhancer import TestSuiteEnhancer
 
 
 @pytest.mark.unit

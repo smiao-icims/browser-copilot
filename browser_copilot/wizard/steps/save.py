@@ -7,11 +7,11 @@ from pathlib import Path
 
 import questionary
 
-from browser_pilot.storage_manager import StorageManager
-from browser_pilot.wizard.base import WizardStep
-from browser_pilot.wizard.state import WizardState
-from browser_pilot.wizard.styles import BROWSER_PILOT_STYLE
-from browser_pilot.wizard.types import StepResult, WizardAction
+from browser_copilot.storage_manager import StorageManager
+from browser_copilot.wizard.base import WizardStep
+from browser_copilot.wizard.state import WizardState
+from browser_copilot.wizard.styles import BROWSER_PILOT_STYLE
+from browser_copilot.wizard.types import StepResult, WizardAction
 
 
 class SaveConfigurationStep(WizardStep):

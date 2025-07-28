@@ -180,8 +180,8 @@ wheels = [
 ]
 
 [[package]]
-name = "browser-pilot"
-version = "2.1.0"
+name = "browser-copilot"
+version = "1.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },

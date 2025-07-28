@@ -25,7 +25,7 @@ def temp_dir() -> Generator[Path, None, None]:
 @pytest.fixture
 def mock_storage_dir(temp_dir: Path) -> Path:
     """Create a mock storage directory structure"""
-    storage_dir = temp_dir / "browser_pilot"
+    storage_dir = temp_dir / "browser_copilot"
     for subdir in ["logs", "settings", "reports", "screenshots", "cache", "memory"]:
         (storage_dir / subdir).mkdir(parents=True, exist_ok=True)
     return storage_dir

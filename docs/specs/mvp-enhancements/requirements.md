@@ -1,4 +1,4 @@
-# Browser Pilot MVP Requirements
+# Browser Copilot MVP Requirements
 
 **Date**: January 26, 2025  
 **Version**: 1.0  
@@ -6,13 +6,13 @@
 
 ## Executive Summary
 
-This document outlines the functional requirements for Browser Pilot MVP enhancements. These features are designed to improve debuggability, flexibility, and user experience for QA engineers using the tool for automated browser testing.
+This document outlines the functional requirements for Browser Copilot MVP enhancements. These features are designed to improve debuggability, flexibility, and user experience for QA engineers using the tool for automated browser testing.
 
 ## Stakeholders
 
 - **Primary Users**: QA Engineers, Test Automation Engineers
 - **Secondary Users**: Developers, DevOps Engineers
-- **Maintainers**: Browser Pilot Development Team
+- **Maintainers**: Browser Copilot Development Team
 
 ## Functional Requirements
 
@@ -31,7 +31,7 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
   - Timing information for each step
 - Verbose output is clearly formatted and timestamped
 - Console shows color-coded, human-readable output
-- Detailed logs are saved to ~/.browser_pilot/logs/test_YYYYMMDD_HHMMSS.log
+- Detailed logs are saved to ~/.browser_copilot/logs/test_YYYYMMDD_HHMMSS.log
 - Log files contain structured JSON entries for parsing
 - Performance impact is minimal (<10% execution time increase)
 
@@ -57,7 +57,7 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
 
 **ID**: REQ-003  
 **Priority**: Medium  
-**User Story**: As a QA engineer, I want to provide test suites via stdin so that I can integrate Browser Pilot into CI/CD pipelines more easily.
+**User Story**: As a QA engineer, I want to provide test suites via stdin so that I can integrate Browser Copilot into CI/CD pipelines more easily.
 
 **Acceptance Criteria**:
 - System accepts test suite input from:
@@ -101,7 +101,7 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
 
 **ID**: REQ-006  
 **Priority**: High  
-**User Story**: As a QA engineer, I want Browser Pilot to use my existing ModelForge configuration by default so that I don't need to specify provider/model repeatedly.
+**User Story**: As a QA engineer, I want Browser Copilot to use my existing ModelForge configuration by default so that I don't need to specify provider/model repeatedly.
 
 **Acceptance Criteria**:
 - When `--provider` and `--model` not specified:
@@ -147,7 +147,7 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
 
 **ID**: REQ-009  
 **Priority**: High  
-**User Story**: As a QA engineer, I want Browser Pilot to handle ModelForge authentication automatically so that I can start testing immediately.
+**User Story**: As a QA engineer, I want Browser Copilot to handle ModelForge authentication automatically so that I can start testing immediately.
 
 **Acceptance Criteria**:
 - System detects unauthenticated ModelForge state
@@ -163,10 +163,10 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
 
 **ID**: REQ-010  
 **Priority**: High  
-**User Story**: As a QA engineer, I want Browser Pilot to maintain local storage for logs, settings, and future features so that I can review past test runs and maintain consistent configuration.
+**User Story**: As a QA engineer, I want Browser Copilot to maintain local storage for logs, settings, and future features so that I can review past test runs and maintain consistent configuration.
 
 **Acceptance Criteria**:
-- System creates ~/.browser_pilot/ directory structure on first run
+- System creates ~/.browser_copilot/ directory structure on first run
 - Directory structure includes:
   - logs/ - Verbose execution logs
   - settings/ - User preferences and configuration
@@ -189,7 +189,7 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
 - Manual screenshot requests in test suite are still honored
 - Screenshot control can be set via:
   - Command-line flag
-  - Settings file in ~/.browser_pilot/settings/
+  - Settings file in ~/.browser_copilot/settings/
   - Environment variable BROWSER_PILOT_SCREENSHOTS
 - When disabled:
   - No automatic screenshots on failures
@@ -202,7 +202,7 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
 
 **ID**: REQ-012  
 **Priority**: High  
-**User Story**: As a QA engineer, I want Browser Pilot to optimize token usage so that I can reduce costs while maintaining test reliability.
+**User Story**: As a QA engineer, I want Browser Copilot to optimize token usage so that I can reduce costs while maintaining test reliability.
 
 **Acceptance Criteria**:
 - System implements token optimization strategies:
@@ -258,7 +258,7 @@ This document outlines the functional requirements for Browser Pilot MVP enhance
 - ModelForge library for LLM management
 - LangChain for agent orchestration
 - Playwright MCP server for browser automation
-- Existing Browser Pilot codebase
+- Existing Browser Copilot codebase
 
 ## Risks and Mitigations
 

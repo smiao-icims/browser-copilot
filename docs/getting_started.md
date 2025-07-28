@@ -1,6 +1,6 @@
-# Getting Started with Browser Pilot
+# Getting Started with Browser Copilot
 
-This guide will help you get up and running with Browser Pilot in minutes.
+This guide will help you get up and running with Browser Copilot in minutes.
 
 ## Prerequisites
 
@@ -12,23 +12,23 @@ Before you begin, ensure you have:
 
 ## Installation
 
-### 1. Install Browser Pilot
+### 1. Install Browser Copilot
 
 ```bash
 # Clone the repository
-git clone https://github.com/smiao-icims/browser-pilot.git
-cd browser-pilot
+git clone https://github.com/smiao-icims/browser-copilot.git
+cd browser-copilot
 
 # Install the package
 pip install -e .
 
 # Or install from PyPI (when published)
-pip install browser-pilot
+pip install browser-copilot
 ```
 
 ### 2. Install Playwright MCP Server
 
-Browser Pilot uses the Playwright MCP server for browser automation:
+Browser Copilot uses the Playwright MCP server for browser automation:
 
 ```bash
 # Install the MCP server globally
@@ -40,7 +40,7 @@ npx @playwright/mcp --help
 
 ### 3. Configure ModelForge
 
-Browser Pilot uses ModelForge for LLM management. Set up at least one provider:
+Browser Copilot uses ModelForge for LLM management. Set up at least one provider:
 
 ```bash
 # Example: Configure GitHub Copilot
@@ -73,23 +73,23 @@ Create a simple test file `hello_world.md`:
 ### Basic Usage
 
 ```bash
-browser-pilot --test-suite hello_world.md --provider github_copilot --model gpt-4o
+browser-copilot --test-suite hello_world.md --provider github_copilot --model gpt-4o
 ```
 
 ### Common Options
 
 ```bash
 # Run in headless mode (no browser UI)
-browser-pilot --test-suite test.md --provider github_copilot --model gpt-4o --headless
+browser-copilot --test-suite test.md --provider github_copilot --model gpt-4o --headless
 
 # Use Firefox instead of Chrome
-browser-pilot --test-suite test.md --provider github_copilot --model gpt-4o --browser firefox
+browser-copilot --test-suite test.md --provider github_copilot --model gpt-4o --browser firefox
 
 # Custom viewport size
-browser-pilot --test-suite test.md --provider github_copilot --model gpt-4o --viewport-size 1280,720
+browser-copilot --test-suite test.md --provider github_copilot --model gpt-4o --viewport-size 1280,720
 
 # Verbose output
-browser-pilot --test-suite test.md --provider github_copilot --model gpt-4o --verbose
+browser-copilot --test-suite test.md --provider github_copilot --model gpt-4o --verbose
 ```
 
 ## Understanding the Output
@@ -105,7 +105,7 @@ After running a test, you'll see:
 
 ```
 ╔═══════════════════════════════════════════╗
-║      Browser Pilot v2.0                   ║
+║      Browser Copilot v2.0                   ║
 ║   Simple • Reliable • Token Efficient     ║
 ╚═══════════════════════════════════════════╝
 
@@ -164,6 +164,6 @@ Steps: 8
 
 ### Getting Help
 
-- Create an issue on [GitHub](https://github.com/smiao-icims/browser-pilot/issues)
+- Create an issue on [GitHub](https://github.com/smiao-icims/browser-copilot/issues)
 - Check the [FAQ](faq.md)
 - Read the [API Reference](api_reference.md)

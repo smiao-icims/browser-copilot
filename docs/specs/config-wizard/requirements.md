@@ -1,4 +1,4 @@
-# Browser Pilot Configuration Wizard Requirements
+# Browser Copilot Configuration Wizard Requirements
 
 **Date**: January 28, 2025
 **Version**: 1.0
@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-This document outlines the requirements for an interactive CLI configuration wizard that simplifies Browser Pilot setup for QA engineers. The wizard will guide users through all configuration steps with smart defaults and validation, eliminating the need for manual configuration file editing or command memorization.
+This document outlines the requirements for an interactive CLI configuration wizard that simplifies Browser Copilot setup for QA engineers. The wizard will guide users through all configuration steps with smart defaults and validation, eliminating the need for manual configuration file editing or command memorization.
 
 ## Goals
 
@@ -19,19 +19,19 @@ This document outlines the requirements for an interactive CLI configuration wiz
 ## User Stories
 
 ### US-001: First-Time User Setup
-**As a** QA engineer new to Browser Pilot
+**As a** QA engineer new to Browser Copilot
 **I want** a guided setup process
 **So that** I can start testing without reading documentation
 
 **Acceptance Criteria:**
 - Wizard launches automatically on first run if no config exists
-- Can also be triggered with `browser-pilot --setup-wizard`
+- Can also be triggered with `browser-copilot --setup-wizard`
 - Guides through provider selection, model choice, and browser config
 - Tests configuration before saving
 - Shows clear success message with next steps
 
 ### US-002: Reconfiguration
-**As an** existing Browser Pilot user
+**As an** existing Browser Copilot user
 **I want** to easily change my configuration
 **So that** I can switch providers or update settings
 
@@ -44,7 +44,7 @@ This document outlines the requirements for an interactive CLI configuration wiz
 ### US-003: GitHub Copilot Priority
 **As a** user without API keys
 **I want** GitHub Copilot suggested first
-**So that** I can use Browser Pilot without additional setup
+**So that** I can use Browser Copilot without additional setup
 
 **Acceptance Criteria:**
 - GitHub Copilot always appears first in provider list
@@ -64,9 +64,9 @@ This document outlines the requirements for an interactive CLI configuration wiz
 
 #### Step 1: Welcome Screen
 ```
-🎯 Browser Pilot Configuration Wizard
+🎯 Browser Copilot Configuration Wizard
 
-This wizard will help you set up Browser Pilot in less than 2 minutes.
+This wizard will help you set up Browser Copilot in less than 2 minutes.
 You can press Enter to accept defaults or use arrow keys to change selections.
 
 Press Enter to continue or Esc to cancel...
@@ -180,15 +180,15 @@ Save this configuration? [Y/n]:
 You're ready to start testing. Try:
 
 1. Quick test:
-   browser-pilot --quick-test
+   browser-copilot --quick-test
 
 2. Run an example:
-   browser-pilot examples/google-ai-search.md
+   browser-copilot examples/google-ai-search.md
 
 3. Create your own test:
-   echo "Navigate to example.com and verify the title" | browser-pilot -
+   echo "Navigate to example.com and verify the title" | browser-copilot -
 
-Need help? Run: browser-pilot --help
+Need help? Run: browser-copilot --help
 ```
 
 ### FR-003: Dynamic Model Filtering
@@ -222,7 +222,7 @@ Would you like to:
 ```
 
 ### FR-006: Configuration Storage
-- Save to standard Browser Pilot config location
+- Save to standard Browser Copilot config location
 - Create backup of existing config
 - Use same format as manual configuration
 - Set appropriate file permissions
@@ -241,7 +241,7 @@ Would you like to:
 - Help text available at each step
 
 ### NFR-003: Compatibility
-- Python 3.11+ (same as Browser Pilot)
+- Python 3.11+ (same as Browser Copilot)
 - Works on Windows, macOS, Linux
 - Terminal width >= 80 characters
 - Supports both TTY and non-TTY environments

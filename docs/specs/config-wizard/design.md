@@ -1,4 +1,4 @@
-# Browser Pilot Configuration Wizard Design
+# Browser Copilot Configuration Wizard Design
 
 **Date**: January 28, 2025
 **Version**: 1.0
@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document describes the technical design for the Browser Pilot Configuration Wizard, an interactive CLI tool that guides users through initial setup and configuration.
+This document describes the technical design for the Browser Copilot Configuration Wizard, an interactive CLI tool that guides users through initial setup and configuration.
 
 ## Architecture
 
@@ -15,13 +15,13 @@ This document describes the technical design for the Browser Pilot Configuration
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     CLI Entry Point                         │
-│                  (browser_pilot/cli.py)                     │
+│                  (browser_copilot/cli.py)                     │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  Configuration Wizard                        │
-│             (browser_pilot/config_wizard.py)                │
+│             (browser_copilot/config_wizard.py)                │
 ├─────────────────────────────────────────────────────────────┤
 │ • WizardFlow (Main orchestrator)                           │
 │ • WizardState (State management)                           │
@@ -218,7 +218,7 @@ sequenceDiagram
     participant ModelForge
     participant ConfigManager
     
-    User->>CLI: browser-pilot --setup-wizard
+    User->>CLI: browser-copilot --setup-wizard
     CLI->>Wizard: Initialize wizard
     Wizard->>User: Show welcome screen
     
@@ -320,7 +320,7 @@ custom_style = Style([
 Add wizard entry point to existing CLI:
 
 ```python
-# In browser_pilot/cli.py
+# In browser_copilot/cli.py
 parser.add_argument(
     "--setup-wizard",
     action="store_true",
@@ -357,7 +357,7 @@ async def get_available_providers():
 ```
 
 #### 3. Configuration Storage
-Save to standard Browser Pilot configuration:
+Save to standard Browser Copilot configuration:
 
 ```python
 class ConfigurationSaver:

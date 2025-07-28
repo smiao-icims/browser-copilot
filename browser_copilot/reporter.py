@@ -1,5 +1,5 @@
 """
-Report generation and output utilities for Browser Pilot
+Report generation and output utilities for Browser Copilot
 
 This module handles test result formatting, saving, and display.
 """
@@ -11,9 +11,9 @@ from typing import Any
 
 
 def print_header() -> None:
-    """Print the Browser Pilot ASCII header"""
+    """Print the Browser Copilot ASCII header"""
     print("╔═══════════════════════════════════════════╗")
-    print("║      Browser Pilot v2.0                   ║")
+    print("║      Browser Copilot v1.0                 ║")
     print("║   Simple • Reliable • Token Efficient     ║")
     print("╚═══════════════════════════════════════════╝")
 
@@ -92,7 +92,7 @@ def save_results(
     report_content = result.get("report", "No report generated")
 
     # Add metadata header to report
-    metadata = f"""<!-- Browser Pilot Test Report
+    metadata = f"""<!-- Browser Copilot Test Report
 Generated: {result.get("timestamp", datetime.now().isoformat())}
 Provider: {result.get("provider", "Unknown")}
 Model: {result.get("model", "Unknown")}
@@ -134,7 +134,7 @@ def generate_summary(result: dict[str, Any]) -> str:
         Summary text
     """
     summary_lines = [
-        "Browser Pilot Test Summary",
+        "Browser Copilot Test Summary",
         "=" * 50,
         f"Status: {'PASSED' if result.get('success') else 'FAILED'}",
         f"Duration: {result.get('duration_seconds', 0):.1f} seconds",
@@ -185,7 +185,7 @@ def generate_markdown_report(result: dict[str, Any]) -> str:
     Returns:
         Markdown formatted report
     """
-    lines = ["# Browser Pilot Test Report", ""]
+    lines = ["# Browser Copilot Test Report", ""]
 
     # Status
     status = "✅ **PASSED**" if result.get("success") else "❌ **FAILED**"
@@ -305,7 +305,7 @@ def create_html_report(result: dict[str, Any], output_path: Path) -> Path:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browser Pilot Test Report - {timestamp}</title>
+    <title>Browser Copilot Test Report - {timestamp}</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -352,7 +352,7 @@ def create_html_report(result: dict[str, Any], output_path: Path) -> Path:
 </head>
 <body>
     <div class="header">
-        <h1>Browser Pilot Test Report</h1>
+        <h1>Browser Copilot Test Report</h1>
         <p>Generated: {result.get("timestamp", datetime.now().isoformat())}</p>
     </div>
     

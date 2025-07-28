@@ -1,5 +1,5 @@
 """
-Token Optimization Module for Browser Pilot
+Token Optimization Module for Browser Copilot
 
 Implements strategies to reduce token usage and costs while maintaining test reliability.
 """

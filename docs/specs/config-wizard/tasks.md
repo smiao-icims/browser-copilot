@@ -1,4 +1,4 @@
-# Browser Pilot Configuration Wizard Tasks
+# Browser Copilot Configuration Wizard Tasks
 
 **Date**: January 28, 2025
 **Version**: 1.0
@@ -8,7 +8,7 @@
 
 ### Epic: Configuration Wizard Implementation
 
-**Goal**: Create an interactive CLI wizard that guides users through Browser Pilot setup in < 2 minutes.
+**Goal**: Create an interactive CLI wizard that guides users through Browser Copilot setup in < 2 minutes.
 
 ---
 
@@ -20,8 +20,8 @@
 **Description**: Create the basic module structure and interfaces.
 
 **Subtasks**:
-- [ ] Create `browser_pilot/config_wizard.py`
-- [ ] Create `browser_pilot/wizard/` directory
+- [ ] Create `browser_copilot/config_wizard.py`
+- [ ] Create `browser_copilot/wizard/` directory
 - [ ] Create `__init__.py` files
 - [ ] Define base classes and interfaces
 - [ ] Add wizard imports to main package
@@ -66,7 +66,7 @@
 
 **Acceptance Criteria**:
 - Questionary is installed and importable
-- Custom styling matches Browser Pilot branding
+- Custom styling matches Browser Copilot branding
 - Works on Windows Terminal, iTerm2, and standard terminals
 
 ---

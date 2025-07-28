@@ -2,8 +2,8 @@
 
 from abc import ABC, abstractmethod
 
-from browser_pilot.wizard.state import WizardState
-from browser_pilot.wizard.types import StepResult
+from browser_copilot.wizard.state import WizardState
+from browser_copilot.wizard.types import StepResult
 
 
 class WizardStep(ABC):
