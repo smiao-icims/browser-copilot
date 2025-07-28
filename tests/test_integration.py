@@ -15,10 +15,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "browser_copilot"))
 import reporter
 from config_manager import ConfigManager
-from io_handlers import InputHandler, OutputHandler
 from storage_manager import StorageManager
 from token_optimizer import OptimizationLevel, TokenOptimizer
 from verbose_logger import VerboseLogger
+
+from browser_copilot.io import InputHandler, OutputHandler
 
 
 @pytest.mark.integration

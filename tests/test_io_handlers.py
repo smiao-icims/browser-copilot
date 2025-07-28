@@ -10,8 +10,8 @@ import pytest
 import yaml
 
 # Add parent directory to path to import modules directly
-sys.path.insert(0, str(Path(__file__).parent.parent / "browser_copilot"))
-from io_handlers import InputHandler, OutputHandler
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from browser_copilot.io import InputHandler, OutputHandler
 
 
 @pytest.mark.unit

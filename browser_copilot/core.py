@@ -9,16 +9,15 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from langchain_mcp_adapters.tools import load_mcp_tools
-from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from modelforge.exceptions import ConfigurationError, ModelNotFoundError, ProviderError
 from modelforge.registry import ModelForgeRegistry
 from modelforge.telemetry import TelemetryCallback
 
+from .agent import AgentFactory
 from .config_manager import ConfigManager
-from .io_handlers import StreamHandler
+from .io import StreamHandler
 from .token_optimizer import OptimizationLevel, TokenOptimizer
 from .verbose_logger import LangChainVerboseCallback, VerboseLogger
 
@@ -112,6 +111,9 @@ class BrowserPilot:
                 self.llm.max_tokens = model_config.get("max_tokens")
         except (ProviderError, ModelNotFoundError, ConfigurationError) as e:
             raise RuntimeError(f"Failed to load LLM: {e}")
+
+        # Initialize agent factory
+        self.agent_factory = AgentFactory(self.llm)
 
     async def run_test_suite(
         self,
@@ -268,13 +270,11 @@ class BrowserPilot:
             async with stdio_client(server_params) as (read, write):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
-                    tools = await load_mcp_tools(session)
 
-                    self.stream.write(f"Loaded {len(tools)} MCP tools", "debug")
-
-                    # Create ReAct agent with browser tools
-                    agent = create_react_agent(self.llm, tools)
-                    agent = agent.with_config(recursion_limit=100)
+                    # Create browser automation agent using AgentFactory
+                    agent = await self.agent_factory.create_browser_agent(
+                        session=session, recursion_limit=100
+                    )
 
                     # Build execution prompt
                     prompt = self._build_prompt(test_suite_content)
@@ -410,6 +410,10 @@ class BrowserPilot:
                 import traceback
 
                 traceback.print_exc()
+        finally:
+            # Clean up session if it exists
+            if "session" in locals():
+                await session.__aexit__(None, None, None)
 
         return result
 
