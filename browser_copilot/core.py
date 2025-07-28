@@ -430,6 +430,13 @@ IMPORTANT INSTRUCTIONS:
 3. Take screenshots at key points using browser_take_screenshot
 4. Handle errors gracefully and continue if possible
 5. Wait for page loads after navigation
+6. For form fields - IMPORTANT:
+   - Process each field completely before moving to the next
+   - Click a field and immediately type in it (don't click multiple fields then type)
+   - For each field: click it, then type the value right away
+   - Never click all fields first and then go back to type
+   - If a field doesn't accept input, click it again
+7. Be especially careful with the first field in a form - complete it fully before moving on
 
 At the end, generate a comprehensive test report in markdown format:
 

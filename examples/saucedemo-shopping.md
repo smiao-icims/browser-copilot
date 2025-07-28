@@ -49,9 +49,9 @@ A complete end-to-end shopping example using the SauceDemo test site. This examp
 ### Phase 4: Checkout Process
 30. Wait for the checkout page to load
 31. Verify checkout page is displayed (URL should contain "/checkout-step-one.html")
-32. Click on the "First Name" textbox and type "Test"
-33. Click on the "Last Name" textbox and type "User"
-34. Click on the "Zip/Postal Code" textbox and type "12345"
+32. For the First Name field: Click on the "First Name" input field, then immediately type "Test" in that field
+33. For the Last Name field: Click on the "Last Name" input field, then immediately type "User" in that field  
+34. For the Postal Code field: Click on the "Zip/Postal Code" input field, then immediately type "12345" in that field
 35. Click the "Continue" button
 36. Wait for the checkout overview page to load
 37. Verify checkout overview page is displayed (URL should contain "/checkout-step-two.html")

@@ -187,7 +187,7 @@ bp failing-test.md --verbose --save-trace
 ```
 
 
-👉 **[See More Examples](docs/COMMON_USE_CASES.md)** | 📘 **[Full Quick Start Guide](docs/QUICK_START.md)**
+👉 **[See More Examples](docs/COMMON_USE_CASES.md)** | 📘 **[Full Quick Start Guide](docs/QUICK_START.md)** | 🎯 **[Best Practices](docs/BEST_PRACTICES.md)**
 
 ## 📝 Writing Tests
 
