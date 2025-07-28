@@ -7,7 +7,7 @@ packages = ["browser_pilot"]
 
 [project]
 name = "browser-pilot-llm"
-version = "1.0.0"
+version = "1.0.1"
 authors = [
     {name = "Browser Pilot Team", email = "browser-pilot@example.com"},
 ]

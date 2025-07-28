@@ -5,7 +5,7 @@ A streamlined approach to browser test automation using natural language
 test scenarios executed by AI agents.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Browser Pilot Team"
 
 from .cli import main as cli_main
