@@ -79,7 +79,7 @@ class TokenOptimizationStep(WizardStep):
 class ViewportStep(WizardStep):
     """Configure browser viewport size."""
 
-    VIEWPORT_PRESETS = [
+    VIEWPORT_PRESETS: list[dict[str, str | int | None]] = [
         {"name": "Desktop HD (1920x1080)", "width": 1920, "height": 1080},
         {"name": "Desktop (1366x768)", "width": 1366, "height": 768},
         {"name": "Tablet (1024x768)", "width": 1024, "height": 768},
@@ -96,7 +96,7 @@ class ViewportStep(WizardStep):
             if preset["width"]:
                 title = f"{preset['name']:<25} ({preset['width']}x{preset['height']})"
             else:
-                title = preset["name"]
+                title = str(preset["name"])
             choices.append(Choice(title=title, value=preset))
 
         selected = await questionary.select(

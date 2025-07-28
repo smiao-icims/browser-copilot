@@ -15,8 +15,13 @@ except ImportError:
         from browser_pilot.token_optimizer import OptimizationLevel, TokenOptimizer
     except ImportError:
         # For unit testing
-        from config_manager import ConfigManager
-        from token_optimizer import OptimizationLevel, TokenOptimizer
+        from config_manager import (  # type: ignore[no-redef]
+            ConfigManager,  # type: ignore[import-not-found]
+        )
+        from token_optimizer import (  # type: ignore[no-redef]
+            OptimizationLevel,  # type: ignore[import-not-found]
+            TokenOptimizer,  # type: ignore[import-not-found]
+        )
 
 
 class TestSuiteEnhancer:
@@ -150,6 +155,8 @@ class TestSuiteValidator:
         # Basic validation - check if empty
         if not test_suite_content.strip():
             result["valid"] = False
-            result["errors"].append("Test suite is empty")
+            errors_list = result["errors"]
+        if isinstance(errors_list, list):
+            errors_list.append("Test suite is empty")
 
         return result

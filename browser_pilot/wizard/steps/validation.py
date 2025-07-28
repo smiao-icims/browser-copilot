@@ -165,6 +165,7 @@ class ValidationStep(WizardStep):
             result = subprocess.run(
                 ["npx", "playwright", "show-trace", "--help"],
                 capture_output=True,
+                text=True,
                 timeout=5,
             )
 

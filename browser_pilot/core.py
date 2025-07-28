@@ -386,7 +386,9 @@ class BrowserPilot:
                     # Log test completion if verbose
                     if self.verbose_logger:
                         self.verbose_logger.log_test_complete(
-                            result["success"], duration, f"{len(steps)} steps executed"
+                            bool(result["success"]),
+                            duration,
+                            f"{len(steps)} steps executed",
                         )
 
                         # Add verbose log info to result
@@ -626,9 +628,11 @@ Execute the test now."""
                                 opt_metrics["original_tokens"]
                                 - opt_metrics["optimized_tokens"]
                             )
-                            usage["optimization"]["estimated_savings"] = (
-                                tokens_saved * cost_per_token
-                            )
+                            optimization_dict = usage.get("optimization")
+                            if isinstance(optimization_dict, dict):
+                                optimization_dict["estimated_savings"] = (
+                                    tokens_saved * cost_per_token
+                                )
 
                 return usage
 

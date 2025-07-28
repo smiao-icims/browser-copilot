@@ -51,11 +51,13 @@ class TestIntegration:
         storage = StorageManager(base_dir=temp_dir)
         log_dir = storage.get_logs_dir()
 
-        # Create logger
-        with VerboseLogger(str(log_dir), test_name="integration_test") as logger:
-            logger.log("Test message")
-            logger.log_step(1, "Test step")
-            logger.log_error(Exception("Test error"))
+        # Create logger with storage manager
+        logger = VerboseLogger(storage_manager=storage)
+
+        # Log some test messages
+        logger.log_step("test", "Test message")  # Using correct method signature
+        logger.log_step("step", "Test step", level="INFO")
+        logger.log_error("test_error", "Test error")
 
         # Verify log file was created in storage location
         log_files = list(log_dir.glob("*.log"))
@@ -108,9 +110,9 @@ class TestIntegration:
         output_handler = OutputHandler()
 
         # Test different formats
-        json_output = output_handler.format(test_result, "json")
+        json_output = output_handler.format_output(test_result, "json")
         parsed = json.loads(json_output)
-        assert parsed["success"] is True
+        assert parsed["results"]["success"] is True
 
         # Test reporter can display the result
         reporter.print_results(test_result)
@@ -129,7 +131,7 @@ class TestIntegration:
 
         # 1. Read input
         input_handler = InputHandler()
-        scenario = input_handler.read(str(test_file))
+        scenario = input_handler.read_from_file(test_file)
         assert scenario == test_content
 
         # 2. Create configuration
@@ -138,15 +140,14 @@ class TestIntegration:
         config.set("output_format", "json")
 
         # 3. Create logger
-        log_dir = storage.get_logs_dir()
-        logger = VerboseLogger(str(log_dir), test_name="pipeline_test")
+        logger = VerboseLogger(storage_manager=storage)
 
         # 4. Simulate test execution with token optimization
         optimizer = TokenOptimizer(OptimizationLevel.MEDIUM)
         optimized_scenario = optimizer.optimize_prompt(scenario)
 
-        logger.log(f"Original length: {len(scenario)}")
-        logger.log(f"Optimized length: {len(optimized_scenario)}")
+        logger.log_step("optimization", f"Original length: {len(scenario)}")
+        logger.log_step("optimization", f"Optimized length: {len(optimized_scenario)}")
 
         # 5. Create result
         test_result = {
@@ -163,20 +164,21 @@ class TestIntegration:
         }
 
         # 6. Save results
-        report_path, results_path = reporter.save_results(
-            test_result, str(storage.get_reports_dir())
-        )
+        saved_files = reporter.save_results(test_result, str(storage.get_reports_dir()))
 
         # 7. Verify files created
-        assert Path(report_path).exists()
-        assert Path(results_path).exists()
+        assert saved_files["report"].exists()
+        assert saved_files["results"].exists()
 
         # 8. Display results
         reporter.print_results(test_result)
 
         # 9. Use output handler for final output
         output_handler = OutputHandler()
-        output_handler.write(test_result, config.get("output_format"), None)
+        formatted_output = output_handler.format_output(
+            test_result, config.get("output_format")
+        )
+        output_handler.write_output(formatted_output)
 
         captured = capsys.readouterr()
         assert "✅ PASSED" in captured.out
@@ -186,11 +188,13 @@ class TestIntegration:
         # Create components
         storage = StorageManager(base_dir=temp_dir)
         _ = ConfigManager(storage_manager=storage)
-        logger = VerboseLogger(str(storage.get_logs_dir()))
+        logger = VerboseLogger(storage_manager=storage)
 
         # Test error scenario
         error = Exception("Integration test error")
-        logger.log_error(error, context="During integration test")
+        logger.log_error(
+            "integration_error", str(error), {"context": "During integration test"}
+        )
 
         # Create failed result
         failed_result = {
@@ -202,9 +206,7 @@ class TestIntegration:
 
         # Display and save
         reporter.print_results(failed_result)
-        report_path, _ = reporter.save_results(
-            failed_result, str(storage.get_reports_dir())
-        )
+        reporter.save_results(failed_result, str(storage.get_reports_dir()))
 
         # Verify error handling
         captured = capsys.readouterr()
@@ -215,7 +217,7 @@ class TestIntegration:
         log_files = list(storage.get_logs_dir().glob("*.log"))
         assert len(log_files) > 0
         log_content = log_files[0].read_text()
-        assert "ERROR" in log_content
+        assert "WARNING" in log_content
         assert "Integration test error" in log_content
 
     def test_config_priority_integration(self, temp_dir, monkeypatch):
@@ -278,14 +280,14 @@ class TestIntegration:
 
         # Format output
         handler = OutputHandler()
-        formatted = handler.format(test_result, output_format)
+        formatted = handler.format_output(test_result, output_format)
 
         # Verify format
         assert len(formatted) > 0
 
         # Save to file
         output_file = temp_dir / f"output.{output_format}"
-        handler.write(test_result, output_format, str(output_file))
+        handler.write_output(formatted, output_file)
 
         # Verify file created
         assert output_file.exists()

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 
-def print_header():
+def print_header() -> None:
     """Print the Browser Pilot ASCII header"""
     print("╔═══════════════════════════════════════════╗")
     print("║      Browser Pilot v2.0                   ║")
@@ -173,6 +173,89 @@ def generate_summary(result: dict[str, Any]) -> str:
         summary_lines.extend(["", f"Error: {result['error']}"])
 
     return "\n".join(summary_lines)
+
+
+def generate_markdown_report(result: dict[str, Any]) -> str:
+    """
+    Generate a markdown report from test results
+
+    Args:
+        result: Test execution results
+
+    Returns:
+        Markdown formatted report
+    """
+    lines = ["# Browser Pilot Test Report", ""]
+
+    # Status
+    status = "✅ **PASSED**" if result.get("success") else "❌ **FAILED**"
+    lines.append(f"Status: {status}")
+    lines.append("")
+
+    # Basic info
+    if result.get("timestamp"):
+        lines.append(f"Generated: {result['timestamp']}")
+    if result.get("duration_seconds"):
+        lines.append(f"Duration: {result['duration_seconds']} seconds")
+    if result.get("steps_executed"):
+        lines.append(f"Steps Executed: {result['steps_executed']}")
+    if result.get("provider"):
+        lines.append(f"Provider: {result['provider']}")
+    if result.get("model"):
+        lines.append(f"Model: {result['model']}")
+    if result.get("browser"):
+        lines.append(f"Browser: {result['browser']}")
+    if result.get("headless") is not None:
+        lines.append(f"Headless: {'Yes' if result['headless'] else 'No'}")
+    lines.append("")
+
+    # Token usage
+    token_usage = result.get("token_usage", {})
+    if token_usage:
+        lines.append("## Token Usage")
+        if token_usage.get("total_tokens"):
+            lines.append(f"Total Tokens: {token_usage['total_tokens']:,}")
+        if token_usage.get("prompt_tokens"):
+            lines.append(f"Prompt Tokens: {token_usage['prompt_tokens']:,}")
+        if token_usage.get("completion_tokens"):
+            lines.append(f"Completion Tokens: {token_usage['completion_tokens']:,}")
+        if token_usage.get("estimated_cost"):
+            lines.append(f"Estimated Cost: ${token_usage['estimated_cost']:.4f}")
+        lines.append("")
+
+        # Token optimization
+        opt = token_usage.get("optimization", {})
+        if opt and opt.get("enabled"):
+            lines.append("## Token Optimization")
+            if opt.get("reduction_percentage"):
+                lines.append(f"Reduction: {opt['reduction_percentage']:.1f}%")
+            if opt.get("strategies_applied"):
+                lines.append(
+                    f"Strategies Applied: {', '.join(opt['strategies_applied'])}"
+                )
+            lines.append("")
+
+    # Screenshots
+    screenshots = result.get("screenshots", [])
+    if screenshots:
+        lines.append("## Screenshots")
+        for screenshot in screenshots:
+            lines.append(f"- {screenshot}")
+        lines.append("")
+
+    # Report content
+    if result.get("report"):
+        lines.append("## Test Report")
+        lines.append(result["report"])
+        lines.append("")
+
+    # Error
+    if result.get("error"):
+        lines.append("## Error Details")
+        lines.append(result["error"])
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 def format_duration(seconds: float) -> str:

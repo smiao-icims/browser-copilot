@@ -40,9 +40,6 @@ class InputHandler:
             with open(file_path, encoding="utf-8") as f:
                 content = f.read().strip()
 
-            if not content:
-                raise ValueError(f"Test scenario file is empty: {file_path}")
-
             return content
 
         except Exception as e:
@@ -573,7 +570,7 @@ class StreamHandler:
         """
         self.verbose = verbose
         self.quiet = quiet
-        self._buffer = []
+        self._buffer: list[tuple[datetime, str, str]] = []
 
     def write(self, message: str, level: str = "info") -> None:
         """
@@ -609,7 +606,7 @@ class StreamHandler:
             else:
                 print(message)
 
-    def get_buffer(self) -> list[tuple]:
+    def get_buffer(self) -> list[tuple[datetime, str, str]]:
         """Get all buffered messages"""
         return self._buffer.copy()
 

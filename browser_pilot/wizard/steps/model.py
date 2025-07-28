@@ -190,7 +190,7 @@ class ModelSelectionStep(WizardStep):
             available_models = registry.get_available_models(provider=api_provider)
 
             # Get configured models for comparison
-            configured_models = {}
+            configured_models: dict[str, object] = {}
             if registry.is_provider_configured(provider):
                 configured_models = registry.get_configured_models(provider) or {}
 

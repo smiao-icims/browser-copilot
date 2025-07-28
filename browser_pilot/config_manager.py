@@ -17,7 +17,7 @@ try:
     from browser_pilot.storage_manager import StorageManager
 except ImportError:
     # For testing, when imported directly
-    from storage_manager import StorageManager
+    from storage_manager import StorageManager  # type: ignore[no-redef]
 
 
 class ConfigManager:
@@ -135,6 +135,10 @@ class ConfigManager:
         # Update in-memory cache
         if self._config_cache is None:
             self._load_config_file()
+
+        # Ensure cache is initialized
+        if self._config_cache is None:
+            self._config_cache = {}
 
         self._config_cache[key] = value
 

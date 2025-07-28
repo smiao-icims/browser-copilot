@@ -9,15 +9,15 @@ from enum import Enum
 from typing import Any
 
 try:
-    from langchain.schema import BaseMessage, HumanMessage, SystemMessage
+    from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     # For testing without langchain
     LANGCHAIN_AVAILABLE = False
-    BaseMessage = None
-    HumanMessage = None
-    SystemMessage = None
+    BaseMessage = Any  # type: ignore[misc,assignment]
+    HumanMessage = Any  # type: ignore[misc,assignment]
+    SystemMessage = Any  # type: ignore[misc,assignment]
 
 
 class OptimizationLevel(Enum):
@@ -110,7 +110,7 @@ class TokenOptimizer:
             level: Optimization level to use
         """
         self.level = level
-        self.metrics = {
+        self.metrics: dict[str, Any] = {
             "original_tokens": 0,
             "optimized_tokens": 0,
             "reduction_percentage": 0.0,
@@ -178,11 +178,11 @@ class TokenOptimizer:
         if self.level == OptimizationLevel.NONE:
             return messages
 
-        optimized_messages = []
+        optimized_messages: list[BaseMessage] = []
 
         for message in messages:
             if isinstance(message, HumanMessage | SystemMessage):
-                optimized_content = self.optimize_prompt(message.content)
+                optimized_content = self.optimize_prompt(str(message.content))
                 optimized_message = type(message)(content=optimized_content)
                 optimized_messages.append(optimized_message)
             else:
@@ -431,8 +431,9 @@ class TokenOptimizer:
 
         # Track unique strategies
         for strategy in strategies:
-            if strategy not in self.metrics["strategies_applied"]:
-                self.metrics["strategies_applied"].append(strategy)
+            strategies_list = self.metrics["strategies_applied"]
+            if isinstance(strategies_list, list) and strategy not in strategies_list:
+                strategies_list.append(strategy)
 
 
 class OptimizationPresets:

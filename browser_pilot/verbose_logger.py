@@ -10,6 +10,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from langchain_core.callbacks.base import BaseCallbackHandler
 
@@ -21,7 +22,9 @@ except ImportError:
         from browser_pilot.storage_manager import StorageManager
     except ImportError:
         # For unit testing
-        from storage_manager import StorageManager
+        from storage_manager import (  # type: ignore[no-redef]
+            StorageManager,  # type: ignore[import-not-found]
+        )
 
 
 class VerboseLogger:
@@ -330,7 +333,12 @@ class LangChainVerboseCallback(BaseCallbackHandler):
         )
 
     def on_tool_error(
-        self, error: Exception | KeyboardInterrupt, **kwargs: Any
+        self,
+        error: BaseException,
+        *,
+        run_id: UUID,
+        parent_run_id: UUID | None = None,
+        **kwargs: Any,
     ) -> None:
         """Called when tool errors"""
         tool_name = kwargs.get("name", "unknown")

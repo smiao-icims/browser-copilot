@@ -185,7 +185,8 @@ class StorageManager:
 
         try:
             with open(settings_path, encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                return data if isinstance(data, dict) else {}
         except (OSError, json.JSONDecodeError):
             return {}
 
@@ -280,7 +281,7 @@ class StorageManager:
         Returns:
             Dictionary with storage statistics
         """
-        info = {
+        info: dict[str, Any] = {
             "base_directory": str(self.base_dir),
             "platform": platform.system(),
             "directories": {},
@@ -323,11 +324,12 @@ class StorageManager:
 
     def _format_bytes(self, bytes_size: int) -> str:
         """Format bytes to human readable string"""
+        size_float = float(bytes_size)
         for unit in ["B", "KB", "MB", "GB"]:
-            if bytes_size < 1024.0:
-                return f"{bytes_size:.2f} {unit}"
-            bytes_size /= 1024.0
-        return f"{bytes_size:.2f} TB"
+            if size_float < 1024.0:
+                return f"{size_float:.2f} {unit}"
+            size_float /= 1024.0
+        return f"{size_float:.2f} TB"
 
     def clear_cache(self) -> int:
         """

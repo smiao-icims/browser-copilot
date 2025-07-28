@@ -105,7 +105,7 @@ class SaveConfigurationStep(WizardStep):
 
         return config_path
 
-    def _save_to_modelforge(self, state: WizardState):
+    def _save_to_modelforge(self, state: WizardState) -> None:
         """Save provider configuration to ModelForge."""
         try:
             import subprocess
@@ -121,7 +121,10 @@ class SaveConfigurationStep(WizardStep):
                 return
 
             # Build modelforge command
-            cmd = [
+            if not state.provider or not state.model:
+                return
+
+            cmd: list[str] = [
                 "uv",
                 "run",
                 "modelforge",
@@ -143,6 +146,9 @@ class SaveConfigurationStep(WizardStep):
                 print("✅ Also saved to ModelForge configuration")
 
                 # Set as default
+                # We know provider and model are not None from the check above
+                assert state.provider is not None
+                assert state.model is not None
                 subprocess.run(
                     [
                         "uv",

@@ -14,7 +14,7 @@ from browser_pilot.wizard.types import StepResult, WizardAction
 class BrowserSelectionStep(WizardStep):
     """Handle browser selection with availability detection."""
 
-    BROWSERS = [
+    BROWSERS: list[dict[str, str | int]] = [
         {
             "name": "chromium",
             "display": "Chromium",
@@ -74,7 +74,11 @@ class BrowserSelectionStep(WizardStep):
                 label += ", ✗ Not installed)"
 
             choices.append(
-                Choice(title=label, value=browser["name"], disabled=not is_installed)
+                Choice(
+                    title=label,
+                    value=str(browser["name"]),
+                    disabled="true" if not is_installed else None,
+                )
             )
 
         # Add option to install browsers
@@ -111,8 +115,9 @@ class BrowserSelectionStep(WizardStep):
             if result.returncode == 0:
                 output = result.stdout.lower()
                 for browser in self.BROWSERS:
-                    if browser["name"] in output:
-                        installed.append(browser["name"])
+                    browser_name = str(browser["name"])
+                    if browser_name in output:
+                        installed.append(browser_name)
 
             # If no browsers found, check if playwright is installed
             if not installed:

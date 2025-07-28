@@ -14,7 +14,7 @@ class AuthenticationStep(WizardStep):
     """Handle authentication for providers that require it."""
 
     # Providers that need API keys
-    API_KEY_PROVIDERS = {
+    API_KEY_PROVIDERS: dict[str, dict[str, str | None]] = {
         "openai": {
             "env_var": "OPENAI_API_KEY",
             "url": "https://platform.openai.com/api-keys",
@@ -161,8 +161,10 @@ class AuthenticationStep(WizardStep):
 
     async def _handle_api_key_auth(self, state: WizardState) -> StepResult:
         """Handle API key authentication."""
+        if state.provider is None:
+            return StepResult(action=WizardAction.BACK, data={})
         provider_info = self.API_KEY_PROVIDERS[state.provider]
-        env_var = provider_info["env_var"]
+        env_var = str(provider_info["env_var"])
 
         print(f"\n🔑 {state.provider.title()} API Key\n")
 
@@ -181,7 +183,7 @@ class AuthenticationStep(WizardStep):
                 )
 
         # Ask for API key
-        print(f"Get your API key from: {provider_info['url']}")
+        print(f"Get your API key from: {str(provider_info['url'])}")
         print(f"Set as environment variable: export {env_var}='your-key'\n")
 
         api_key = await questionary.password(
@@ -205,9 +207,10 @@ class AuthenticationStep(WizardStep):
                 return StepResult(action=WizardAction.BACK, data={})
 
         # Basic validation
-        if provider_info["prefix"] and not api_key.startswith(provider_info["prefix"]):
+        prefix = provider_info["prefix"]
+        if prefix and not api_key.startswith(str(prefix)):
             print(
-                f"\n⚠️  Warning: API key doesn't start with expected prefix '{provider_info['prefix']}'"
+                f"\n⚠️  Warning: API key doesn't start with expected prefix '{prefix}'"
             )
             proceed = await questionary.confirm(
                 "Proceed anyway?", default=False, style=BROWSER_PILOT_STYLE

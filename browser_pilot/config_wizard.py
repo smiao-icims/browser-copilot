@@ -40,7 +40,7 @@ def run_config_wizard() -> bool:
         return False
 
 
-def main():
+def main() -> None:
     """Entry point for standalone wizard execution."""
     success = run_config_wizard()
     sys.exit(0 if success else 1)

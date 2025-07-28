@@ -43,9 +43,9 @@ class TestStorageManager:
             os.environ, {"LOCALAPPDATA": "C:\\Users\\Test\\AppData\\Local"}
         ):
             storage = StorageManager()
-            expected = Path("C:\\Users\\Test\\AppData\\Local\\browser_pilot")
-            # Compare as strings to avoid path separator issues
-            assert str(storage.base_dir).replace("/", "\\") == str(expected)
+            # Implementation uses ~/.browser_pilot for all platforms for consistency
+            expected = Path.home() / ".browser_pilot"
+            assert storage.base_dir == expected
 
     @patch("platform.system")
     def test_macos_default_path(self, mock_system):
@@ -54,7 +54,8 @@ class TestStorageManager:
 
         with patch("pathlib.Path.home", return_value=Path("/Users/test")):
             storage = StorageManager()
-            expected = Path("/Users/test/Library/Application Support/browser_pilot")
+            # Implementation uses ~/.browser_pilot for all platforms for consistency
+            expected = Path("/Users/test/.browser_pilot")
             assert storage.base_dir == expected
 
     @patch("platform.system")

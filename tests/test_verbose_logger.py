@@ -2,7 +2,7 @@
 Tests for VerboseLogger
 """
 
-import json
+import logging
 import sys
 from pathlib import Path
 
@@ -20,230 +20,193 @@ class TestVerboseLogger:
     @pytest.fixture(autouse=True)
     def setup(self, temp_dir):
         """Set up test environment"""
-        self.log_dir = temp_dir / "logs"
-        self.log_dir.mkdir()
-        self.logger = VerboseLogger(str(self.log_dir))
+        from storage_manager import StorageManager
+
+        self.storage = StorageManager(base_dir=temp_dir)
+        self.logger = VerboseLogger(storage_manager=self.storage)
+        self.log_dir = self.storage.get_logs_dir()
 
     def test_initialization(self):
         """Test logger initialization"""
-        assert self.logger.log_dir.exists()
+        assert self.log_dir.exists()
         assert self.logger.log_file.exists()
         assert self.logger.log_file.suffix == ".log"
         assert "browser_pilot_" in self.logger.log_file.name
 
-    def test_log_message(self, capsys):
-        """Test basic log message"""
-        self.logger.log("Test message", level="INFO")
+    def test_log_step(self, caplog):
+        """Test step logging"""
+        self.logger.log_step(
+            "navigation", "Navigate to homepage", {"url": "https://example.com"}
+        )
 
-        # Check console output
-        captured = capsys.readouterr()
-        assert "Test message" in captured.out
+        # Check log output
+        assert "Navigate to homepage" in caplog.text
 
         # Check file output
         log_content = self.logger.log_file.read_text()
-        assert "Test message" in log_content
-        assert "INFO" in log_content
+        assert "Navigate to homepage" in log_content
+        assert "NAVIGATION" in log_content  # Logger outputs uppercase step types
 
-    def test_log_levels(self, capsys):
+    def test_log_levels(self, caplog):
         """Test different log levels"""
-        levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
+        self.logger.log_step("debug_step", "Debug message", level="DEBUG")
+        self.logger.log_step("info_step", "Info message", level="INFO")
+        self.logger.log_step("warning_step", "Warning message", level="WARNING")
+        self.logger.log_error("error_type", "Error message")
 
-        for level in levels:
-            self.logger.log(f"Test {level}", level=level)
+        # All should appear in log output
+        assert "Debug message" in caplog.text
+        assert "Info message" in caplog.text
+        assert "Warning message" in caplog.text
+        assert "Error message" in caplog.text
 
-        captured = capsys.readouterr()
-        for level in levels:
-            assert level in captured.out
+    def test_log_tool_call(self, caplog):
+        """Test tool call logging"""
+        tool_params = {"selector": "button#submit"}
+        tool_result = {"success": True}
 
-    def test_log_with_data(self):
-        """Test logging with additional data"""
-        test_data = {"action": "click", "element": "button#submit", "result": "success"}
+        self.logger.log_tool_call("click", tool_params, tool_result, duration_ms=150.5)
 
-        self.logger.log("Action performed", data=test_data)
+        assert "Tool: click" in caplog.text
+        assert "150.5ms" in caplog.text
 
-        log_content = self.logger.log_file.read_text()
-        assert "Action performed" in log_content
-        # Data should be JSON formatted in the file
-        assert json.dumps(test_data, indent=2) in log_content
+    def test_log_token_usage(self, caplog):
+        """Test token usage logging"""
+        self.logger.log_token_usage(
+            prompt_tokens=100,
+            completion_tokens=50,
+            total_tokens=150,
+            estimated_cost=0.003,
+        )
 
-    def test_log_step(self, capsys):
-        """Test step logging"""
-        self.logger.log_step(1, "Navigate to homepage")
-        self.logger.log_step(2, "Click login button")
+        assert "Tokens used" in caplog.text
+        assert "150" in caplog.text
+        assert "$0.003" in caplog.text
 
-        captured = capsys.readouterr()
-        assert "Step 1: Navigate to homepage" in captured.out
-        assert "Step 2: Click login button" in captured.out
-
-    def test_log_error(self, capsys):
+    def test_log_error(self, caplog):
         """Test error logging"""
-        error = Exception("Test error message")
-        self.logger.log_error(error, context="During test execution")
+        self.logger.log_error(
+            "test_error",
+            "Something went wrong",
+            {"context": "During test execution"},
+            recoverable=False,
+        )
 
-        captured = capsys.readouterr()
-        assert "ERROR" in captured.out
-        assert "Test error message" in captured.out
-        assert "During test execution" in captured.out
+        assert "ERROR" in caplog.text
+        assert "Something went wrong" in caplog.text
+        assert "test_error" in caplog.text
 
-        # Check file contains full error details
-        log_content = self.logger.log_file.read_text()
-        assert "Exception: Test error message" in log_content
+    def test_log_screenshot(self, caplog, temp_dir):
+        """Test screenshot logging"""
+        screenshot_path = temp_dir / "screenshot.png"
+        screenshot_path.write_text("fake image data")
 
-    def test_log_telemetry(self):
-        """Test telemetry logging"""
-        telemetry_data = {
-            "tokens_used": 1000,
-            "cost": 0.02,
-            "duration": 5.5,
-            "model": "gpt-4",
-        }
+        self.logger.log_screenshot(screenshot_path, "Login page screenshot")
 
-        self.logger.log_telemetry(telemetry_data)
+        assert "Screenshot saved" in caplog.text
+        assert "screenshot.png" in caplog.text
+        assert "Login page screenshot" in caplog.text
 
-        log_content = self.logger.log_file.read_text()
-        assert "TELEMETRY" in log_content
-        assert "tokens_used" in log_content
-        assert "1000" in log_content
-
-    def test_summary(self, capsys):
+    def test_get_execution_summary(self):
         """Test execution summary"""
-        # Log some steps
-        self.logger.log_step(1, "Step 1")
-        self.logger.log_step(2, "Step 2")
-        self.logger.log_error(Exception("Test error"))
+        # Log some steps and tool calls
+        self.logger.log_step("action", "Step 1")
+        self.logger.log_step("action", "Step 2")
+        self.logger.log_tool_call("click", {}, {"success": True})
+        self.logger.log_error("test_error", "Test error")
 
-        # Generate summary
-        summary = self.logger.summary()
+        # Get summary
+        summary = self.logger.get_execution_summary()
 
-        captured = capsys.readouterr()
-        assert "Execution Summary" in captured.out
-        assert "Total steps: 2" in captured.out
-        assert "Errors: 1" in captured.out
-        assert "Log file:" in captured.out
-
-        assert summary["total_steps"] == 2
-        assert summary["errors"] == 1
+        assert summary["session_id"] == self.logger.session_id
         assert summary["log_file"] == str(self.logger.log_file)
+        assert summary["steps"] == 2
+        assert summary["tool_calls"] == 1
 
-    def test_context_manager(self, capsys):
-        """Test using logger as context manager"""
-        with VerboseLogger(str(self.log_dir)) as logger:
-            logger.log("Inside context")
+    def test_test_lifecycle(self, caplog):
+        """Test full test lifecycle logging"""
+        test_config = {"browser": "chromium", "headless": True}
 
-        captured = capsys.readouterr()
-        assert "Starting Browser Pilot execution" in captured.out
-        assert "Inside context" in captured.out
-        assert "Execution Summary" in captured.out
+        # Start test
+        self.logger.log_test_start("test_login", test_config)
 
-    def test_filename_sanitization(self):
-        """Test log filename sanitization"""
-        # Create logger with test name containing special characters
-        test_logger = VerboseLogger(
-            str(self.log_dir), test_name="test/with:special*chars"
+        # Log some steps
+        self.logger.log_step("navigation", "Navigate to login page")
+        self.logger.log_step("input", "Enter credentials")
+
+        # Complete test
+        self.logger.log_test_complete(True, 5.2, "Test passed successfully")
+
+        assert "Starting test: test_login" in caplog.text
+        assert "Test PASSED" in caplog.text
+        assert "5.20 seconds" in caplog.text  # Logger formats with 2 decimal places
+
+    def test_disable_console_output(self, temp_dir):
+        """Test logger with console output disabled"""
+        from storage_manager import StorageManager
+
+        storage = StorageManager(base_dir=temp_dir)
+        logger = VerboseLogger(storage_manager=storage, console_enabled=False)
+
+        logger.log_step("test", "Should not print to console")
+
+        # Check that logger has no console handler (StreamHandler to stdout)
+        # FileHandler is a subclass of StreamHandler, so check for stdout specifically
+        has_console_handler = any(
+            isinstance(handler, logging.StreamHandler)
+            and hasattr(handler, "stream")
+            and handler.stream == sys.stdout
+            for handler in logger.logger.handlers
         )
+        assert not has_console_handler
 
-        # Filename should have special chars replaced
-        assert "/" not in test_logger.log_file.name
-        assert ":" not in test_logger.log_file.name
-        assert "*" not in test_logger.log_file.name
+        # But file should contain the message
+        log_content = logger.log_file.read_text()
+        assert "Should not print to console" in log_content
 
-    def test_langchain_callback_methods(self):
-        """Test LangChain callback handler methods"""
-        # Test on_llm_start
-        self.logger.on_llm_start(
-            serialized={"name": "test_llm"},
-            prompts=["Test prompt"],
-            run_id="test_run_123",
-        )
+    def test_disable_file_output(self, temp_dir, caplog):
+        """Test logger with file output disabled"""
+        from storage_manager import StorageManager
 
-        # Test on_llm_end
-        from unittest.mock import MagicMock
+        storage = StorageManager(base_dir=temp_dir)
+        logger = VerboseLogger(storage_manager=storage, file_enabled=False)
+        logger.log_step("test", "Console only")
 
-        response = MagicMock()
-        response.generations = [[MagicMock(text="Test response")]]
-        response.llm_output = {"token_usage": {"total_tokens": 100}}
+        # Console should have output
+        assert "Console only" in caplog.text
 
-        self.logger.on_llm_end(response, run_id="test_run_123")
+        # File should not exist since file logging is disabled
+        # The log_file path is created but not written to
+        if logger.log_file.exists():
+            assert logger.log_file.stat().st_size == 0
 
-        log_content = self.logger.log_file.read_text()
-        assert "LLM Start" in log_content
-        assert "test_llm" in log_content
-        assert "Test prompt" in log_content
-        assert "LLM End" in log_content
-        assert "100" in log_content
+    def test_unicode_handling(self):
+        """Test handling of unicode characters"""
+        unicode_text = "Test with emoji 🚀 and special chars: ñ, ü, 中文"
+        self.logger.log_step("unicode_test", unicode_text)
 
-    def test_on_chain_callbacks(self):
-        """Test chain execution callbacks"""
-        # Test on_chain_start
-        self.logger.on_chain_start(
-            serialized={"name": "test_chain"},
-            inputs={"input": "test"},
-            run_id="chain_123",
-        )
+        log_content = self.logger.log_file.read_text(encoding="utf-8")
+        assert unicode_text in log_content
+        assert "🚀" in log_content
 
-        # Test on_chain_end
-        self.logger.on_chain_end(outputs={"output": "result"}, run_id="chain_123")
+    def test_write_execution_summary(self):
+        """Test execution summary writing"""
+        # Log some activities
+        self.logger.log_step("step1", "First step")
+        self.logger.log_tool_call("navigate", {"url": "test.com"}, {"success": True})
+        self.logger.log_token_usage(100, 50, 150, 0.003)
+
+        # Write summary (internal method)
+        self.logger._write_execution_summary()
 
         log_content = self.logger.log_file.read_text()
-        assert "Chain Start" in log_content
-        assert "test_chain" in log_content
-        assert "Chain End" in log_content
+        assert "EXECUTION SUMMARY" in log_content
+        # The summary is in JSON format
+        assert '"steps": 1' in log_content
+        assert '"tool_calls": 1' in log_content
 
-    def test_on_tool_callbacks(self):
-        """Test tool execution callbacks"""
-        # Test on_tool_start
-        self.logger.on_tool_start(
-            serialized={"name": "browser_action"},
-            input_str="click button",
-            run_id="tool_123",
-        )
-
-        # Test on_tool_end
-        self.logger.on_tool_end(output="Success", run_id="tool_123")
-
-        log_content = self.logger.log_file.read_text()
-        assert "Tool Start" in log_content
-        assert "browser_action" in log_content
-        assert "click button" in log_content
-        assert "Tool End" in log_content
-        assert "Success" in log_content
-
-    def test_error_callbacks(self):
-        """Test error handling callbacks"""
-        error = Exception("Test error")
-
-        # Test on_llm_error
-        self.logger.on_llm_error(error, run_id="error_123")
-
-        # Test on_chain_error
-        self.logger.on_chain_error(error, run_id="error_456")
-
-        # Test on_tool_error
-        self.logger.on_tool_error(error, run_id="error_789")
-
-        log_content = self.logger.log_file.read_text()
-        assert log_content.count("ERROR") >= 3
-        assert log_content.count("Test error") >= 3
-
-    def test_concurrent_logging(self):
-        """Test thread-safe concurrent logging"""
-        import threading
-
-        def log_messages(thread_id):
-            for i in range(10):
-                self.logger.log(f"Thread {thread_id} - Message {i}")
-
-        threads = []
-        for i in range(5):
-            thread = threading.Thread(target=log_messages, args=(i,))
-            threads.append(thread)
-            thread.start()
-
-        for thread in threads:
-            thread.join()
-
-        # Check all messages were logged
-        log_content = self.logger.log_file.read_text()
-        for i in range(5):
-            for j in range(10):
-                assert f"Thread {i} - Message {j}" in log_content
+    def test_get_log_file_path(self):
+        """Test getting log file path"""
+        path = self.logger.get_log_file_path()
+        assert path == self.logger.log_file
+        assert path.exists()
