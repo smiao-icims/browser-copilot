@@ -82,8 +82,11 @@ class TestBrowserToolsManager:
 
         assert "--no-screenshots" in args
 
-    def test_build_browser_args_with_options(self):
+    def test_build_browser_args_with_options(self, temp_dir):
         """Test building browser arguments with various options"""
+        # Use a temporary directory for cross-platform compatibility
+        session_dir = temp_dir / "test_session"
+
         args = BrowserToolsManager.build_browser_args(
             browser="chromium",
             device="iPhone 12",
@@ -96,7 +99,7 @@ class TestBrowserToolsManager:
             save_session=True,
             allowed_origins="https://example.com",
             blocked_origins="https://blocked.com",
-            session_dir=Path("/tmp/session"),
+            session_dir=session_dir,
         )
 
         assert "--device" in args
@@ -116,7 +119,8 @@ class TestBrowserToolsManager:
         assert "--blocked-origins" in args
         assert "https://blocked.com" in args
         assert "--output-dir" in args
-        assert "/tmp/session" in args
+        # Check that the session directory path is in args (as a string)
+        assert str(session_dir) in args
 
     def test_normalize_test_name(self):
         """Test test name normalization"""
