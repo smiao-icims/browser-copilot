@@ -7,7 +7,7 @@ This module handles test result formatting, saving, and display.
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Any
 
 
 def print_header():
@@ -18,119 +18,118 @@ def print_header():
     print("╚═══════════════════════════════════════════╝")
 
 
-def print_results(result: Dict[str, Any], no_color: bool = False) -> None:
+def print_results(result: dict[str, Any], no_color: bool = False) -> None:
     """
     Print test execution results to console
-    
+
     Args:
         result: Test execution results dictionary
         no_color: Disable colored output
     """
     print("\n" + "-" * 50)
-    
+
     # Status
     if result.get("success"):
         status = "✅ PASSED" if not no_color else "PASSED"
     else:
         status = "❌ FAILED" if not no_color else "FAILED"
-    
+
     print(f"Status: {status}")
-    
+
     # Basic metrics
     print(f"Duration: {result.get('duration_seconds', 0):.1f}s")
     print(f"Steps: {result.get('steps_executed', 0)}")
-    
+
     # Token usage
     if result.get("token_usage"):
         usage = result["token_usage"]
-        print(f"\n📊 Token Usage:" if not no_color else "\nToken Usage:")
+        print("\n📊 Token Usage:" if not no_color else "\nToken Usage:")
         print(f"   Total: {usage.get('total_tokens', 0):,}")
         print(f"   Prompt: {usage.get('prompt_tokens', 0):,}")
         print(f"   Completion: {usage.get('completion_tokens', 0):,}")
-        if usage.get('estimated_cost', 0) > 0:
+        if usage.get("estimated_cost", 0) > 0:
             print(f"   Cost: ${usage['estimated_cost']:.4f}")
-        
+
         # Token optimization metrics
-        if usage.get('optimization'):
-            opt = usage['optimization']
-            print(f"\n💡 Token Optimization:" if not no_color else "\nToken Optimization:")
+        if usage.get("optimization"):
+            opt = usage["optimization"]
+            print(
+                "\n💡 Token Optimization:" if not no_color else "\nToken Optimization:"
+            )
             print(f"   Reduction: {opt['reduction_percentage']:.1f}%")
-            print(f"   Tokens Saved: {opt['original_tokens'] - opt['optimized_tokens']:,}")
-            if opt.get('estimated_savings'):
+            print(
+                f"   Tokens Saved: {opt['original_tokens'] - opt['optimized_tokens']:,}"
+            )
+            if opt.get("estimated_savings"):
                 print(f"   Cost Savings: ${opt['estimated_savings']:.4f}")
             print(f"   Strategies: {', '.join(opt['strategies_applied'])}")
-    
+
     # Error if present
     if result.get("error"):
         print(f"\n{'❌' if not no_color else ''} Error: {result['error']}")
 
 
-def save_results(result: Dict[str, Any], output_dir: str = "reports") -> Dict[str, Path]:
+def save_results(
+    result: dict[str, Any], output_dir: str = "reports"
+) -> dict[str, Path]:
     """
     Save test results to disk in multiple formats
-    
+
     Args:
         result: Test execution results
         output_dir: Directory to save results
-        
+
     Returns:
         Dictionary mapping file types to their paths
     """
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
+
     # Save markdown report
     report_path = output_path / f"report_{timestamp}.md"
     report_content = result.get("report", "No report generated")
-    
+
     # Add metadata header to report
     metadata = f"""<!-- Browser Pilot Test Report
-Generated: {result.get('timestamp', datetime.now().isoformat())}
-Provider: {result.get('provider', 'Unknown')}
-Model: {result.get('model', 'Unknown')}
-Browser: {result.get('browser', 'Unknown')}
-Status: {'PASSED' if result.get('success') else 'FAILED'}
-Duration: {result.get('duration_seconds', 0):.1f}s
-Steps: {result.get('steps_executed', 0)}
-Token Usage: {result.get('token_usage', {}).get('total_tokens', 0):,}
+Generated: {result.get("timestamp", datetime.now().isoformat())}
+Provider: {result.get("provider", "Unknown")}
+Model: {result.get("model", "Unknown")}
+Browser: {result.get("browser", "Unknown")}
+Status: {"PASSED" if result.get("success") else "FAILED"}
+Duration: {result.get("duration_seconds", 0):.1f}s
+Steps: {result.get("steps_executed", 0)}
+Token Usage: {result.get("token_usage", {}).get("total_tokens", 0):,}
 -->
 
 """
-    
+
     report_path.write_text(metadata + report_content)
-    
+
     # Save JSON results
     json_path = output_path / f"results_{timestamp}.json"
     with open(json_path, "w") as f:
         json.dump(result, f, indent=2, default=str)
-    
+
     # Save summary file if test passed
     if result.get("success"):
         summary_path = output_path / f"summary_{timestamp}.txt"
         summary = generate_summary(result)
         summary_path.write_text(summary)
-        
-        return {
-            "report": report_path,
-            "results": json_path,
-            "summary": summary_path
-        }
-    
-    return {
-        "report": report_path,
-        "results": json_path
-    }
+
+        return {"report": report_path, "results": json_path, "summary": summary_path}
+
+    return {"report": report_path, "results": json_path}
 
 
-def generate_summary(result: Dict[str, Any]) -> str:
+def generate_summary(result: dict[str, Any]) -> str:
     """
     Generate a brief summary of test execution
-    
+
     Args:
         result: Test execution results
-        
+
     Returns:
         Summary text
     """
@@ -144,79 +143,80 @@ def generate_summary(result: Dict[str, Any]) -> str:
         f"Provider: {result.get('provider', 'Unknown')}",
         f"Model: {result.get('model', 'Unknown')}",
     ]
-    
+
     if result.get("token_usage"):
         usage = result["token_usage"]
-        summary_lines.extend([
-            "",
-            "Token Usage:",
-            f"  Total: {usage.get('total_tokens', 0):,}",
-            f"  Prompt: {usage.get('prompt_tokens', 0):,}",
-            f"  Completion: {usage.get('completion_tokens', 0):,}",
-            f"  Cost: ${usage.get('estimated_cost', 0):.4f}"
-        ])
-        
-        # Add optimization info if available
-        if usage.get('optimization'):
-            opt = usage['optimization']
-            summary_lines.extend([
+        summary_lines.extend(
+            [
                 "",
-                "Token Optimization:",
-                f"  Reduction: {opt['reduction_percentage']:.1f}%",
-                f"  Savings: ${opt.get('estimated_savings', 0):.4f}"
-            ])
-    
+                "Token Usage:",
+                f"  Total: {usage.get('total_tokens', 0):,}",
+                f"  Prompt: {usage.get('prompt_tokens', 0):,}",
+                f"  Completion: {usage.get('completion_tokens', 0):,}",
+                f"  Cost: ${usage.get('estimated_cost', 0):.4f}",
+            ]
+        )
+
+        # Add optimization info if available
+        if usage.get("optimization"):
+            opt = usage["optimization"]
+            summary_lines.extend(
+                [
+                    "",
+                    "Token Optimization:",
+                    f"  Reduction: {opt['reduction_percentage']:.1f}%",
+                    f"  Savings: ${opt.get('estimated_savings', 0):.4f}",
+                ]
+            )
+
     if result.get("error"):
-        summary_lines.extend([
-            "",
-            f"Error: {result['error']}"
-        ])
-    
+        summary_lines.extend(["", f"Error: {result['error']}"])
+
     return "\n".join(summary_lines)
 
 
 def format_duration(seconds: float) -> str:
     """
     Format duration in human-readable format
-    
+
     Args:
         seconds: Duration in seconds
-        
+
     Returns:
         Formatted duration string
     """
     if seconds < 60:
         return f"{seconds:.1f}s"
-    
+
     minutes = int(seconds // 60)
     remaining_seconds = seconds % 60
-    
+
     if minutes < 60:
         return f"{minutes}m {remaining_seconds:.0f}s"
-    
+
     hours = minutes // 60
     remaining_minutes = minutes % 60
-    
+
     return f"{hours}h {remaining_minutes}m"
 
 
-def create_html_report(result: Dict[str, Any], output_path: Path) -> Path:
+def create_html_report(result: dict[str, Any], output_path: Path) -> Path:
     """
     Create an HTML version of the test report
-    
+
     Args:
         result: Test execution results
         output_path: Directory to save the report
-        
+
     Returns:
         Path to the created HTML file
     """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     html_path = output_path / f"report_{timestamp}.html"
-    
+
     # Convert markdown report to HTML (simplified)
     report_content = result.get("report", "No report generated")
-    
+
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -270,35 +270,35 @@ def create_html_report(result: Dict[str, Any], output_path: Path) -> Path:
 <body>
     <div class="header">
         <h1>Browser Pilot Test Report</h1>
-        <p>Generated: {result.get('timestamp', datetime.now().isoformat())}</p>
+        <p>Generated: {result.get("timestamp", datetime.now().isoformat())}</p>
     </div>
     
     <div class="metrics">
         <div class="metric-card">
             <h3>Status</h3>
-            <p class="{'status-passed' if result.get('success') else 'status-failed'}">
-                {'✅ PASSED' if result.get('success') else '❌ FAILED'}
+            <p class="{"status-passed" if result.get("success") else "status-failed"}">
+                {"✅ PASSED" if result.get("success") else "❌ FAILED"}
             </p>
         </div>
         <div class="metric-card">
             <h3>Duration</h3>
-            <p>{format_duration(result.get('duration_seconds', 0))}</p>
+            <p>{format_duration(result.get("duration_seconds", 0))}</p>
         </div>
         <div class="metric-card">
             <h3>Steps</h3>
-            <p>{result.get('steps_executed', 0)}</p>
+            <p>{result.get("steps_executed", 0)}</p>
         </div>
         <div class="metric-card">
             <h3>Browser</h3>
-            <p>{result.get('browser', 'Unknown')}</p>
+            <p>{result.get("browser", "Unknown")}</p>
         </div>
         <div class="metric-card">
             <h3>Total Tokens</h3>
-            <p>{result.get('token_usage', {}).get('total_tokens', 0):,}</p>
+            <p>{result.get("token_usage", {}).get("total_tokens", 0):,}</p>
         </div>
         <div class="metric-card">
             <h3>Cost</h3>
-            <p>${result.get('token_usage', {}).get('estimated_cost', 0):.4f}</p>
+            <p>${result.get("token_usage", {}).get("estimated_cost", 0):.4f}</p>
         </div>
     </div>
     
@@ -308,6 +308,6 @@ def create_html_report(result: Dict[str, Any], output_path: Path) -> Path:
     </div>
 </body>
 </html>"""
-    
+
     html_path.write_text(html_content)
     return html_path

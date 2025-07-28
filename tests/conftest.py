@@ -5,9 +5,9 @@ Pytest configuration and fixtures for Browser Pilot tests
 import os
 import sys
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
@@ -58,7 +58,7 @@ def sample_config() -> dict:
         "verbose": True,
         "output_format": "json",
         "token_optimization": True,
-        "compression_level": "medium"
+        "compression_level": "medium",
     }
 
 
@@ -77,9 +77,7 @@ def mock_telemetry():
     mock = Mock()
     mock.metrics = Mock()
     mock.metrics.token_usage = Mock(
-        total_tokens=1000,
-        prompt_tokens=800,
-        completion_tokens=200
+        total_tokens=1000, prompt_tokens=800, completion_tokens=200
     )
     mock.metrics.estimated_cost = 0.02
     return mock
@@ -101,10 +99,10 @@ def sample_test_result() -> dict:
             "total_tokens": 1000,
             "prompt_tokens": 800,
             "completion_tokens": 200,
-            "estimated_cost": 0.02
+            "estimated_cost": 0.02,
         },
         "timestamp": "2025-01-26T12:00:00",
-        "error": None
+        "error": None,
     }
 
 
@@ -113,9 +111,9 @@ def cleanup_env():
     """Clean up environment variables after each test"""
     # Store original env vars
     original_env = dict(os.environ)
-    
+
     yield
-    
+
     # Restore original env vars
     os.environ.clear()
     os.environ.update(original_env)
@@ -130,26 +128,20 @@ def mock_langchain_imports(monkeypatch):
     mock_langchain.schema.BaseMessage = Mock
     mock_langchain.schema.HumanMessage = Mock
     mock_langchain.schema.SystemMessage = Mock
-    
+
     # Patch the imports
-    monkeypatch.setitem(sys.modules, 'langchain', mock_langchain)
-    monkeypatch.setitem(sys.modules, 'langchain.schema', mock_langchain.schema)
-    
+    monkeypatch.setitem(sys.modules, "langchain", mock_langchain)
+    monkeypatch.setitem(sys.modules, "langchain.schema", mock_langchain.schema)
+
     return mock_langchain
 
 
 # Test markers
 def pytest_configure(config):
     """Register custom markers"""
-    config.addinivalue_line(
-        "markers", "unit: mark test as a unit test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as an integration test"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
-    )
+    config.addinivalue_line("markers", "unit: mark test as a unit test")
+    config.addinivalue_line("markers", "integration: mark test as an integration test")
+    config.addinivalue_line("markers", "slow: mark test as slow running")
     config.addinivalue_line(
         "markers", "requires_llm: mark test as requiring an LLM provider"
     )

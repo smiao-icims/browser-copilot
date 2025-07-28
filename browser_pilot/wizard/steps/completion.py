@@ -7,11 +7,11 @@ from browser_pilot.wizard.types import StepResult, WizardAction
 
 class CompletionStep(WizardStep):
     """Display completion message and next steps."""
-    
+
     async def execute(self, state: WizardState) -> StepResult:
         """Display completion screen."""
         print("\n🎉 Setup Complete!\n")
-        
+
         # Show configuration summary
         print("Configuration Summary:")
         print("━" * 50)
@@ -22,7 +22,7 @@ class CompletionStep(WizardStep):
         print(f"Optimization:    {state.compression_level}")
         print("━" * 50)
         print()
-        
+
         print("You're ready to start testing. Try:\n")
         print("1. Quick test:")
         print("   browser-pilot --quick-test")
@@ -31,16 +31,15 @@ class CompletionStep(WizardStep):
         print("   browser-pilot examples/google-ai-search.md")
         print()
         print("3. Create your own test:")
-        print('   echo "Navigate to example.com and verify the title" | browser-pilot -')
+        print(
+            '   echo "Navigate to example.com and verify the title" | browser-pilot -'
+        )
         print()
         print("Need help? Run: browser-pilot --help")
         print()
-        
-        return StepResult(
-            action=WizardAction.CONTINUE,
-            data={}
-        )
-    
+
+        return StepResult(action=WizardAction.CONTINUE, data={})
+
     def can_skip(self, state: WizardState) -> bool:
         """Completion step cannot be skipped."""
         return False

@@ -2,36 +2,36 @@
 
 import asyncio
 import sys
-from typing import Optional
 
-from browser_pilot.wizard import WizardFlow, WizardState
-from browser_pilot.wizard.flow import WizardResult
+from browser_pilot.wizard import WizardFlow
 
 
 def run_config_wizard() -> bool:
     """
     Run the configuration wizard.
-    
+
     Returns:
         bool: True if configuration was saved successfully, False otherwise.
     """
     try:
         # Check if we're in an async environment
         try:
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
             # Already in async context
-            print("⚠️  Cannot run wizard in async context. Please run from command line.")
+            print(
+                "⚠️  Cannot run wizard in async context. Please run from command line."
+            )
             return False
         except RuntimeError:
             # No running loop, good to go
             pass
-        
+
         # Create and run wizard
         wizard = WizardFlow()
         result = asyncio.run(wizard.run())
-        
+
         return result.success
-        
+
     except KeyboardInterrupt:
         print("\n\n👋 Setup wizard cancelled.")
         return False

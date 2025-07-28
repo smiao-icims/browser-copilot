@@ -2,12 +2,12 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class WizardAction(Enum):
     """Actions that can be taken after a wizard step."""
-    
+
     CONTINUE = "continue"
     BACK = "back"
     CANCEL = "cancel"
@@ -17,7 +17,7 @@ class WizardAction(Enum):
 @dataclass
 class StepResult:
     """Result from executing a wizard step."""
-    
+
     action: WizardAction
-    data: Dict[str, Any]
-    error: Optional[str] = None
+    data: dict[str, Any]
+    error: str | None = None
