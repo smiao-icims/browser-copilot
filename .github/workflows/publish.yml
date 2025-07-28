@@ -48,7 +48,7 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'published'
     environment:
       name: pypi
-      url: https://pypi.org/p/browser-pilot
+      url: https://pypi.org/p/browser-pilot-llm
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
 

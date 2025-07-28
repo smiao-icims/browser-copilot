@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "browser-pilot"
-version = "2.1.0"
+name = "browser-pilot-llm"
+version = "1.0.0"
 authors = [
     {name = "Browser Pilot Team", email = "browser-pilot@example.com"},
 ]
