@@ -410,10 +410,6 @@ class BrowserPilot:
                 import traceback
 
                 traceback.print_exc()
-        finally:
-            # Clean up session if it exists
-            if "session" in locals():
-                await session.__aexit__(None, None, None)
 
         return result
 
