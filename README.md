@@ -3,7 +3,7 @@
 A streamlined browser automation framework that uses AI-powered agents to execute natural language test scenarios.
 
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://badge.fury.io/py/browser-copilot-llm.svg)](https://pypi.org/project/browser-copilot-llm/)
+[![PyPI Version](https://badge.fury.io/py/browser-copilot.svg)](https://pypi.org/project/browser-copilot/)
 [![CI Status](https://github.com/smiao-icims/browser-copilot/workflows/CI/badge.svg)](https://github.com/smiao-icims/browser-copilot/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Code Coverage](https://codecov.io/gh/smiao-icims/browser-copilot/branch/main/graph/badge.svg)](https://codecov.io/gh/smiao-icims/browser-copilot)
@@ -13,7 +13,7 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 ### Option 1: Install from PyPI (Recommended)
 ```bash
 # 1. Install Browser Copilot from PyPI
-pip install browser-copilot-llm
+pip install browser-copilot
 
 # 2. Run the setup wizard (2 minutes)
 browser-copilot --setup-wizard
@@ -68,10 +68,10 @@ That's it! You've just automated your first browser test. 🎉
 #### Option A: Install from PyPI (Recommended)
 ```bash
 # Install with pip
-pip install browser-copilot-llm
+pip install browser-copilot
 
 # Or with uv (faster)
-uv pip install browser-copilot-llm
+uv pip install browser-copilot
 ```
 
 #### Option B: Install from Source
