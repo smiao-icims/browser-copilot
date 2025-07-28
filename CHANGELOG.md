@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Browser Pilot will be documented in this file.
+All notable changes to Browser Copilot will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Core Features
-- **Enhanced Verbose Mode** - Step-by-step debugging with dual console/file output to `~/.browser_pilot/logs/`
+- **Enhanced Verbose Mode** - Step-by-step debugging with dual console/file output to `~/.browser_copilot/logs/`
 - **Token Optimization Module** - Reduces token usage by 20-30% with configurable compression levels
 - **Flexible Input/Output** - Support for stdin input and multiple output formats (JSON, YAML, XML, JUnit, HTML, Markdown)
 - **System Prompt Customization** - Use custom prompts to control agent behavior
