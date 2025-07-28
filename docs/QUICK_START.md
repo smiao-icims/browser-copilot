@@ -1,6 +1,6 @@
 # Browser Pilot Quick Start Guide 🚀
 
-Get up and running with Browser Pilot in 5 minutes!
+Get up and running with Browser Pilot in 3 minutes! This guide shows you the fastest way to start testing.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -28,114 +28,125 @@ node --version    # Should be 18+
 uv --version      # Should show version
 ```
 
-## Installation
+## 🎯 The 3-Minute Setup
 
-### 1. Clone and Install Dependencies
+### Step 1: Install Browser Pilot
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/browser-pilot.git
+git clone https://github.com/shuhaimiao/browser-pilot.git
 cd browser-pilot
 
 # Install dependencies with uv
 uv sync
 ```
 
-### 2. Configure Your LLM Provider
-
-#### Option A: Interactive Setup Wizard (Recommended) ✨
+### Step 2: Run the Setup Wizard
 
 ```bash
-# Launch the configuration wizard
 uv run browser-pilot --setup-wizard
-
-# The wizard guides you through everything with arrow-key navigation!
-# Takes less than 2 minutes to complete
 ```
 
-#### Option B: Manual Configuration
+The interactive wizard will:
+- 🤖 Help you choose an LLM provider (GitHub Copilot recommended - no API key!)
+- 🔐 Set up authentication (device flow for GitHub Copilot)
+- 🌐 Configure your browser (auto-detects installed browsers)
+- ✅ Validate everything with a test prompt
 
-```bash
-# GitHub Copilot (no API key needed!)
-uv run modelforge config add --provider github_copilot --model gpt-4o
+💡 **Tip**: Just press Enter to accept the recommended defaults!
 
-# OpenAI (requires API key)
-uv run modelforge config add --provider openai --model gpt-4 --api-key YOUR_KEY
+### Step 3: Write Your First Test
 
-# Anthropic (requires API key)
-uv run modelforge config add --provider anthropic --model claude-3-sonnet --api-key YOUR_KEY
-
-# Verify configuration
-uv run modelforge config show
-```
-
-### 3. Test Installation
-
-```bash
-# Run a simple test
-echo "Navigate to example.com and verify the title" | uv run browser-pilot -
-```
-
-## First Test
-
-### Create Your First Test File
-
-Create `my-first-test.md`:
+Create a file called `test.md` with natural language instructions:
 
 ```markdown
 # My First Browser Test
 
-1. Navigate to https://www.wikipedia.org
-2. Click on the search box
-3. Type "artificial intelligence"
-4. Press Enter
-5. Wait for results to load
-6. Verify the page contains "Artificial intelligence"
-7. Take a screenshot of the results
+1. Go to https://www.example.com
+2. Verify the page title contains "Example Domain"
+3. Take a screenshot
 ```
 
-### Run the Test
+### Step 4: Run Your Test!
 
 ```bash
-# Run with visual browser (see what's happening)
-uv run browser-pilot my-first-test.md
+uv run browser-pilot test.md
+```
 
-# Run headless (faster, no browser window)
-uv run browser-pilot my-first-test.md --headless
+That's it! You should see Browser Pilot:
+1. Open a browser window
+2. Navigate to example.com
+3. Verify the title
+4. Take a screenshot
+5. Generate a detailed report
 
-# Run with detailed output
-uv run browser-pilot my-first-test.md --verbose
+## 📝 Writing Tests in Natural Language
+
+Browser Pilot understands tests written in plain English. Just number your steps:
+
+### Example: Wikipedia Search Test
+
+```markdown
+# Wikipedia Search Test
+
+1. Navigate to https://www.wikipedia.org
+2. Search for "artificial intelligence"
+3. Verify the results page shows information about AI
+4. Click on the first search result
+5. Take a screenshot of the article
+```
+
+### Example: Login Test
+
+```markdown
+# Login Test
+
+1. Go to https://app.example.com/login
+2. Enter "user@example.com" in the email field
+3. Enter "password123" in the password field
+4. Click the "Sign In" button
+5. Verify the dashboard page loads
+6. Check that "Welcome back" message appears
+```
+
+### Running Tests
+
+```bash
+# Basic run (with browser window)
+uv run browser-pilot wikipedia-test.md
+
+# Run headless (no browser window)
+uv run browser-pilot wikipedia-test.md --headless
+
+# Run with detailed debugging
+uv run browser-pilot wikipedia-test.md --verbose
+
+# Generate HTML report
+uv run browser-pilot wikipedia-test.md --output-format html --output-file report.html
 ```
 
 ## Common Use Cases
 
 ### 1. E-commerce Testing
 
-```markdown
-# Shopping Cart Test
+We provide a complete e-commerce example that you can run immediately:
 
-1. Navigate to https://www.saucedemo.com
-2. Type "standard_user" in the username field
-3. Type "secret_sauce" in the password field
-4. Click the login button
-5. Wait for the products page to load
-6. Click "Add to cart" on the first product
-7. Click the shopping cart icon
-8. Verify the cart contains 1 item
-9. Click "Checkout"
-10. Fill in checkout information:
-    - First name: "Test"
-    - Last name: "User"
-    - Zip code: "12345"
-11. Click "Continue"
-12. Verify the total price is displayed
-13. Take a screenshot of the checkout summary
-```
-
-Run it:
 ```bash
-uv run browser-pilot shopping-test.md --headless --output-format html --output-file report.html
+# Run the SauceDemo shopping example
+uv run browser-pilot examples/saucedemo-shopping.md
+
+# Run it headless with HTML report
+uv run browser-pilot examples/saucedemo-shopping.md --headless --output-format html --output-file report.html
 ```
+
+**What this example tests:**
+- User authentication (login/logout)
+- Product browsing and selection
+- Shopping cart management
+- Multi-step checkout process
+- Order confirmation
+
+👉 View the full test: `cat examples/saucedemo-shopping.md`
 
 ### 2. Form Submission Testing
 
@@ -173,22 +184,26 @@ uv run browser-pilot shopping-test.md --headless --output-format html --output-f
 10. Take a screenshot of the dashboard
 ```
 
-### 4. Search Functionality Testing
+### 4. AI-Powered Search Testing
 
-```markdown
-# Search Test
+Test modern AI search features with our Google AI example:
 
-1. Navigate to your-site.com
-2. Click on the search icon or search box
-3. Type "product name"
-4. Press Enter or click search button
-5. Wait for results to load
-6. Verify search results contain "product name"
-7. Verify at least 5 results are shown
-8. Click on the first result
-9. Verify product page loads
-10. Take a screenshot
+```bash
+# Run the Google AI search example
+uv run browser-pilot examples/google-ai-search.md
+
+# Try with your own search query
+uv run browser-pilot examples/google-ai-search.md --verbose
 ```
+
+**What this example demonstrates:**
+- Activating Google's AI search mode
+- Executing search queries
+- Validating AI-generated responses
+- Handling different search scenarios
+- Screenshot capture of results
+
+👉 View the full test: `cat examples/google-ai-search.md`
 
 ## Tips & Tricks
 
@@ -296,7 +311,7 @@ done
 
 ## Getting Help
 
-- **Issue with Browser Pilot?** Check our [GitHub Issues](https://github.com/yourusername/browser-pilot/issues)
+- **Issue with Browser Pilot?** Check our [GitHub Issues](https://github.com/shuhaimiao/browser-pilot/issues)
 - **ModelForge Problems?** Run `uv run modelforge config check`
 - **Playwright Issues?** Try `npx playwright install`
 

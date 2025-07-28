@@ -38,7 +38,7 @@ By participating in this project, you agree to abide by our Code of Conduct:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/browser-pilot.git
+git clone https://github.com/shuhaimiao/browser-pilot.git
 cd browser-pilot
 
 # Install uv (if not already installed)

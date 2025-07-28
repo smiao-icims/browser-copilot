@@ -521,8 +521,8 @@ browser-pilot test.md --verbose 2>&1 | tee error.log
 
 ### Community Support
 
-1. **GitHub Issues**: [github.com/yourusername/browser-pilot/issues](https://github.com/yourusername/browser-pilot/issues)
-2. **Discussions**: [github.com/yourusername/browser-pilot/discussions](https://github.com/yourusername/browser-pilot/discussions)
+1. **GitHub Issues**: [github.com/shuhaimiao/browser-pilot/issues](https://github.com/shuhaimiao/browser-pilot/issues)
+2. **Discussions**: [github.com/shuhaimiao/browser-pilot/discussions](https://github.com/shuhaimiao/browser-pilot/discussions)
 3. **ModelForge Issues**: [github.com/smiao-icims/model-forge](https://github.com/smiao-icims/model-forge)
 
 ### Quick Fixes Checklist

@@ -3,7 +3,36 @@
 A streamlined browser automation framework that uses AI-powered agents to execute natural language test scenarios.
 
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI Version](https://badge.fury.io/py/browser-pilot.svg)](https://pypi.org/project/browser-pilot/)
+[![CI Status](https://github.com/shuhaimiao/browser-pilot/workflows/CI/badge.svg)](https://github.com/shuhaimiao/browser-pilot/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Code Coverage](https://codecov.io/gh/shuhaimiao/browser-pilot/branch/main/graph/badge.svg)](https://codecov.io/gh/shuhaimiao/browser-pilot)
+
+## 🎯 Getting Started in 3 Minutes
+
+```bash
+# 1. Install Browser Pilot
+git clone https://github.com/shuhaimiao/browser-pilot.git
+cd browser-pilot
+uv sync
+
+# 2. Run the setup wizard (2 minutes)
+uv run browser-pilot --setup-wizard
+
+# 3. Create a test file (test.md)
+cat > test.md << 'EOF'
+# My First Test
+1. Go to https://www.google.com
+2. Search for "Browser Pilot AI testing"
+3. Click on the first result
+4. Take a screenshot
+EOF
+
+# 4. Run your test!
+uv run browser-pilot test.md
+```
+
+That's it! You've just automated your first browser test. 🎉
 
 ## ✨ Features
 
@@ -19,50 +48,79 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 - 🎛️ **Customizable**: System prompts, browser settings, and optimization levels
 - 🧙 **Setup Wizard**: Interactive configuration with arrow-key navigation
 
-## 🚀 Quick Start
+## 🚀 Quick Start - Get Testing in 3 Minutes!
 
-### 1️⃣ Install in One Minute
+### 1️⃣ Install Browser Pilot
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/browser-pilot.git
+git clone https://github.com/shuhaimiao/browser-pilot.git
 cd browser-pilot
 curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv
 uv sync  # Install dependencies
 ```
 
-### 2️⃣ Configure Your LLM (Choose One)
+### 2️⃣ Run Setup Wizard (2 minutes)
 
-#### Option A: Interactive Setup Wizard (Recommended) ✨
 ```bash
 uv run browser-pilot --setup-wizard
-# Takes less than 2 minutes with arrow-key navigation!
 ```
 
-#### Option B: Manual Configuration
-```bash
-# GitHub Copilot (No API key needed!)
-uv run modelforge config add --provider github_copilot --model gpt-4o
+The wizard will guide you through:
+- 🤖 Selecting an LLM provider (GitHub Copilot recommended - no API key!)
+- 🔐 Authentication setup
+- 🌐 Browser configuration
+- ✅ Validation with a test prompt
 
-# OpenAI (Requires API key)
-uv run modelforge config add --provider openai --model gpt-4 --api-key YOUR_KEY
+### 3️⃣ Create Your First Test
 
-# Anthropic (Requires API key)
-uv run modelforge config add --provider anthropic --model claude-3-sonnet --api-key YOUR_KEY
+Create a file `my-test.md` with natural language instructions:
+
+```markdown
+# My First Test
+
+1. Navigate to https://www.wikipedia.org
+2. Search for "artificial intelligence"
+3. Verify the page shows results about AI
+4. Take a screenshot
 ```
 
-### 3️⃣ Run Your First Test!
+### 4️⃣ Run Your Test!
 
 ```bash
-# Test 1: Simple navigation
-echo "Navigate to example.com and verify the page title" | uv run browser-pilot -
+# Run your test!
+uv run browser-pilot my-test.md
 
-# Test 2: Run an example test with visual browser
+# That's it! 🎉 You've just automated your first browser test.
+```
+
+### 🎯 Try Our Example Tests
+
+#### E-commerce Shopping Flow
+```bash
+# Run a complete shopping cart test
+uv run browser-pilot examples/saucedemo-shopping.md
+```
+
+This example demonstrates:
+- Login with test credentials
+- Adding products to cart
+- Checkout process with form filling
+- Order confirmation
+
+#### AI-Powered Search
+```bash
+# Test Google's AI search features
 uv run browser-pilot examples/google-ai-search.md
-
-# Test 3: Run headless with detailed output
-uv run browser-pilot examples/saucedemo-shopping.md --headless --verbose
 ```
+
+This example shows:
+- Navigating to Google
+- Using AI-powered search
+- Verifying AI-generated responses
+- Taking screenshots of results
+
+👉 **Check out more examples in the `examples/` directory!**
 
 ### 💡 Pro Tips for Quick Success
 
@@ -83,23 +141,6 @@ bp your-test.md --compression-level high  # 30% less tokens!
 bp failing-test.md --verbose --save-trace
 ```
 
-### 🎯 Your First Custom Test
-
-Create `my-test.md`:
-```markdown
-# My Shopping Test
-
-1. Navigate to https://www.saucedemo.com
-2. Enter "standard_user" in the username field
-3. Enter "secret_sauce" in the password field  
-4. Click the "Login" button
-5. Add the first product to cart
-6. Click the shopping cart icon
-7. Verify the cart contains 1 item
-8. Take a screenshot
-```
-
-Run it: `bp my-test.md`
 
 👉 **[See More Examples](docs/COMMON_USE_CASES.md)** | 📘 **[Full Quick Start Guide](docs/QUICK_START.md)**
 
@@ -287,9 +328,8 @@ browser-pilot/
 │   ├── token_optimizer.py # Token optimization
 │   └── test_enhancer.py   # Test suite enhancement
 ├── examples/              # Example test suites
-│   ├── google-ai-search.md    # Google AI Gemini search test
-│   ├── saucedemo-shopping.md  # E-commerce shopping cart test
-│   └── weather-forecast.md    # Weather forecast lookup test
+│   ├── google-ai-search.md    # Google AI search test
+│   └── saucedemo-shopping.md  # E-commerce shopping cart test
 ├── docs/                  # Documentation
 │   └── specs/            # Technical specifications
 └── tests/                 # Unit tests
@@ -324,11 +364,29 @@ Storage structure:
 
 ## 🌟 Example Test Suites
 
-Check out the `examples/` directory:
-- `google-ai-search.md` - AI-powered search testing
-- `saucedemo-shopping.md` - E-commerce workflow
-- `weather-forecast.md` - API and data verification
-- `icims_job_search.md` - Complex form interactions
+Learn from our comprehensive examples in the `examples/` directory:
+
+### 🛒 `saucedemo-shopping.md`
+Complete e-commerce workflow including:
+- User authentication
+- Product browsing and selection
+- Shopping cart management
+- Multi-step checkout process
+- Order confirmation
+
+### 🔍 `google-ai-search.md`
+AI-powered search testing:
+- Google AI mode activation
+- Search query execution
+- AI response validation
+- Screenshot capture
+- Different search scenarios
+
+Run any example:
+```bash
+uv run browser-pilot examples/saucedemo-shopping.md
+uv run browser-pilot examples/google-ai-search.md --headless
+```
 
 ## 🤝 Contributing
 

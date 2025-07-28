@@ -4,14 +4,18 @@ build-backend = "hatchling.build"
 
 [project]
 name = "browser-pilot"
-version = "2.0.0"
+version = "2.1.0"
 authors = [
-    {name = "Browser Pilot Team"},
+    {name = "Browser Pilot Team", email = "browser-pilot@example.com"},
 ]
 description = "AI-powered browser test automation framework"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
+keywords = ["automation", "testing", "browser", "ai", "playwright", "llm"]
+homepage = "https://github.com/shuhaimiao/browser-pilot"
+repository = "https://github.com/shuhaimiao/browser-pilot"
+documentation = "https://github.com/shuhaimiao/browser-pilot#readme"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -45,16 +49,19 @@ dev = [
     "mypy>=1.0",
     "ruff>=0.1.0",
     "pre-commit>=3.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
+    "twine>=4.0.0",
 ]
 dotenv = [
     "python-dotenv>=1.0.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/browser-pilot"
-"Bug Reports" = "https://github.com/yourusername/browser-pilot/issues"
-Documentation = "https://github.com/yourusername/browser-pilot#readme"
-Source = "https://github.com/yourusername/browser-pilot"
+Homepage = "https://github.com/shuhaimiao/browser-pilot"
+"Bug Reports" = "https://github.com/shuhaimiao/browser-pilot/issues"
+Documentation = "https://github.com/shuhaimiao/browser-pilot#readme"
+Source = "https://github.com/shuhaimiao/browser-pilot"
 
 [project.scripts]
 browser-pilot = "browser_pilot.cli:main"
