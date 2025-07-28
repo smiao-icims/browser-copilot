@@ -161,7 +161,7 @@ class WizardFlow:
 
         if confirm:
             print("\n👋 Setup wizard cancelled. You can run it again with:")
-            print("   browser-pilot --setup-wizard")
+            print("   browser-copilot --setup-wizard")
             return WizardResult(success=False, error="User cancelled")
         else:
             # Continue from current step

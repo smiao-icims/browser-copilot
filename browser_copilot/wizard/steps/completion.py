@@ -24,18 +24,15 @@ class CompletionStep(WizardStep):
         print()
 
         print("You're ready to start testing. Try:\n")
-        print("1. Quick test:")
-        print("   browser-pilot --quick-test")
+        print("1. Run an example:")
+        print("   browser-copilot examples/google-ai-search.md")
         print()
-        print("2. Run an example:")
-        print("   browser-pilot examples/google-ai-search.md")
-        print()
-        print("3. Create your own test:")
+        print("2. Create your own test:")
         print(
-            '   echo "Navigate to example.com and verify the title" | browser-pilot -'
+            '   echo "Navigate to example.com and verify the title" | browser-copilot -'
         )
         print()
-        print("Need help? Run: browser-pilot --help")
+        print("Need help? Run: browser-copilot --help")
         print()
 
         return StepResult(action=WizardAction.CONTINUE, data={})
