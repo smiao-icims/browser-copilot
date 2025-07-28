@@ -67,27 +67,25 @@ class TestCLICommands:
         captured = capsys.readouterr()
         assert "Storage error" in captured.err
 
-    @pytest.mark.asyncio
     @patch("browser_copilot.cli.commands.ConfigManager")
     @patch("browser_copilot.cli.commands.run_config_wizard")
-    async def test_run_config_command(self, mock_wizard, mock_config, mock_args):
+    def test_run_config_command(self, mock_wizard, mock_config, mock_args):
         """Test config command execution"""
         mock_config_instance = MagicMock()
         mock_config.return_value = mock_config_instance
         mock_wizard.return_value = True  # Successful completion
 
-        result = await run_config_command(mock_args)
+        result = run_config_command(mock_args)
 
         assert result == 0  # Success
         mock_wizard.assert_called_once()
 
-    @pytest.mark.asyncio
     @patch("browser_copilot.cli.commands.run_config_wizard")
-    async def test_run_config_command_error(self, mock_wizard, mock_args, capsys):
+    def test_run_config_command_error(self, mock_wizard, mock_args, capsys):
         """Test config command with error"""
         mock_wizard.side_effect = Exception("Config error")
 
-        result = await run_config_command(mock_args)
+        result = run_config_command(mock_args)
 
         assert result == 1  # Error
         captured = capsys.readouterr()

@@ -23,8 +23,8 @@ def main():
     args = parse_arguments()
 
     # Handle special commands
-    if args.config:
-        sys.exit(asyncio.run(run_config_command(args)))
+    if args.config or args.setup_wizard:
+        sys.exit(run_config_command(args))
     elif args.cleanup:
         sys.exit(asyncio.run(run_cleanup_command(args)))
     elif args.storage_info:

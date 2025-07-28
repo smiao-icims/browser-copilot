@@ -158,7 +158,7 @@ async def run_cleanup_command(args) -> int:
         return 1
 
 
-async def run_config_command(args) -> int:
+def run_config_command(args) -> int:
     """
     Handle the configuration wizard command
 

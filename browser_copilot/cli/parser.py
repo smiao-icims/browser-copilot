@@ -177,6 +177,11 @@ Examples:
         help="Run interactive configuration wizard",
     )
     config_group.add_argument(
+        "--setup-wizard",
+        action="store_true",
+        help="Run interactive configuration wizard (alias for --config)",
+    )
+    config_group.add_argument(
         "--config-file", type=str, help="Path to custom configuration file"
     )
     config_group.add_argument(
