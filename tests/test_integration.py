@@ -145,47 +145,54 @@ class TestIntegration:
 
         # 3. Create logger
         logger = VerboseLogger(storage_manager=storage)
+        try:
+            # 4. Simulate test execution with token optimization
+            optimizer = TokenOptimizer(OptimizationLevel.MEDIUM)
+            optimized_scenario = optimizer.optimize_prompt(scenario)
 
-        # 4. Simulate test execution with token optimization
-        optimizer = TokenOptimizer(OptimizationLevel.MEDIUM)
-        optimized_scenario = optimizer.optimize_prompt(scenario)
+            logger.log_step("optimization", f"Original length: {len(scenario)}")
+            logger.log_step(
+                "optimization", f"Optimized length: {len(optimized_scenario)}"
+            )
 
-        logger.log_step("optimization", f"Original length: {len(scenario)}")
-        logger.log_step("optimization", f"Optimized length: {len(optimized_scenario)}")
+            # 5. Create result
+            test_result = {
+                "success": True,
+                "test_name": "pipeline_test",
+                "duration_seconds": 5.5,
+                "steps_executed": 3,
+                "report": "All steps completed",
+                "token_usage": {
+                    "total_tokens": 100,
+                    "estimated_cost": 0.002,
+                    "optimization": optimizer.get_metrics(),
+                },
+            }
 
-        # 5. Create result
-        test_result = {
-            "success": True,
-            "test_name": "pipeline_test",
-            "duration_seconds": 5.5,
-            "steps_executed": 3,
-            "report": "All steps completed",
-            "token_usage": {
-                "total_tokens": 100,
-                "estimated_cost": 0.002,
-                "optimization": optimizer.get_metrics(),
-            },
-        }
+            # 6. Save results
+            saved_files = reporter.save_results(
+                test_result, str(storage.get_reports_dir())
+            )
 
-        # 6. Save results
-        saved_files = reporter.save_results(test_result, str(storage.get_reports_dir()))
+            # 7. Verify files created
+            assert saved_files["report"].exists()
+            assert saved_files["results"].exists()
 
-        # 7. Verify files created
-        assert saved_files["report"].exists()
-        assert saved_files["results"].exists()
+            # 8. Display results
+            reporter.print_results(test_result)
 
-        # 8. Display results
-        reporter.print_results(test_result)
+            # 9. Use output handler for final output
+            output_handler = OutputHandler()
+            formatted_output = output_handler.format_output(
+                test_result, config.get("output_format")
+            )
+            output_handler.write_output(formatted_output)
 
-        # 9. Use output handler for final output
-        output_handler = OutputHandler()
-        formatted_output = output_handler.format_output(
-            test_result, config.get("output_format")
-        )
-        output_handler.write_output(formatted_output)
-
-        captured = capsys.readouterr()
-        assert "✅ PASSED" in captured.out
+            captured = capsys.readouterr()
+            assert "✅ PASSED" in captured.out
+        finally:
+            # Close logger to release file handles
+            logger.close()
 
     def test_error_handling_integration(self, temp_dir, capsys):
         """Test error handling across components"""
@@ -194,28 +201,32 @@ class TestIntegration:
         _ = ConfigManager(storage_manager=storage)
         logger = VerboseLogger(storage_manager=storage)
 
-        # Test error scenario
-        error = Exception("Integration test error")
-        logger.log_error(
-            "integration_error", str(error), {"context": "During integration test"}
-        )
+        try:
+            # Test error scenario
+            error = Exception("Integration test error")
+            logger.log_error(
+                "integration_error", str(error), {"context": "During integration test"}
+            )
 
-        # Create failed result
-        failed_result = {
-            "success": False,
-            "error": str(error),
-            "duration_seconds": 2.0,
-            "steps_executed": 1,
-        }
+            # Create failed result
+            failed_result = {
+                "success": False,
+                "error": str(error),
+                "duration_seconds": 2.0,
+                "steps_executed": 1,
+            }
 
-        # Display and save
-        reporter.print_results(failed_result)
-        reporter.save_results(failed_result, str(storage.get_reports_dir()))
+            # Display and save
+            reporter.print_results(failed_result)
+            reporter.save_results(failed_result, str(storage.get_reports_dir()))
 
-        # Verify error handling
-        captured = capsys.readouterr()
-        assert "❌ FAILED" in captured.out
-        assert "Integration test error" in captured.out
+            # Verify error handling
+            captured = capsys.readouterr()
+            assert "❌ FAILED" in captured.out
+            assert "Integration test error" in captured.out
+        finally:
+            # Close logger to release file handles
+            logger.close()
 
         # Verify error logged
         log_files = list(storage.get_logs_dir().glob("*.log"))
