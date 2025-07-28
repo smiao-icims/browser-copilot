@@ -188,16 +188,16 @@ class TestCLIParser:
         assert "Browser Copilot" in captured.out
         assert "AI-powered browser test automation" in captured.out
         assert "Examples:" in captured.out
-    
+
     def test_setup_wizard_argument(self, parser):
         """Test --setup-wizard argument parsing"""
         args = parser.parse_args(["--setup-wizard"])
         assert args.setup_wizard is True
-        
+
     def test_config_and_setup_wizard_are_aliases(self, parser):
         """Test that --config and --setup-wizard do the same thing"""
         config_args = parser.parse_args(["--config"])
         wizard_args = parser.parse_args(["--setup-wizard"])
-        
+
         assert config_args.config is True
         assert wizard_args.setup_wizard is True
