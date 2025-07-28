@@ -16,7 +16,7 @@ Before you begin, ensure you have:
 
 ```bash
 # Clone the repository
-git clone https://github.com/shuhaimiao/browser-pilot.git
+git clone https://github.com/smiao-icims/browser-pilot.git
 cd browser-pilot
 
 # Install the package
@@ -164,6 +164,6 @@ Steps: 8
 
 ### Getting Help
 
-- Create an issue on [GitHub](https://github.com/shuhaimiao/browser-pilot/issues)
+- Create an issue on [GitHub](https://github.com/smiao-icims/browser-pilot/issues)
 - Check the [FAQ](faq.md)
 - Read the [API Reference](api_reference.md)

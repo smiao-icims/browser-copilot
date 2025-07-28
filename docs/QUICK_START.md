@@ -34,7 +34,7 @@ uv --version      # Should show version
 
 ```bash
 # Clone the repository
-git clone https://github.com/shuhaimiao/browser-pilot.git
+git clone https://github.com/smiao-icims/browser-pilot.git
 cd browser-pilot
 
 # Install dependencies with uv
@@ -311,7 +311,7 @@ done
 
 ## Getting Help
 
-- **Issue with Browser Pilot?** Check our [GitHub Issues](https://github.com/shuhaimiao/browser-pilot/issues)
+- **Issue with Browser Pilot?** Check our [GitHub Issues](https://github.com/smiao-icims/browser-pilot/issues)
 - **ModelForge Problems?** Run `uv run modelforge config check`
 - **Playwright Issues?** Try `npx playwright install`
 

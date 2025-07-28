@@ -13,9 +13,9 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
 keywords = ["automation", "testing", "browser", "ai", "playwright", "llm"]
-homepage = "https://github.com/shuhaimiao/browser-pilot"
-repository = "https://github.com/shuhaimiao/browser-pilot"
-documentation = "https://github.com/shuhaimiao/browser-pilot#readme"
+homepage = "https://github.com/smiao-icims/browser-pilot"
+repository = "https://github.com/smiao-icims/browser-pilot"
+documentation = "https://github.com/smiao-icims/browser-pilot#readme"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -58,10 +58,10 @@ dotenv = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/shuhaimiao/browser-pilot"
-"Bug Reports" = "https://github.com/shuhaimiao/browser-pilot/issues"
-Documentation = "https://github.com/shuhaimiao/browser-pilot#readme"
-Source = "https://github.com/shuhaimiao/browser-pilot"
+Homepage = "https://github.com/smiao-icims/browser-pilot"
+"Bug Reports" = "https://github.com/smiao-icims/browser-pilot/issues"
+Documentation = "https://github.com/smiao-icims/browser-pilot#readme"
+Source = "https://github.com/smiao-icims/browser-pilot"
 
 [project.scripts]
 browser-pilot = "browser_pilot.cli:main"

@@ -4,15 +4,15 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI Version](https://badge.fury.io/py/browser-pilot.svg)](https://pypi.org/project/browser-pilot/)
-[![CI Status](https://github.com/shuhaimiao/browser-pilot/workflows/CI/badge.svg)](https://github.com/shuhaimiao/browser-pilot/actions)
+[![CI Status](https://github.com/smiao-icims/browser-pilot/workflows/CI/badge.svg)](https://github.com/smiao-icims/browser-pilot/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Code Coverage](https://codecov.io/gh/shuhaimiao/browser-pilot/branch/main/graph/badge.svg)](https://codecov.io/gh/shuhaimiao/browser-pilot)
+[![Code Coverage](https://codecov.io/gh/smiao-icims/browser-pilot/branch/main/graph/badge.svg)](https://codecov.io/gh/smiao-icims/browser-pilot)
 
 ## 🎯 Getting Started in 3 Minutes
 
 ```bash
 # 1. Install Browser Pilot
-git clone https://github.com/shuhaimiao/browser-pilot.git
+git clone https://github.com/smiao-icims/browser-pilot.git
 cd browser-pilot
 uv sync
 
@@ -54,7 +54,7 @@ That's it! You've just automated your first browser test. 🎉
 
 ```bash
 # Clone and install
-git clone https://github.com/shuhaimiao/browser-pilot.git
+git clone https://github.com/smiao-icims/browser-pilot.git
 cd browser-pilot
 curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv
 uv sync  # Install dependencies
