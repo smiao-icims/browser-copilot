@@ -210,7 +210,7 @@ Tests are written in simple markdown format with numbered steps:
 
 ```
 ╔═══════════════════════════════════════════╗
-║      Browser Copilot v1.0                   ║
+║      Browser Copilot v1.0                 ║
 ║   Simple • Reliable • Token Efficient     ║
 ╚═══════════════════════════════════════════╝
 
