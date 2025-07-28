@@ -105,18 +105,18 @@ Token Usage: {result.get("token_usage", {}).get("total_tokens", 0):,}
 
 """
 
-    report_path.write_text(metadata + report_content)
+    report_path.write_text(metadata + report_content, encoding="utf-8")
 
     # Save JSON results
     json_path = output_path / f"results_{timestamp}.json"
-    with open(json_path, "w") as f:
-        json.dump(result, f, indent=2, default=str)
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2, default=str, ensure_ascii=False)
 
     # Save summary file if test passed
     if result.get("success"):
         summary_path = output_path / f"summary_{timestamp}.txt"
         summary = generate_summary(result)
-        summary_path.write_text(summary)
+        summary_path.write_text(summary, encoding="utf-8")
 
         return {"report": report_path, "results": json_path, "summary": summary_path}
 
@@ -392,5 +392,5 @@ def create_html_report(result: dict[str, Any], output_path: Path) -> Path:
 </body>
 </html>"""
 
-    html_path.write_text(html_content)
+    html_path.write_text(html_content, encoding="utf-8")
     return html_path
