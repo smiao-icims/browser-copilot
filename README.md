@@ -210,7 +210,7 @@ Tests are written in simple markdown format with numbered steps:
 
 ```
 ╔═══════════════════════════════════════════╗
-║      Browser Copilot v2.0                   ║
+║      Browser Copilot v1.0                   ║
 ║   Simple • Reliable • Token Efficient     ║
 ╚═══════════════════════════════════════════╝
 
@@ -246,7 +246,7 @@ Steps: 15
    - results: results_20250726_173422.json
 ```
 
-## 🆕 New Features in v2.0
+## 🆕 New Features in v1.0
 
 ### 🔍 Enhanced Verbose Mode
 ```bash

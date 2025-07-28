@@ -105,7 +105,7 @@ After running a test, you'll see:
 
 ```
 ╔═══════════════════════════════════════════╗
-║      Browser Copilot v2.0                   ║
+║      Browser Copilot v1.0                   ║
 ║   Simple • Reliable • Token Efficient     ║
 ╚═══════════════════════════════════════════╝
 
