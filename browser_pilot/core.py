@@ -273,20 +273,111 @@ class BrowserPilot:
                     # Build execution prompt
                     prompt = self._build_prompt(test_suite_content)
                     
+                    # Estimate initial prompt size and warn if approaching limit
+                    initial_tokens = self._estimate_tokens(str(prompt))
+                    context_limit = getattr(self.llm, 'context_length', 128000)  # Default to 128k
+                    
+                    if initial_tokens > context_limit * 0.5:
+                        self.stream.write(f"\n⚠️  Large test detected: ~{initial_tokens:,} initial tokens", "warning")
+                        self.stream.write(f"Context limit: {context_limit:,} tokens", "info")
+                        self.stream.write("Consider using --enhance-test to optimize the test suite", "info")
+                    
                     # Execute test suite
                     steps = []
                     final_response = None
                     
-                    async for chunk in agent.astream({"messages": prompt}):
-                        steps.append(chunk)
-                        if len(steps) % 5 == 0:
-                            self.stream.write(f"Progress: {len(steps)} steps...", "debug")
-                        
-                        # Extract final response from agent
-                        if 'agent' in chunk and 'messages' in chunk['agent']:
-                            for msg in chunk['agent']['messages']:
-                                if hasattr(msg, 'content') and msg.content:
-                                    final_response = msg
+                    try:
+                        async for chunk in agent.astream({"messages": prompt}):
+                            steps.append(chunk)
+                            if len(steps) % 5 == 0:
+                                self.stream.write(f"Progress: {len(steps)} steps...", "debug")
+                                
+                                # In verbose mode, show token usage progress
+                                if self.stream.verbose and hasattr(self.telemetry, 'metrics') and self.telemetry.metrics:
+                                    metrics = self.telemetry.metrics
+                                    current_tokens = 0
+                                    
+                                    # Try to get token count from different possible attributes
+                                    if hasattr(metrics, 'token_usage') and metrics.token_usage:
+                                        # Check if token_usage is a dict or object
+                                        if isinstance(metrics.token_usage, dict):
+                                            current_tokens = metrics.token_usage.get('total_tokens', 0)
+                                        else:
+                                            current_tokens = getattr(metrics.token_usage, 'total_tokens', 0)
+                                    elif hasattr(metrics, 'total_tokens'):
+                                        current_tokens = metrics.total_tokens
+                                    elif hasattr(metrics, 'prompt_tokens'):
+                                        # Fallback to summing prompt + completion tokens
+                                        current_tokens = getattr(metrics, 'prompt_tokens', 0) + getattr(metrics, 'completion_tokens', 0)
+                                    
+                                    if current_tokens > 0:
+                                        usage_pct = (current_tokens / context_limit * 100) if context_limit > 0 else 0
+                                        if usage_pct > 80:
+                                            self.stream.write(f"⚠️  Context usage: {current_tokens:,}/{context_limit:,} ({usage_pct:.1f}%)", "warning")
+                                        elif usage_pct > 60:
+                                            self.stream.write(f"Context usage: {current_tokens:,}/{context_limit:,} ({usage_pct:.1f}%)", "info")
+                            
+                            # Extract final response from agent
+                            if 'agent' in chunk and 'messages' in chunk['agent']:
+                                for msg in chunk['agent']['messages']:
+                                    if hasattr(msg, 'content') and msg.content:
+                                        final_response = msg
+                    except ValueError as e:
+                        error_msg = str(e)
+                        # Check for context length exceeded error
+                        if "model_max_prompt_tokens_exceeded" in error_msg or "exceeds the limit" in error_msg:
+                            # Extract token counts from error message
+                            import re
+                            token_match = re.search(r'token count of (\d+) exceeds the limit of (\d+)', error_msg)
+                            if token_match:
+                                used_tokens = int(token_match.group(1))
+                                max_tokens = int(token_match.group(2))
+                                
+                                self.stream.write(f"\n{'='*60}", "error")
+                                self.stream.write(f"❌ CONTEXT LENGTH EXCEEDED", "error")
+                                self.stream.write(f"{'='*60}", "error")
+                                self.stream.write(f"Used: {used_tokens:,} tokens", "error")
+                                self.stream.write(f"Limit: {max_tokens:,} tokens", "error")
+                                self.stream.write(f"Exceeded by: {used_tokens - max_tokens:,} tokens ({(used_tokens/max_tokens - 1)*100:.1f}%)", "error")
+                                
+                                self.stream.write("\n📋 Suggestions to reduce context:", "warning")
+                                self.stream.write("1. Use --enhance-test to optimize the test suite", "info")
+                                self.stream.write("   This can reduce 30-50% of tokens through concise rewriting", "info")
+                                self.stream.write("   Example: browser-pilot test.md --enhance-test --save-enhanced optimized.md", "info")
+                                self.stream.write("\n2. Break the test into smaller sections", "info")
+                                self.stream.write("   Split complex tests into multiple smaller test files", "info")
+                                self.stream.write("\n3. Run without --verbose flag", "info")
+                                self.stream.write("   Verbose mode adds significant token overhead", "info")
+                                self.stream.write("\n4. Use a model with larger context window", "info")
+                                self.stream.write("   - gpt-4o-128k (128,000 tokens)", "info")
+                                self.stream.write("   - gpt-4-turbo (128,000 tokens)", "info")
+                                self.stream.write("   - claude-3-opus (200,000 tokens)", "info")
+                                
+                                result["error"] = f"Context length exceeded: {used_tokens:,}/{max_tokens:,} tokens"
+                                result["error_type"] = "context_length_exceeded"
+                                result["token_usage"] = {
+                                    "total_tokens": used_tokens,
+                                    "prompt_tokens": used_tokens,
+                                    "completion_tokens": 0,
+                                    "estimated_cost": 0,
+                                    "context_length": used_tokens,
+                                    "max_context_length": max_tokens,
+                                    "context_usage_percentage": (used_tokens / max_tokens * 100) if max_tokens > 0 else 100
+                                }
+                            else:
+                                result["error"] = f"Context length exceeded: {error_msg}"
+                                result["error_type"] = "context_length_exceeded"
+                            
+                            # Return early with partial results
+                            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+                            result["duration_seconds"] = duration
+                            result["execution_time"]["end"] = datetime.now(timezone.utc).isoformat()
+                            result["steps"] = self._extract_steps(steps)
+                            result["test_report"] = "Test failed due to context length limit"
+                            return result
+                        else:
+                            # Other ValueError - re-raise
+                            raise
                     
                     # Process execution results
                     duration = (datetime.now(timezone.utc) - start_time).total_seconds()
@@ -457,13 +548,21 @@ Execute the test now."""
                 usage = {}
                 
                 # Extract token usage if available
-                if hasattr(metrics, 'token_usage'):
+                if hasattr(metrics, 'token_usage') and metrics.token_usage:
                     token_usage = metrics.token_usage
-                    usage.update({
-                        "total_tokens": getattr(token_usage, 'total_tokens', 0),
-                        "prompt_tokens": getattr(token_usage, 'prompt_tokens', 0),
-                        "completion_tokens": getattr(token_usage, 'completion_tokens', 0),
-                    })
+                    # Handle both dict and object formats
+                    if isinstance(token_usage, dict):
+                        usage.update({
+                            "total_tokens": token_usage.get('total_tokens', 0),
+                            "prompt_tokens": token_usage.get('prompt_tokens', 0),
+                            "completion_tokens": token_usage.get('completion_tokens', 0),
+                        })
+                    else:
+                        usage.update({
+                            "total_tokens": getattr(token_usage, 'total_tokens', 0),
+                            "prompt_tokens": getattr(token_usage, 'prompt_tokens', 0),
+                            "completion_tokens": getattr(token_usage, 'completion_tokens', 0),
+                        })
                 
                 # Extract cost if available
                 if hasattr(metrics, 'estimated_cost'):
@@ -538,6 +637,13 @@ Execute the test now."""
         except Exception:
             # If anything goes wrong, return empty metrics
             return {}
+    
+    def _estimate_tokens(self, text: str) -> int:
+        """Estimate token count for text"""
+        # Simple estimation: ~1.3 tokens per word for English
+        # This matches the estimation used in test_enhancer.py
+        words = len(str(text).split())
+        return int(words * 1.3)
     
     def _extract_steps(self, steps: list) -> list:
         """Extract human-readable steps from agent execution"""

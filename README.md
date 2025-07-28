@@ -17,6 +17,7 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 - 💰 **Cost Optimization**: Built-in token optimization to reduce API costs
 - 📝 **Multiple Formats**: Export results as JSON, YAML, XML, JUnit, HTML, or Markdown
 - 🎛️ **Customizable**: System prompts, browser settings, and optimization levels
+- 🧠 **Self-Learning**: Dynamic test enhancement that learns from execution history
 
 ## 🚀 Quick Start
 
@@ -169,6 +170,60 @@ Wait 2 seconds after each navigation.
 EOF
 ```
 
+### 🧪 Test Enhancement (Learning System)
+
+Browser Pilot includes a powerful test enhancement feature that can optimize your test suites for better reliability and reduced token usage:
+
+```bash
+# Static enhancement (one-time optimization)
+browser-pilot test.md --enhance-test --enhance-mode static
+
+# Dynamic enhancement (learns from execution history)
+browser-pilot test.md --enhance-test --enhance-mode dynamic
+
+# Save enhanced version
+browser-pilot test.md --enhance-test --save-enhanced enhanced_test.md
+
+# Enhancement levels (NEW!)
+browser-pilot test.md --enhance-test --enhance-level conservative  # 5-15% reduction
+browser-pilot test.md --enhance-test --enhance-level balanced     # 30-40% reduction (default)
+browser-pilot test.md --enhance-test --enhance-level aggressive   # 60-70% reduction
+```
+
+**How it works:**
+
+1. **Static Mode**: Analyzes your test and optimizes based on level:
+   - **Conservative** (5-15% reduction): Minimal changes, preserves all waits and snapshots
+   - **Balanced** (30-40% reduction): Moderate optimization, keeps critical steps
+   - **Aggressive** (60-70% reduction): Maximum compression, minimal selectors only
+
+2. **Dynamic Mode**: Learns from previous test executions:
+   - Records successful patterns and code snippets
+   - Tracks failure patterns to avoid
+   - Applies proven strategies from similar tests
+   - Improves over time with each execution
+
+**Enhancement Level Comparison:**
+
+| Level | Token Reduction | Reliability | Use Case |
+|-------|----------------|-------------|----------|
+| Conservative | 5-15% | Highest | Critical tests, complex flows |
+| Balanced | 30-40% | High | General use (recommended) |
+| Aggressive | 60-70% | Moderate | Simple tests, cost optimization |
+
+**Example enhancement:**
+```bash
+# Original test:
+"Click login button"
+
+# Enhanced test:
+"Wait for button[data-testid='login-btn'] to be visible
+Click on login button
+Verify URL contains '/dashboard' or '/home'"
+```
+
+The learning system maintains a knowledge base at `~/.browser_pilot/memory/` that grows smarter with each test run.
+
 ### 🔧 Configuration Management
 ```bash
 # Save current settings as defaults
@@ -215,6 +270,10 @@ options:
   --retry COUNT        Number of retries on failure
   --no-screenshots     Disable screenshot capture
   --no-token-optimization  Disable token optimization
+  --enhance-test       Generate LLM-optimized version of test suite
+  --enhance-mode MODE  Enhancement mode: static or dynamic (default: dynamic)
+  --enhance-level LVL  Enhancement level: conservative, balanced, aggressive (default: balanced)
+  --save-enhanced FILE Save enhanced test suite to file
   --config FILE        Path to configuration file
   --save-config        Save current settings as defaults
 ```
@@ -247,7 +306,7 @@ browser-pilot/
 │   ├── io_handlers.py     # Input/output formatting
 │   ├── verbose_logger.py  # Enhanced logging
 │   ├── token_optimizer.py # Token optimization
-│   └── test_enhancer.py   # Test suite enhancement
+│   └── test_enhancer.py   # Test enhancement with learning
 ├── examples/              # Example test suites
 │   ├── google-ai-search.md    # Google AI Gemini search test
 │   ├── saucedemo-shopping.md  # E-commerce shopping cart test

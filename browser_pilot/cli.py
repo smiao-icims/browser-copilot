@@ -229,6 +229,30 @@ Examples:
         help="Disable token optimization"
     )
     
+    # Test enhancement options
+    parser.add_argument(
+        "--enhance-test",
+        action="store_true",
+        help="Generate LLM-optimized version of test suite"
+    )
+    parser.add_argument(
+        "--enhance-mode",
+        choices=["static", "dynamic"],
+        default="dynamic",
+        help="Enhancement mode: static (one-time) or dynamic (learning-based)"
+    )
+    parser.add_argument(
+        "--enhance-level",
+        choices=["conservative", "balanced", "aggressive"],
+        default="balanced",
+        help="Enhancement level: conservative (20-30%%), balanced (30-40%%), aggressive (50%%+)"
+    )
+    parser.add_argument(
+        "--save-enhanced",
+        type=Path,
+        help="Save enhanced test suite to file"
+    )
+    
     # Configuration management
     parser.add_argument(
         "--config",
@@ -303,6 +327,7 @@ async def run_test_async(args: argparse.Namespace) -> int:
     storage = StorageManager()
     config = ConfigManager(storage)
     stream = StreamHandler(verbose=args.verbose, quiet=args.quiet)
+    enhancer = None  # Initialize for later use
     
     # Load configuration from file if specified
     if args.config:
@@ -328,6 +353,98 @@ async def run_test_async(args: argparse.Namespace) -> int:
     test_content = load_test_scenario(args.test_scenario, stream)
     if not test_content:
         return 1
+    
+    # Handle test enhancement if requested
+    if args.enhance_test:
+        stream.write(f"Enhancing test suite using {args.enhance_mode} mode", "info")
+        
+        # Import test enhancer
+        from .test_enhancer import TestEnhancer
+        
+        # Initialize enhancer
+        try:
+            # Create a temporary LLM instance for enhancement
+            from modelforge.registry import ModelForgeRegistry
+            registry = ModelForgeRegistry()
+            enhance_llm = registry.get_llm(
+                provider_name=config.get("provider"),
+                model_alias=config.get("model")
+            )
+            
+            enhancer = TestEnhancer(
+                llm=enhance_llm,
+                storage_manager=storage,
+                mode=args.enhance_mode,
+                level=args.enhance_level
+            )
+            
+            # Extract test context
+            test_context = {
+                "url": "",  # Will be populated from test content if available
+                "test_name": Path(args.test_scenario).stem if args.test_scenario != "-" else "stdin_test"
+            }
+            
+            # Enhance the test
+            enhancement_result = await enhancer.enhance(test_content, test_context)
+            
+            # Display enhancement results
+            stream.write(f"\nEnhancement complete!", "success")
+            stream.write(f"Mode: {enhancement_result['mode']}", "info")
+            stream.write(f"Original tokens: {enhancement_result['original_tokens']:,}", "info")
+            stream.write(f"Enhanced tokens: {enhancement_result['enhanced_tokens']:,}", "info")
+            stream.write(f"Token reduction: {enhancement_result['reduction_percentage']:.1f}%", "info")
+            
+            if enhancement_result.get('patterns_applied'):
+                stream.write(f"Patterns applied: {enhancement_result['patterns_applied']}", "info")
+            
+            if enhancement_result.get('enhancements'):
+                stream.write("\nEnhancements made:", "info")
+                for enhancement in enhancement_result['enhancements']:
+                    stream.write(f"  - {enhancement}", "info")
+            
+            # Check if enhancement actually helped
+            if enhancement_result.get('optimization_note'):
+                stream.write(f"\n⚠️  {enhancement_result['optimization_note']}", "warning")
+            
+            # Update test content with enhanced version
+            test_content = enhancement_result['content']
+            
+            # Save enhanced test if requested
+            if args.save_enhanced:
+                try:
+                    args.save_enhanced.write_text(test_content)
+                    stream.write(f"\nEnhanced test saved to: {args.save_enhanced}", "success")
+                except Exception as e:
+                    stream.write(f"Failed to save enhanced test: {e}", "error")
+            else:
+                # Always save to default location for reference
+                default_path = storage.base_dir / "enhanced_tests" / f"{Path(args.test_scenario).stem}_enhanced.md"
+                default_path.parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    default_path.write_text(test_content)
+                    stream.write(f"Enhanced test also saved to: {default_path}", "info")
+                except:
+                    pass
+            
+            # Show learning summary in dynamic mode
+            if args.enhance_mode == "dynamic" and enhancement_result.get('learning_summary'):
+                summary_path = storage.base_dir / "memory" / "learning_summary.md"
+                summary_path.parent.mkdir(parents=True, exist_ok=True)
+                summary_path.write_text(enhancement_result['learning_summary'])
+                stream.write(f"\nLearning summary saved to: {summary_path}", "info")
+            
+            # If only enhancing (not running), exit here
+            if not args.output_file and not args.save_enhanced:
+                stream.write("\nEnhanced test suite:", "info")
+                print("\n" + test_content)
+                return 0
+                
+        except Exception as e:
+            stream.write(f"Test enhancement failed: {e}", "error")
+            if args.verbose:
+                import traceback
+                stream.write(traceback.format_exc(), "debug")
+            # Continue with original test content
     
     # Load custom system prompt if specified
     system_prompt = None
@@ -515,6 +632,37 @@ async def run_test_async(args: argparse.Namespace) -> int:
             stream.write("Configuration saved for future use", "info")
         except Exception as e:
             stream.write(f"Failed to save configuration: {e}", "warning")
+    
+    # Record execution results for learning if enhancement is enabled
+    if args.enhance_test and args.enhance_mode == "dynamic":
+        try:
+            # Get execution log from result
+            execution_log = []
+            if "steps" in result:
+                for step in result["steps"]:
+                    if isinstance(step, dict):
+                        execution_log.append({
+                            "tool_name": step.get("name", ""),
+                            "url": step.get("url", ""),
+                            "element_type": step.get("element_type", ""),
+                            "element_role": step.get("element_role", ""),
+                            "code_snippet": step.get("content", ""),
+                            "success": not bool(step.get("error")),
+                            "error": step.get("error", ""),
+                            "has_iframe": step.get("has_iframe", False)
+                        })
+            
+            # Record results
+            if enhancer:
+                enhancer.record_execution_result(
+                    test_id=result.get("session_info", {}).get("session_name", "unknown"),
+                    execution_log=execution_log,
+                    success=result.get("success", False),
+                    duration=result.get("duration_seconds", 0)
+                )
+                stream.write("Execution results recorded for future learning", "info")
+        except Exception as e:
+            stream.write(f"Failed to record execution results: {e}", "warning")
     
     # Clean up old files if configured
     if not config.get("quiet"):
