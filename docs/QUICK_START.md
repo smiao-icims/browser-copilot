@@ -37,23 +37,32 @@ uv --version      # Should show version
 git clone https://github.com/yourusername/browser-pilot.git
 cd browser-pilot
 
-# Install dependencies with uv (recommended)
+# Install dependencies with uv
 uv sync
-
-# Or if you prefer pip
-pip install -r requirements.txt
 ```
 
-### 2. Configure ModelForge (One-time setup)
+### 2. Configure Your LLM Provider
+
+#### Option A: Interactive Setup Wizard (Recommended) ✨
 
 ```bash
-# Option A: Use GitHub Copilot (easiest)
+# Launch the configuration wizard
+uv run browser-pilot --setup-wizard
+
+# The wizard guides you through everything with arrow-key navigation!
+# Takes less than 2 minutes to complete
+```
+
+#### Option B: Manual Configuration
+
+```bash
+# GitHub Copilot (no API key needed!)
 uv run modelforge config add --provider github_copilot --model gpt-4o
 
-# Option B: Use OpenAI
+# OpenAI (requires API key)
 uv run modelforge config add --provider openai --model gpt-4 --api-key YOUR_KEY
 
-# Option C: Use Anthropic
+# Anthropic (requires API key)
 uv run modelforge config add --provider anthropic --model claude-3-sonnet --api-key YOUR_KEY
 
 # Verify configuration

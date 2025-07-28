@@ -168,6 +168,7 @@ dependencies = [
     { name = "mcp" },
     { name = "model-forge-llm" },
     { name = "pyyaml" },
+    { name = "questionary" },
 ]
 
 [package.optional-dependencies]
@@ -197,7 +198,7 @@ requires-dist = [
     { name = "langgraph", specifier = ">=0.1.0" },
     { name = "markupsafe", specifier = "<3.0" },
     { name = "mcp", specifier = ">=0.1.0" },
-    { name = "model-forge-llm", specifier = ">=2.2.1" },
+    { name = "model-forge-llm", specifier = ">=2.2.2" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
@@ -205,6 +206,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0" },
     { name = "python-dotenv", marker = "extra == 'dotenv'", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "questionary", specifier = ">=2.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
 ]
 
@@ -1202,7 +1204,7 @@ wheels = [
 
 [[package]]
 name = "model-forge-llm"
-version = "2.2.1"
+version = "2.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -1213,9 +1215,9 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/42/9f/c5698a4a697e6673aaf5ea8e02f3d26be4ef709fa136e18c769e8dae8f39/model_forge_llm-2.2.1.tar.gz", hash = "sha256:779ff72de0db41ec34df27c026e22801aeb6c03c2e61e9f260b291816f15a7e8", size = 54612 }
+sdist = { url = "https://files.pythonhosted.org/packages/ca/d8/9c9bd0349348e038a1c2a0184f1eef0ec13b6a0fbbd02debfd78d1da1cc3/model_forge_llm-2.2.2.tar.gz", hash = "sha256:0100247fb45e3c6fe8e5dd21ffb24386da7a95280f23c51e14d79676338e8d32", size = 55852 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/32/680cb09fbed983e1d72b76e16e62cc83970f79911a48cdc821e2556c8005/model_forge_llm-2.2.1-py3-none-any.whl", hash = "sha256:eefb928f71d05c2f21647b81bb1cf8dbaeb26d9af0d9944c87b6df0716d5b76d", size = 51421 },
+    { url = "https://files.pythonhosted.org/packages/ab/99/9a088253fed4a759b275d2b5beb07a7e08f5629d3978b29931a627a16257/model_forge_llm-2.2.2-py3-none-any.whl", hash = "sha256:f84d6ea3dc844b5b18d519a9fe0057522f68ee8d87819f297caaf27d1af9789c", size = 52734 },
 ]
 
 [[package]]
@@ -1628,6 +1630,18 @@ wheels = [
 ]
 
 [[package]]
+name = "prompt-toolkit"
+version = "3.0.51"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "wcwidth" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bb/6e/9d084c929dfe9e3bfe0c6a47e31f78a25c54627d64a66e884a8bf5474f1c/prompt_toolkit-3.0.51.tar.gz", hash = "sha256:931a162e3b27fc90c86f1b48bb1fb2c528c2761475e57c9c06de13311c7b54ed", size = 428940 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/4f/5249960887b1fbe561d9ff265496d170b55a735b76724f10ef19f9e40716/prompt_toolkit-3.0.51-py3-none-any.whl", hash = "sha256:52742911fde84e2d423e2f9a4cf1de7d7ac4e51958f648d9540e0fb8db077b07", size = 387810 },
+]
+
+[[package]]
 name = "propcache"
 version = "0.3.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1989,6 +2003,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/fe/0f/25911a9f080464c59fab9027482f822b86bf0608957a5fcc6eaac85aa515/PyYAML-6.0.2-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:68ccc6023a3400877818152ad9a1033e3db8625d899c72eacb5a668902e4d652", size = 751597 },
     { url = "https://files.pythonhosted.org/packages/14/0d/e2c3b43bbce3cf6bd97c840b46088a3031085179e596d4929729d8d68270/PyYAML-6.0.2-cp313-cp313-win32.whl", hash = "sha256:bc2fa7c6b47d6bc618dd7fb02ef6fdedb1090ec036abab80d4681424b84c1183", size = 140527 },
     { url = "https://files.pythonhosted.org/packages/fa/de/02b54f42487e3d3c6efb3f89428677074ca7bf43aae402517bc7cca949f3/PyYAML-6.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:8388ee1976c416731879ac16da0aff3f63b286ffdd57cdeb95f3f2e085687563", size = 156446 },
+]
+
+[[package]]
+name = "questionary"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "prompt-toolkit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a8/b8/d16eb579277f3de9e56e5ad25280fab52fc5774117fb70362e8c2e016559/questionary-2.1.0.tar.gz", hash = "sha256:6302cdd645b19667d8f6e6634774e9538bfcd1aad9be287e743d96cacaf95587", size = 26775 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ad/3f/11dd4cd4f39e05128bfd20138faea57bec56f9ffba6185d276e3107ba5b2/questionary-2.1.0-py3-none-any.whl", hash = "sha256:44174d237b68bc828e4878c763a9ad6790ee61990e0ae72927694ead57bab8ec", size = 36747 },
 ]
 
 [[package]]
@@ -2452,6 +2478,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a9/96/0834f30fa08dca3738614e6a9d42752b6420ee94e58971d702118f7cfd30/virtualenv-20.32.0.tar.gz", hash = "sha256:886bf75cadfdc964674e6e33eb74d787dff31ca314ceace03ca5810620f4ecf0", size = 6076970 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5c/c6/f8f28009920a736d0df434b52e9feebfb4d702ba942f15338cb4a83eafc1/virtualenv-20.32.0-py3-none-any.whl", hash = "sha256:2c310aecb62e5aa1b06103ed7c2977b81e042695de2697d01017ff0f1034af56", size = 6057761 },
+]
+
+[[package]]
+name = "wcwidth"
+version = "0.2.13"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6c/63/53559446a878410fc5a5974feb13d31d78d752eb18aeba59c7fef1af7598/wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5", size = 101301 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/84/fd2ba7aafacbad3c4201d395674fc6348826569da3c0937e75505ead3528/wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859", size = 34166 },
 ]
 
 [[package]]

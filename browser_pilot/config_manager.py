@@ -341,6 +341,36 @@ class ConfigManager:
         """Load configuration from file into cache"""
         self._config_cache = self.storage.get_all_settings("config") or {}
     
+    def has_config(self) -> bool:
+        """
+        Check if any configuration exists (file or environment)
+        
+        Returns:
+            True if configuration exists, False otherwise
+        """
+        # Check for config file
+        if self._config_cache is None:
+            self._load_config_file()
+        
+        if self._config_cache:
+            return True
+        
+        # Check for any Browser Pilot environment variables
+        for env_key in os.environ:
+            if env_key.startswith(self.ENV_PREFIX):
+                return True
+        
+        # Check for ModelForge configuration
+        try:
+            from modelforge.registry import ModelForgeRegistry
+            registry = ModelForgeRegistry()
+            if registry.get_default_provider():
+                return True
+        except:
+            pass
+        
+        return False
+    
     def _parse_env_value(self, value: str) -> Any:
         """
         Parse environment variable value to appropriate type

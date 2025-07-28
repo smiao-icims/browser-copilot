@@ -27,10 +27,11 @@ dependencies = [
     "langgraph>=0.1.0",
     "mcp>=0.1.0",
     "langchain-mcp-adapters>=0.1.0",
-    "model-forge-llm>=2.2.1",
+    "model-forge-llm>=2.2.2",
     "pyyaml>=6.0",
     "markupsafe<3.0",  # Pin to avoid jinja2 compatibility issues
     "jinja2<3.1",      # Pin to compatible version
+    "questionary>=2.0.0",  # Interactive CLI prompts with arrow navigation
 ]
 
 [project.optional-dependencies]

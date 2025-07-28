@@ -260,6 +260,13 @@ Examples:
         help="Clean up outputs older than specified days (default: 7)"
     )
     
+    # Setup wizard
+    parser.add_argument(
+        "--setup-wizard",
+        action="store_true",
+        help="Launch interactive configuration wizard"
+    )
+    
     return parser.parse_args()
 
 
@@ -536,9 +543,32 @@ def main() -> int:
     # Parse arguments
     args = parse_arguments()
     
+    # Handle setup wizard
+    if args.setup_wizard:
+        from .config_wizard import run_config_wizard
+        return 0 if run_config_wizard() else 1
+    
     # Handle cleanup mode
     if args.cleanup:
         return handle_cleanup(args)
+    
+    # Check if configuration exists, prompt for wizard if not
+    config_manager = ConfigManager()
+    if not config_manager.has_config() and not args.provider:
+        print("⚠️  No configuration found.\n")
+        print("Would you like to run the setup wizard? It takes less than 2 minutes.")
+        print("You can also run it anytime with: browser-pilot --setup-wizard\n")
+        
+        # Simple yes/no prompt (no questionary needed here)
+        response = input("Run setup wizard now? [Y/n]: ").strip().lower()
+        if response in ['', 'y', 'yes']:
+            from .config_wizard import run_config_wizard
+            if run_config_wizard():
+                print("\n✅ Configuration complete! Continuing with test...\n")
+            else:
+                print("\n❌ Setup cancelled. Please configure manually or run:")
+                print("   browser-pilot --setup-wizard")
+                return 1
     
     # Print header only if not quiet
     if not args.quiet:

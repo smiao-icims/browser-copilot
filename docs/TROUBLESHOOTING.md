@@ -63,11 +63,8 @@ uv --version
 # Clear uv cache
 uv cache clean
 
-# Try installing with pip instead
-pip install -r requirements.txt
-
-# Or install core dependencies only
-pip install langchain langchain-core model-forge-llm playwright
+# Try installing core dependencies directly
+pip install langchain langchain-core model-forge-llm playwright questionary
 ```
 
 ## ModelForge Configuration
@@ -392,6 +389,49 @@ browser-pilot test.md --headless
 
 # Limit browser cache
 export PLAYWRIGHT_BROWSERS_PATH=/tmp/playwright
+```
+
+## Configuration Wizard Issues
+
+### "Questionary not installed"
+
+**Problem**: The interactive wizard requires the questionary library.
+
+**Solution**:
+```bash
+# Install with uv
+uv pip install questionary
+
+# Or with pip
+pip install questionary
+
+# Then run wizard again
+browser-pilot --setup-wizard
+```
+
+### Wizard Doesn't Show Arrow Navigation
+
+**Problem**: Terminal doesn't support interactive mode.
+
+**Solution**:
+1. Use a modern terminal (iTerm2, Windows Terminal, etc.)
+2. Ensure terminal supports ANSI escape codes
+3. Try running in a different terminal emulator
+
+### "No configuration found" Keeps Appearing
+
+**Problem**: Configuration not saved properly.
+
+**Solution**:
+```bash
+# Check if config exists
+ls ~/.browser_pilot/settings/config.json
+
+# Run wizard and ensure you save at the end
+browser-pilot --setup-wizard
+
+# Verify configuration was saved
+cat ~/.browser_pilot/settings/config.json
 ```
 
 ## Common Error Messages

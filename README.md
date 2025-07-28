@@ -17,6 +17,7 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 - 💰 **Cost Optimization**: Built-in token optimization to reduce API costs
 - 📝 **Multiple Formats**: Export results as JSON, YAML, XML, JUnit, HTML, or Markdown
 - 🎛️ **Customizable**: System prompts, browser settings, and optimization levels
+- 🧙 **Setup Wizard**: Interactive configuration with arrow-key navigation
 
 ## 🚀 Quick Start
 
@@ -30,16 +31,23 @@ curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv
 uv sync  # Install dependencies
 ```
 
-### 2️⃣ Configure Your LLM (One-Time Setup)
+### 2️⃣ Configure Your LLM (Choose One)
 
+#### Option A: Interactive Setup Wizard (Recommended) ✨
 ```bash
-# Option A: GitHub Copilot (Recommended - No API key needed!)
+uv run browser-pilot --setup-wizard
+# Takes less than 2 minutes with arrow-key navigation!
+```
+
+#### Option B: Manual Configuration
+```bash
+# GitHub Copilot (No API key needed!)
 uv run modelforge config add --provider github_copilot --model gpt-4o
 
-# Option B: OpenAI (Requires API key)
+# OpenAI (Requires API key)
 uv run modelforge config add --provider openai --model gpt-4 --api-key YOUR_KEY
 
-# Option C: Anthropic (Requires API key)
+# Anthropic (Requires API key)
 uv run modelforge config add --provider anthropic --model claude-3-sonnet --api-key YOUR_KEY
 ```
 
@@ -308,6 +316,7 @@ Storage structure:
 ## 🎓 Learn More
 
 - 📘 **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 5 minutes
+- 🧙 **[Configuration Wizard Guide](docs/WIZARD_GUIDE.md)** - Interactive setup walkthrough
 - 🎯 **[Common Use Cases](docs/COMMON_USE_CASES.md)** - Real-world testing examples
 - 🔍 **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Solve common issues
 - 🛠️ **[Configuration Guide](docs/CONFIGURATION.md)** - Advanced configuration
