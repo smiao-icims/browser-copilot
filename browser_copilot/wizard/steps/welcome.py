@@ -22,7 +22,9 @@ class WelcomeStep(WizardStep):
         """
 
         print(banner)
-        print("This wizard will help you set up Browser Copilot in less than 2 minutes.")
+        print(
+            "This wizard will help you set up Browser Copilot in less than 2 minutes."
+        )
         print(
             "You can press Enter to accept defaults or use arrow keys to change selections."
         )
