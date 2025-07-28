@@ -242,6 +242,52 @@ uv run pytest -s tests/
 - Use efficient selectors in tests
 - Profile code for bottlenecks
 
+### Windows Compatibility
+
+Since development is primarily done on macOS/Linux, pay special attention to Windows compatibility:
+
+#### Common Windows Issues and Solutions
+
+1. **File Lock Errors**: Windows doesn't allow deleting files that are open
+   - Always close file handlers, especially in tests
+   - Use try/finally blocks to ensure cleanup
+   - Add `.close()` methods to classes that open files
+   - Example: VerboseLogger needs explicit close() to release log files
+
+2. **Unicode Encoding**: Windows defaults to cp1252, not UTF-8
+   - Always specify `encoding="utf-8"` for file operations
+   - Use `Path.write_text(data, encoding="utf-8")`
+   - Use `open(file, "w", encoding="utf-8")`
+   - For JSON: `json.dump(..., ensure_ascii=False)`
+
+3. **Path Separators**: Windows uses backslashes
+   - Always use `pathlib.Path` instead of string concatenation
+   - Use forward slashes in Path() constructors - they work on all platforms
+
+#### Testing on macOS/Linux for Windows Compatibility
+
+While you can't fully simulate Windows, you can:
+
+1. **Use CI/CD**: Push changes and monitor Windows CI builds on GitHub Actions
+2. **Write defensive code**: 
+   - Always specify encoding explicitly
+   - Always close resources properly
+   - Use pathlib for all path operations
+3. **Common patterns to avoid**:
+   - Don't assume UTF-8 is default
+   - Don't leave files open
+   - Don't use os.path.join() - use pathlib
+   - Don't hardcode path separators
+
+#### Windows Compatibility Checklist
+
+Before committing, check:
+- [ ] All file operations specify `encoding="utf-8"`
+- [ ] All file handles are properly closed (especially in tests)
+- [ ] All paths use pathlib.Path
+- [ ] No hardcoded forward/backward slashes in paths
+- [ ] Tests use try/finally or context managers for cleanup
+
 ## Getting Help
 
 - **Discord**: Join our community server
