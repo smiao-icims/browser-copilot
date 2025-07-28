@@ -228,6 +228,12 @@ Examples:
         action="store_true",
         help="Disable token optimization"
     )
+    parser.add_argument(
+        "--compression-level",
+        choices=["none", "low", "medium", "high"],
+        default="medium",
+        help="Token optimization level: none (0%%), low (10%%), medium (20%%, default), high (30%%)"
+    )
     
     # Configuration management
     parser.add_argument(

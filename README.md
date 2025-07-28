@@ -10,7 +10,7 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 - 🤖 **AI-Powered**: Uses LLMs to understand and execute test instructions written in plain English
 - 🎯 **Simple**: Write tests in markdown - no coding required
 - 🚀 **Efficient**: Single agent architecture with token optimization (20-30% reduction)
-- 🔧 **Flexible**: Supports multiple LLM providers via [ModelForge](https://github.com/ajac-zero/modelforge)
+- 🔧 **Flexible**: Supports multiple LLM providers via [ModelForge](https://github.com/smiao-icims/model-forge) ([PyPI](https://pypi.org/project/model-forge-llm/))
 - 📊 **Insightful**: Enhanced reports with timing, token usage, and cost analysis
 - 🌐 **Cross-Browser**: Supports Chromium, Chrome, Firefox, Safari, Edge, and WebKit
 - 🔍 **Verbose Mode**: Step-by-step debugging with dual console/file logging
@@ -20,50 +20,80 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 
 ## 🚀 Quick Start
 
-### Installation
+### 1️⃣ Install in One Minute
 
 ```bash
-# Clone the repository
+# Clone and install
 git clone https://github.com/yourusername/browser-pilot.git
 cd browser-pilot
-
-# Install uv (if not already installed)
-# On macOS and Linux:
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# Or with pip:
-pip install uv
-
-# Install dependencies
-uv sync
-
-# Or install with optional dependencies
-uv sync --extra dev --extra dotenv
+curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv
+uv sync  # Install dependencies
 ```
 
-### Basic Usage
+### 2️⃣ Configure Your LLM (One-Time Setup)
 
 ```bash
-# Simple usage with smart defaults
-browser-pilot examples/google-ai-search.md
+# Option A: GitHub Copilot (Recommended - No API key needed!)
+uv run modelforge config add --provider github_copilot --model gpt-4o
 
-# Read test from stdin
-echo "Navigate to example.com and verify the title" | browser-pilot -
+# Option B: OpenAI (Requires API key)
+uv run modelforge config add --provider openai --model gpt-4 --api-key YOUR_KEY
 
-# Verbose mode with detailed logging
-browser-pilot examples/saucedemo-shopping.md --verbose
-
-# Custom output format and file
-browser-pilot examples/weather-forecast.md --output-format html --output-file report.html
-
-# Use specific browser and run headless
-browser-pilot test.md --browser firefox --headless
-
-# Disable token optimization for maximum reliability
-browser-pilot test.md --no-token-optimization
-
-# Custom system prompt for specialized behavior
-browser-pilot test.md --system-prompt my-prompt.txt
+# Option C: Anthropic (Requires API key)
+uv run modelforge config add --provider anthropic --model claude-3-sonnet --api-key YOUR_KEY
 ```
+
+### 3️⃣ Run Your First Test!
+
+```bash
+# Test 1: Simple navigation
+echo "Navigate to example.com and verify the page title" | uv run browser-pilot -
+
+# Test 2: Run an example test with visual browser
+uv run browser-pilot examples/google-ai-search.md
+
+# Test 3: Run headless with detailed output
+uv run browser-pilot examples/saucedemo-shopping.md --headless --verbose
+```
+
+### 💡 Pro Tips for Quick Success
+
+```bash
+# Save typing with an alias
+alias bp="uv run browser-pilot"
+
+# Run any test headless
+bp your-test.md --headless
+
+# Get beautiful HTML reports
+bp your-test.md --output-format html --output-file report.html
+
+# Save money with token optimization
+bp your-test.md --compression-level high  # 30% less tokens!
+
+# Debug failing tests
+bp failing-test.md --verbose --save-trace
+```
+
+### 🎯 Your First Custom Test
+
+Create `my-test.md`:
+```markdown
+# My Shopping Test
+
+1. Navigate to https://www.saucedemo.com
+2. Enter "standard_user" in the username field
+3. Enter "secret_sauce" in the password field  
+4. Click the "Login" button
+5. Add the first product to cart
+6. Click the shopping cart icon
+7. Verify the cart contains 1 item
+8. Take a screenshot
+```
+
+Run it: `bp my-test.md`
+
+👉 **[See More Examples](docs/COMMON_USE_CASES.md)** | 📘 **[Full Quick Start Guide](docs/QUICK_START.md)**
 
 ## 📝 Writing Tests
 
@@ -222,8 +252,8 @@ options:
 ### Setting up ModelForge
 
 ```bash
-# Install ModelForge
-uv pip install modelforge
+# ModelForge is already installed with Browser Pilot (via model-forge-llm package)
+# Just configure a provider:
 
 # Configure a provider (e.g., GitHub Copilot)
 modelforge config add --provider github_copilot --model gpt-4o
@@ -275,9 +305,37 @@ Storage structure:
 ├── cache/        # Temporary files
 └── memory/       # Future: persistent memory
 
+## 🎓 Learn More
+
+- 📘 **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 5 minutes
+- 🎯 **[Common Use Cases](docs/COMMON_USE_CASES.md)** - Real-world testing examples
+- 🔍 **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Solve common issues
+- 🛠️ **[Configuration Guide](docs/CONFIGURATION.md)** - Advanced configuration
+- 📊 **[Performance Guide](docs/PERFORMANCE.md)** - Optimization tips
+
+## 🌟 Example Test Suites
+
+Check out the `examples/` directory:
+- `google-ai-search.md` - AI-powered search testing
+- `saucedemo-shopping.md` - E-commerce workflow
+- `weather-forecast.md` - API and data verification
+- `icims_job_search.md` - Complex form interactions
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+```bash
+# Install with dev dependencies
+uv sync --extra dev
+
+# Run tests
+uv run pytest
+
+# Run linting
+uv run ruff check .
+```
 
 ## 📄 License
 
@@ -287,8 +345,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Built with [LangChain](https://github.com/langchain-ai/langchain) and [LangGraph](https://github.com/langchain-ai/langgraph)
 - Browser automation powered by [Playwright](https://playwright.dev/) via [MCP](https://github.com/modelcontextprotocol)
-- LLM management by [ModelForge](https://github.com/ajac-zero/modelforge)
+- LLM management by [ModelForge](https://github.com/smiao-icims/model-forge)
 
 ---
 
-<p align="center">Made with ❤️ by the Browser Pilot Team</p>
+<p align="center">
+  <strong>Browser Pilot</strong> - Making browser testing as easy as writing a todo list 📝
+  <br>
+  Made with ❤️ by the Browser Pilot Team
+</p>

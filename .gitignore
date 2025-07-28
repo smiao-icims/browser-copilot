@@ -145,7 +145,8 @@ results_*.json
 report_*.md
 
 # Company-specific test cases
-examples/icims_job_search.md
+examples/icims*.md
 
 # Claude Code specific files
 CLAUDE.md
+.claude

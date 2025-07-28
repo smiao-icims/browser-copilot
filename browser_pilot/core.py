@@ -273,13 +273,48 @@ class BrowserPilot:
                     # Build execution prompt
                     prompt = self._build_prompt(test_suite_content)
                     
+                    # In verbose mode, show the initial prompt
+                    if self.verbose_logger:
+                        self.stream.write("\n" + "="*60, "debug")
+                        self.stream.write("INITIAL PROMPT SENT TO LLM:", "info")
+                        self.stream.write("="*60, "debug")
+                        # Show first 1000 chars of prompt
+                        prompt_preview = str(prompt)[:1000]
+                        if len(str(prompt)) > 1000:
+                            prompt_preview += "\n... (truncated, total length: {} chars)".format(len(str(prompt)))
+                        self.stream.write(prompt_preview, "debug")
+                        self.stream.write("="*60 + "\n", "debug")
+                    
                     # Execute test suite
                     steps = []
                     final_response = None
                     
                     async for chunk in agent.astream({"messages": prompt}):
                         steps.append(chunk)
-                        if len(steps) % 5 == 0:
+                        
+                        # In verbose mode, show every step
+                        if self.verbose_logger:
+                            self.stream.write(f"\n[STEP {len(steps)}] Processing...", "debug")
+                            
+                            # Extract and display tool calls
+                            if 'tools' in chunk:
+                                for tool_msg in chunk.get('tools', {}).get('messages', []):
+                                    if hasattr(tool_msg, 'name'):
+                                        self.stream.write(f"  Tool: {tool_msg.name}", "info")
+                                        if hasattr(tool_msg, 'content'):
+                                            # Show first 200 chars of tool response
+                                            content = str(tool_msg.content)[:200]
+                                            if len(str(tool_msg.content)) > 200:
+                                                content += "..."
+                                            self.stream.write(f"  Response: {content}", "debug")
+                            
+                            # Extract and display agent messages
+                            if 'agent' in chunk:
+                                for agent_msg in chunk.get('agent', {}).get('messages', []):
+                                    if hasattr(agent_msg, 'content') and agent_msg.content:
+                                        self.stream.write(f"  Agent thinking: {str(agent_msg.content)[:200]}...", "debug")
+                        
+                        elif len(steps) % 5 == 0:
                             self.stream.write(f"Progress: {len(steps)} steps...", "debug")
                         
                         # Extract final response from agent

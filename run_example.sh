@@ -9,7 +9,7 @@ echo ""
 
 # Check if browser-pilot is available
 if ! command -v python &> /dev/null; then
-    echo "❌ Python is not installed. Please install Python 3.8 or higher."
+    echo "❌ Python is not installed. Please install Python 3.11 or higher."
     exit 1
 fi
 
@@ -49,8 +49,8 @@ echo "Starting test in 3 seconds..."
 sleep 3
 
 # Run the example test
-uv run python -m browser_pilot \
-    --test-suite examples/google-ai-search.md \
+uv run browser-pilot \
+    examples/google-ai-search.md \
     --provider "$PROVIDER" \
     --model "$MODEL" \
     --browser "$BROWSER" \
@@ -65,7 +65,7 @@ else
     echo ""
     echo "❌ Example test failed. Please check the error messages above."
     echo "Common issues:"
-    echo "  - Ensure ModelForge is configured: modelforge list"
+    echo "  - Ensure ModelForge is configured: uv run modelforge config show"
     echo "  - Ensure MCP server is installed: npm install -g @playwright/mcp"
     echo "  - Check browser is installed: npx playwright install $BROWSER"
 fi

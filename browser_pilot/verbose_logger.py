@@ -369,10 +369,21 @@ class LangChainVerboseCallback(BaseCallbackHandler):
         **kwargs: Any
     ) -> None:
         """Called when LLM starts"""
+        # Show the actual prompt being sent in verbose mode
+        prompt_preview = ""
+        if prompts and len(prompts) > 0:
+            # Show first 500 chars of the prompt
+            prompt_preview = str(prompts[0])[:500]
+            if len(str(prompts[0])) > 500:
+                prompt_preview += "... (truncated, total: {} chars)".format(len(str(prompts[0])))
+        
         self.logger.log_step(
             "llm_call",
             "Sending prompt to LLM",
-            {"prompt_count": len(prompts)},
+            {
+                "prompt_count": len(prompts),
+                "prompt_preview": prompt_preview
+            },
             level="DEBUG"
         )
     
@@ -382,6 +393,28 @@ class LangChainVerboseCallback(BaseCallbackHandler):
         **kwargs: Any
     ) -> None:
         """Called when LLM completes"""
+        # Show the LLM response in verbose mode
+        response_preview = ""
+        if hasattr(response, 'generations') and response.generations:
+            if len(response.generations) > 0 and len(response.generations[0]) > 0:
+                generation = response.generations[0][0]
+                if hasattr(generation, 'text'):
+                    response_preview = generation.text[:500]
+                    if len(generation.text) > 500:
+                        response_preview += "... (truncated, total: {} chars)".format(len(generation.text))
+                elif hasattr(generation, 'message') and hasattr(generation.message, 'content'):
+                    response_preview = str(generation.message.content)[:500]
+                    if len(str(generation.message.content)) > 500:
+                        response_preview += "... (truncated)"
+        
+        if response_preview:
+            self.logger.log_step(
+                "llm_response",
+                "Received LLM response",
+                {"response_preview": response_preview},
+                level="DEBUG"
+            )
+        
         # Extract token usage if available
         if hasattr(response, 'llm_output') and response.llm_output:
             usage = response.llm_output.get('token_usage', {})
