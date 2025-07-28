@@ -1,5 +1,5 @@
 """
-Pytest configuration and fixtures for Browser Pilot tests
+Pytest configuration and fixtures for Browser Copilot tests
 """
 
 import os

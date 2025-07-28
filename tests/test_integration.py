@@ -1,5 +1,5 @@
 """
-Integration tests for Browser Pilot
+Integration tests for Browser Copilot
 
 These tests verify that different components work together correctly.
 """
@@ -23,7 +23,7 @@ from verbose_logger import VerboseLogger
 
 @pytest.mark.integration
 class TestIntegration:
-    """Integration tests for Browser Pilot components"""
+    """Integration tests for Browser Copilot components"""
 
     def test_storage_and_config_integration(self, temp_dir):
         """Test StorageManager and ConfigManager work together"""

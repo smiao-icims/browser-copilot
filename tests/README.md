@@ -1,6 +1,6 @@
-# Browser Pilot Test Suite
+# Browser Copilot Test Suite
 
-This directory contains the comprehensive test suite for Browser Pilot, set up using pytest.
+This directory contains the comprehensive test suite for Browser Copilot, set up using pytest.
 
 ## Overview
 

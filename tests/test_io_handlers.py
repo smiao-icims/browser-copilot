@@ -133,7 +133,7 @@ class TestOutputHandler:
 
         assert "<!DOCTYPE html>" in result
         assert "<html>" in result
-        assert "<h1>Browser Pilot Test Report</h1>" in result
+        assert "<h1>Browser Copilot Test Report</h1>" in result
         assert "Status:" in result
 
     def test_format_markdown(self):
@@ -149,7 +149,7 @@ class TestOutputHandler:
 
         result = handler.format_output(test_data, "markdown")
 
-        assert "# Browser Pilot Test Report" in result
+        assert "# Browser Copilot Test Report" in result
         assert "**Status:** ✅ PASSED" in result
         assert "**Duration:** 10.50 seconds" in result
 

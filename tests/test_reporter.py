@@ -124,7 +124,7 @@ class TestReporter:
         report_content = saved_files["report"].read_text()
 
         # Check metadata in comments
-        assert "Browser Pilot Test Report" in report_content
+        assert "Browser Copilot Test Report" in report_content
         assert "Status: PASSED" in report_content
         assert "Duration: 25.5s" in report_content
         assert "Steps: 10" in report_content
@@ -155,7 +155,7 @@ class TestReporter:
         assert "report_" in filepath.name
 
         content = filepath.read_text()
-        assert "Browser Pilot Test Report" in content
+        assert "Browser Copilot Test Report" in content
 
     def test_save_report_json(self, temp_dir, sample_result):
         """Test saving report as JSON"""
@@ -183,7 +183,7 @@ class TestReporter:
 
         # Verify content
         report_content = report_path.read_text()
-        assert "Browser Pilot Test Report" in report_content
+        assert "Browser Copilot Test Report" in report_content
 
         with open(results_path) as f:
             results_data = json.load(f)
@@ -194,7 +194,7 @@ class TestReporter:
         reporter.print_header()
 
         captured = capsys.readouterr()
-        assert "Browser Pilot" in captured.out
+        assert "Browser Copilot" in captured.out
         assert "Simple • Reliable • Token Efficient" in captured.out
 
     def test_no_token_usage(self, capsys):
