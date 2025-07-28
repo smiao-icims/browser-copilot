@@ -3,21 +3,20 @@
 A streamlined browser automation framework that uses AI-powered agents to execute natural language test scenarios.
 
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI Version](https://badge.fury.io/py/browser-pilot.svg)](https://pypi.org/project/browser-pilot/)
+[![PyPI Version](https://badge.fury.io/py/browser-pilot-llm.svg)](https://pypi.org/project/browser-pilot-llm/)
 [![CI Status](https://github.com/smiao-icims/browser-pilot/workflows/CI/badge.svg)](https://github.com/smiao-icims/browser-pilot/actions)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Code Coverage](https://codecov.io/gh/smiao-icims/browser-pilot/branch/main/graph/badge.svg)](https://codecov.io/gh/smiao-icims/browser-pilot)
 
 ## 🎯 Getting Started in 3 Minutes
 
+### Option 1: Install from PyPI (Recommended)
 ```bash
-# 1. Install Browser Pilot
-git clone https://github.com/smiao-icims/browser-pilot.git
-cd browser-pilot
-uv sync
+# 1. Install Browser Pilot from PyPI
+pip install browser-pilot-llm
 
 # 2. Run the setup wizard (2 minutes)
-uv run browser-pilot --setup-wizard
+browser-pilot --setup-wizard
 
 # 3. Create a test file (test.md)
 cat > test.md << 'EOF'
@@ -29,6 +28,20 @@ cat > test.md << 'EOF'
 EOF
 
 # 4. Run your test!
+browser-pilot test.md
+```
+
+### Option 2: Install from Source
+```bash
+# 1. Clone and install
+git clone https://github.com/smiao-icims/browser-pilot.git
+cd browser-pilot
+uv sync
+
+# 2. Run the setup wizard
+uv run browser-pilot --setup-wizard
+
+# 3. Create and run your test
 uv run browser-pilot test.md
 ```
 
@@ -52,17 +65,31 @@ That's it! You've just automated your first browser test. 🎉
 
 ### 1️⃣ Install Browser Pilot
 
+#### Option A: Install from PyPI (Recommended)
+```bash
+# Install with pip
+pip install browser-pilot-llm
+
+# Or with uv (faster)
+uv pip install browser-pilot-llm
+```
+
+#### Option B: Install from Source
 ```bash
 # Clone and install
 git clone https://github.com/smiao-icims/browser-pilot.git
 cd browser-pilot
-curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv if needed
 uv sync  # Install dependencies
 ```
 
 ### 2️⃣ Run Setup Wizard (2 minutes)
 
 ```bash
+# If installed from PyPI:
+browser-pilot --setup-wizard
+
+# If installed from source:
 uv run browser-pilot --setup-wizard
 ```
 
@@ -88,7 +115,10 @@ Create a file `my-test.md` with natural language instructions:
 ### 4️⃣ Run Your Test!
 
 ```bash
-# Run your test!
+# If installed from PyPI:
+browser-pilot my-test.md
+
+# If installed from source:
 uv run browser-pilot my-test.md
 
 # That's it! 🎉 You've just automated your first browser test.
@@ -96,9 +126,19 @@ uv run browser-pilot my-test.md
 
 ### 🎯 Try Our Example Tests
 
+> **Note**: If you installed from PyPI, first download the examples:
+> ```bash
+> # Download examples
+> curl -O https://raw.githubusercontent.com/smiao-icims/browser-pilot/main/examples/saucedemo-shopping.md
+> curl -O https://raw.githubusercontent.com/smiao-icims/browser-pilot/main/examples/google-ai-search.md
+> ```
+
 #### E-commerce Shopping Flow
 ```bash
 # Run a complete shopping cart test
+browser-pilot saucedemo-shopping.md
+
+# Or from source repository:
 uv run browser-pilot examples/saucedemo-shopping.md
 ```
 
@@ -111,6 +151,9 @@ This example demonstrates:
 #### AI-Powered Search
 ```bash
 # Test Google's AI search features
+browser-pilot google-ai-search.md
+
+# Or from source repository:
 uv run browser-pilot examples/google-ai-search.md
 ```
 
@@ -126,7 +169,9 @@ This example shows:
 
 ```bash
 # Save typing with an alias
-alias bp="uv run browser-pilot"
+alias bp="browser-pilot"  # For PyPI installation
+# or
+alias bp="uv run browser-pilot"  # For source installation
 
 # Run any test headless
 bp your-test.md --headless
@@ -384,6 +429,11 @@ AI-powered search testing:
 
 Run any example:
 ```bash
+# With PyPI installation (after downloading examples):
+browser-pilot saucedemo-shopping.md
+browser-pilot google-ai-search.md --headless
+
+# With source installation:
 uv run browser-pilot examples/saucedemo-shopping.md
 uv run browser-pilot examples/google-ai-search.md --headless
 ```
