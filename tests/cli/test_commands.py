@@ -118,7 +118,7 @@ class TestCLICommands:
                 "settings": 5,
             },
         }
-        # Configure _format_bytes to return formatted strings  
+        # Configure _format_bytes to return formatted strings
         mock_storage_instance._format_bytes.side_effect = (
             lambda size: f"{size / (1024 * 1024):.2f} MB"
         )
