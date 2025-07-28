@@ -360,7 +360,7 @@ modelforge config show
 
 ```
 browser-copilot/
-├── browser_pilot/          # Main package
+├── browser_copilot/        # Main package
 │   ├── __init__.py
 │   ├── __main__.py        # CLI entry point
 │   ├── core.py            # Core automation engine
@@ -382,11 +382,9 @@ browser-copilot/
 
 ## 📂 Local Storage
 
-Browser Copilot stores data in platform-specific locations:
+Browser Copilot stores data in a consistent location across all platforms:
 
-- **macOS**: `~/Library/Application Support/browser_pilot/`
-- **Windows**: `%LOCALAPPDATA%\browser_pilot\`
-- **Linux**: `~/.browser_copilot/`
+- **All platforms**: `~/.browser_copilot/`
 
 Storage structure:
 ```

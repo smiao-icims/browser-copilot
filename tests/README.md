@@ -43,12 +43,12 @@ pytest tests/ -v
 
 ### Run with coverage
 ```bash
-pytest tests/ --cov=browser_pilot --cov-report=term-missing
+pytest tests/ --cov=browser_copilot --cov-report=term-missing
 ```
 
 ### Generate HTML coverage report
 ```bash
-pytest tests/ --cov=browser_pilot --cov-report=html
+pytest tests/ --cov=browser_copilot --cov-report=html
 ```
 
 ### Run tests by marker
@@ -86,7 +86,7 @@ As of the last run:
 1. Create test file with `test_` prefix
 2. Import necessary modules with the direct import pattern:
    ```python
-   sys.path.insert(0, str(Path(__file__).parent.parent / 'browser_pilot'))
+   sys.path.insert(0, str(Path(__file__).parent.parent / 'browser_copilot'))
    from module_name import ClassName
    ```
 3. Use appropriate markers (@pytest.mark.unit or @pytest.mark.integration)

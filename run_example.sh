@@ -21,21 +21,21 @@ if ! command -v uv &> /dev/null; then
 fi
 
 # Check if the module can be imported
-if ! uv run python -c "import browser_pilot" 2>/dev/null; then
-    echo "⚠️  Browser Pilot module not found. Installing..."
+if ! uv run python -c "import browser_copilot" 2>/dev/null; then
+    echo "⚠️  Browser Copilot module not found. Installing..."
     uv sync
 fi
 
 # Check for example file
 if [ ! -f "examples/google-ai-search.md" ]; then
-    echo "❌ Example test file not found. Please run from the browser-pilot directory."
+    echo "❌ Example test file not found. Please run from the browser-copilot directory."
     exit 1
 fi
 
 # Default values
-PROVIDER="${BROWSER_PILOT_PROVIDER:-github_copilot}"
-MODEL="${BROWSER_PILOT_MODEL:-gpt-4o}"
-BROWSER="${BROWSER_PILOT_BROWSER:-chromium}"
+PROVIDER="${BROWSER_COPILOT_PROVIDER:-github_copilot}"
+MODEL="${BROWSER_COPILOT_MODEL:-gpt-4o}"
+BROWSER="${BROWSER_COPILOT_BROWSER:-chromium}"
 
 echo "Configuration:"
 echo "  Provider: $PROVIDER"
@@ -43,7 +43,7 @@ echo "  Model: $MODEL"
 echo "  Browser: $BROWSER"
 echo ""
 echo "You can override these with environment variables:"
-echo "  BROWSER_PILOT_PROVIDER, BROWSER_PILOT_MODEL, BROWSER_PILOT_BROWSER"
+echo "  BROWSER_COPILOT_PROVIDER, BROWSER_COPILOT_MODEL, BROWSER_COPILOT_BROWSER"
 echo ""
 echo "Starting test in 3 seconds..."
 sleep 3
