@@ -776,3 +776,8 @@ Execute the test now."""
         if len(normalized) > 50:
             normalized = normalized[:50].rstrip("-")
         return normalized
+
+    def close(self) -> None:
+        """Clean up resources, particularly closing the verbose logger"""
+        if hasattr(self, "verbose_logger") and self.verbose_logger:
+            self.verbose_logger.close()

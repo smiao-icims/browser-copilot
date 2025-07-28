@@ -54,20 +54,24 @@ class TestIntegration:
         # Create logger with storage manager
         logger = VerboseLogger(storage_manager=storage)
 
-        # Log some test messages
-        logger.log_step("test", "Test message")  # Using correct method signature
-        logger.log_step("step", "Test step", level="INFO")
-        logger.log_error("test_error", "Test error")
+        try:
+            # Log some test messages
+            logger.log_step("test", "Test message")  # Using correct method signature
+            logger.log_step("step", "Test step", level="INFO")
+            logger.log_error("test_error", "Test error")
 
-        # Verify log file was created in storage location
-        log_files = list(log_dir.glob("*.log"))
-        assert len(log_files) > 0
+            # Verify log file was created in storage location
+            log_files = list(log_dir.glob("*.log"))
+            assert len(log_files) > 0
 
-        # Verify content
-        log_content = log_files[0].read_text()
-        assert "Test message" in log_content
-        assert "Test step" in log_content
-        assert "Test error" in log_content
+            # Verify content
+            log_content = log_files[0].read_text()
+            assert "Test message" in log_content
+            assert "Test step" in log_content
+            assert "Test error" in log_content
+        finally:
+            # Close logger to release file handles
+            logger.close()
 
     def test_token_optimizer_with_config(self, temp_dir):
         """Test TokenOptimizer respects ConfigManager settings"""

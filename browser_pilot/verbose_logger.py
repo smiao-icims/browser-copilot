@@ -289,6 +289,16 @@ class VerboseLogger:
             f.write(json.dumps(summary, indent=2, ensure_ascii=False))
             f.write("\n" + "=" * 80 + "\n")
 
+    def close(self) -> None:
+        """Close all file handlers to release file locks"""
+        # Close all handlers, especially file handlers
+        for handler in self.logger.handlers[
+            :
+        ]:  # Copy list to avoid modification during iteration
+            if hasattr(handler, "close"):
+                handler.close()
+            self.logger.removeHandler(handler)
+
 
 class LangChainVerboseCallback(BaseCallbackHandler):
     """Callback for integrating VerboseLogger with LangChain"""

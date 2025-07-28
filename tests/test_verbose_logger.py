@@ -26,6 +26,11 @@ class TestVerboseLogger:
         self.logger = VerboseLogger(storage_manager=self.storage)
         self.log_dir = self.storage.get_logs_dir()
 
+        yield  # This allows the test to run
+
+        # Teardown - close the logger
+        self.logger.close()
+
     def test_initialization(self):
         """Test logger initialization"""
         assert self.log_dir.exists()
@@ -147,22 +152,24 @@ class TestVerboseLogger:
 
         storage = StorageManager(base_dir=temp_dir)
         logger = VerboseLogger(storage_manager=storage, console_enabled=False)
+        try:
+            logger.log_step("test", "Should not print to console")
 
-        logger.log_step("test", "Should not print to console")
+            # Check that logger has no console handler (StreamHandler to stdout)
+            # FileHandler is a subclass of StreamHandler, so check for stdout specifically
+            has_console_handler = any(
+                isinstance(handler, logging.StreamHandler)
+                and hasattr(handler, "stream")
+                and handler.stream == sys.stdout
+                for handler in logger.logger.handlers
+            )
+            assert not has_console_handler
 
-        # Check that logger has no console handler (StreamHandler to stdout)
-        # FileHandler is a subclass of StreamHandler, so check for stdout specifically
-        has_console_handler = any(
-            isinstance(handler, logging.StreamHandler)
-            and hasattr(handler, "stream")
-            and handler.stream == sys.stdout
-            for handler in logger.logger.handlers
-        )
-        assert not has_console_handler
-
-        # But file should contain the message
-        log_content = logger.log_file.read_text()
-        assert "Should not print to console" in log_content
+            # But file should contain the message
+            log_content = logger.log_file.read_text()
+            assert "Should not print to console" in log_content
+        finally:
+            logger.close()
 
     def test_disable_file_output(self, temp_dir, caplog):
         """Test logger with file output disabled"""
@@ -170,15 +177,18 @@ class TestVerboseLogger:
 
         storage = StorageManager(base_dir=temp_dir)
         logger = VerboseLogger(storage_manager=storage, file_enabled=False)
-        logger.log_step("test", "Console only")
+        try:
+            logger.log_step("test", "Console only")
 
-        # Console should have output
-        assert "Console only" in caplog.text
+            # Console should have output
+            assert "Console only" in caplog.text
 
-        # File should not exist since file logging is disabled
-        # The log_file path is created but not written to
-        if logger.log_file.exists():
-            assert logger.log_file.stat().st_size == 0
+            # File should not exist since file logging is disabled
+            # The log_file path is created but not written to
+            if logger.log_file.exists():
+                assert logger.log_file.stat().st_size == 0
+        finally:
+            logger.close()
 
     def test_unicode_handling(self):
         """Test handling of unicode characters"""
