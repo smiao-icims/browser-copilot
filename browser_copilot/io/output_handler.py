@@ -346,7 +346,7 @@ class OutputHandler:
                 opt = usage["optimization"]
                 md += "\n### Token Optimization\n\n"
                 md += f"- **Reduction:** {opt.get('reduction_percentage', 0):.1f}%\n"
-                if "estimated_savings" in opt:
+                if opt.get("estimated_savings") is not None:
                     md += f"- **Estimated Savings:** ${opt['estimated_savings']:.4f}\n"
             md += "\n"
 

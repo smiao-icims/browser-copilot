@@ -282,9 +282,33 @@ class BrowserPilot:
                 async with ClientSession(read, write) as session:
                     await session.initialize()
 
-                    # Create browser automation agent using AgentFactory
+                    # Get context management configuration
+                    context_strategy = self.config.get("context_strategy", "sliding-window")
+                    
+                    # Build context config from CLI/config
+                    from .context_management.base import ContextConfig
+                    context_config = ContextConfig(
+                        window_size=self.config.get("context_window_size", 50000),
+                        preserve_first_n=self.config.get("context_preserve_first", 5),
+                        preserve_last_n=self.config.get("context_preserve_last", 10),
+                        compression_level=self.config.get("compression_level", "medium"),
+                        preserve_errors=True,
+                        preserve_screenshots=True,
+                    )
+                    
+                    # Log context configuration
+                    if self.verbose_logger:
+                        self.stream.write(f"Context management: {context_strategy}", "debug")
+                        self.stream.write(f"Window size: {context_config.window_size} tokens", "debug")
+                        self.stream.write(f"Preserve first: {context_config.preserve_first_n}, last: {context_config.preserve_last_n}", "debug")
+                    
+                    # Create browser automation agent using AgentFactory with context management
                     agent = await self.agent_factory.create_browser_agent(
-                        session=session, recursion_limit=100
+                        session=session, 
+                        recursion_limit=100,
+                        context_strategy=context_strategy,
+                        context_config=context_config,
+                        verbose=self.verbose_logger is not None
                     )
 
                     # Build execution prompt
@@ -386,6 +410,14 @@ class BrowserPilot:
                     # Extract token usage from telemetry
                     token_metrics = self._get_token_usage()
                     
+                    # Get context management metrics if available
+                    context_metrics = None
+                    if hasattr(agent, '_context_manager'):
+                        context_metrics = agent._context_manager.get_metrics()
+                        # Log context management summary
+                        if self.verbose_logger:
+                            self.stream.write("\n" + agent._context_manager.get_summary(), "debug")
+                    
                     # Determine success
                     success = self._check_success(report_content)
                     
@@ -428,6 +460,8 @@ class BrowserPilot:
                         environment={
                             "token_optimization": self.token_optimizer is not None,
                             "compression_level": self.config.get("compression_level", "medium"),
+                            "context_strategy": context_strategy,
+                            "context_metrics": context_metrics,
                         },
                         verbose_log=verbose_log,
                         # Browser-specific fields
@@ -477,6 +511,8 @@ class BrowserPilot:
                 environment={
                     "token_optimization": self.token_optimizer is not None,
                     "compression_level": self.config.get("compression_level", "medium"),
+                    "context_strategy": self.config.get("context_strategy", "sliding-window"),
+                    "context_metrics": None,
                 },
                 verbose_log=None,
                 provider=self.provider,
@@ -535,6 +571,8 @@ class BrowserPilot:
                 environment={
                     "token_optimization": self.token_optimizer is not None,
                     "compression_level": self.config.get("compression_level", "medium"),
+                    "context_strategy": self.config.get("context_strategy", "sliding-window"),
+                    "context_metrics": None,
                 },
                 verbose_log=None,
                 provider=self.provider,
@@ -585,6 +623,8 @@ class BrowserPilot:
                 environment={
                     "token_optimization": self.token_optimizer is not None,
                     "compression_level": self.config.get("compression_level", "medium"),
+                    "context_strategy": self.config.get("context_strategy", "sliding-window"),
+                    "context_metrics": None,
                 },
                 verbose_log=None,
                 provider=self.provider,
@@ -701,8 +741,17 @@ Execute the test now."""
             "test passed successfully",
         ]
 
-        # Must have test execution report
-        has_report = "test execution report" in lower_content
+        # Must have test execution report or summary
+        has_report = any(
+            header in lower_content 
+            for header in [
+                "test execution report",
+                "test execution summary", 
+                "test report",
+                "execution report",
+                "test results"
+            ]
+        )
 
         # Check for any success pattern
         has_success = any(pattern in lower_content for pattern in success_patterns)

@@ -56,6 +56,10 @@ class ConfigManager:
         "token_optimization": True,
         "max_context_length": 8000,
         "compression_level": "medium",
+        "context_strategy": "sliding-window",
+        "context_window_size": 50000,
+        "context_preserve_first": 5,
+        "context_preserve_last": 10,
     }
 
     def __init__(self, storage_manager: StorageManager | None = None):

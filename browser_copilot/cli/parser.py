@@ -168,6 +168,34 @@ Examples:
         choices=["none", "low", "medium", "high"],
         help="Token compression level (default: medium)",
     )
+    optimization_group.add_argument(
+        "--context-strategy",
+        choices=["no-op", "sliding-window", "langchain-trim", "langchain-trim-advanced", "last-n", "reverse-trim", "smart-reverse", "integrity-first", "smart-trim"],
+        default="sliding-window",
+        help="Context management strategy: no-op (no trimming), sliding-window (custom implementation), "
+             "langchain-trim (LangChain's trim_messages), langchain-trim-advanced (with first/last preservation), "
+             "last-n (keep exactly N messages, use --context-window-size to set N), "
+             "reverse-trim (build from most recent, ensuring tool pairs), "
+             "smart-reverse (priority-based grouping), "
+             "integrity-first (never break tool pairs, may exceed token limit), "
+             "smart-trim (analyze individual message sizes) "
+             "(default: sliding-window)",
+    )
+    optimization_group.add_argument(
+        "--context-window-size",
+        type=int,
+        help="Target window size in tokens for sliding-window strategy (default: 50000)",
+    )
+    optimization_group.add_argument(
+        "--context-preserve-first",
+        type=int,
+        help="Number of first messages to always preserve (default: 5)",
+    )
+    optimization_group.add_argument(
+        "--context-preserve-last",
+        type=int,
+        help="Number of last messages to always preserve (default: 10)",
+    )
 
     # Configuration management
     config_group = parser.add_argument_group("Configuration Management")

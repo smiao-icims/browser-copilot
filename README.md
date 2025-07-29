@@ -307,6 +307,26 @@ export BROWSER_PILOT_MODEL=claude-3-opus
 export BROWSER_PILOT_BROWSER=firefox
 ```
 
+### 🎯 Context Management
+
+Browser Copilot includes intelligent context management to optimize token usage:
+
+```bash
+# Use different context strategies
+browser-copilot test.md --context-strategy sliding-window  # Default
+browser-copilot test.md --context-strategy langchain-trim  # Most efficient
+browser-copilot test.md --context-strategy no-op          # No trimming
+
+# Configure window size (tokens)
+browser-copilot test.md --context-window-size 10000
+
+# See token reduction in action
+browser-copilot test.md --verbose
+# Output: [Sliding Window Hook] Token reduction: 48.9%
+```
+
+Context management can reduce token usage by 40-70% on longer tests. [Learn more →](docs/context-management.md)
+
 ## 🔧 Configuration
 
 ### Prerequisites
@@ -341,6 +361,13 @@ options:
   --no-token-optimization  Disable token optimization
   --config FILE        Path to configuration file
   --save-config        Save current settings as defaults
+  
+  context management:
+  --context-strategy   Strategy: no-op, sliding-window, langchain-trim
+  --context-window-size SIZE  Max tokens for context window
+  --context-preserve-window N  Messages to always preserve
+  --context-preserve-first N   Keep first N messages
+  --context-preserve-last N    Keep last N messages
 ```
 
 ### Setting up ModelForge
