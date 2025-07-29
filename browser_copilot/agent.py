@@ -12,8 +12,7 @@ from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
 
 from .context_management.base import ContextConfig
-from .context_management.react_hooks import create_no_op_hook
-from .context_management.true_sliding_window import create_true_sliding_window_hook
+from .context_management.hooks import create_context_hook
 
 
 class AgentFactory:
@@ -52,17 +51,17 @@ class AgentFactory:
         # Load MCP tools from the browser session
         tools = await load_mcp_tools(session)
 
-        # Create pre-model hook based on strategy
+        # Create pre-model hook using the factory
         pre_model_hook = None
-        if context_strategy == "no-op":
-            pre_model_hook = create_no_op_hook()
-        elif context_strategy == "true-sliding-window" and context_config:
-            # True sliding window - preserves first N Human/System messages + recent messages
-            pre_model_hook = create_true_sliding_window_hook(context_config, verbose)
-        elif context_strategy == "smart-trim" and context_config:
-            # Smart analysis of individual message sizes and importance
-            from .context_management.react_hooks_smart import create_smart_trim_hook
-            pre_model_hook = create_smart_trim_hook(context_config, verbose)
+        if context_strategy != "no-op" and not context_config:
+            # Skip hook creation if config is required but not provided
+            pass
+        else:
+            pre_model_hook = create_context_hook(
+                strategy=context_strategy,
+                config=context_config,
+                verbose=verbose
+            )
 
         # Create ReAct agent with browser tools and pre-model hook
         agent = create_react_agent(

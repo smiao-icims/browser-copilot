@@ -170,13 +170,13 @@ Examples:
     )
     optimization_group.add_argument(
         "--context-strategy",
-        choices=["no-op", "true-sliding-window", "smart-trim"],
-        default="true-sliding-window",
+        choices=["no-op", "sliding-window", "smart-trim"],
+        default="sliding-window",
         help="Context management strategy: "
              "no-op (no trimming, baseline for comparison), "
-             "true-sliding-window (preserves first N Human/System messages, fills rest with recent), "
+             "sliding-window (preserves first N Human/System messages, fills rest with recent), "
              "smart-trim (importance-based intelligent trimming) "
-             "(default: true-sliding-window)",
+             "(default: sliding-window)",
     )
     optimization_group.add_argument(
         "--context-window-size",
@@ -186,7 +186,7 @@ Examples:
     optimization_group.add_argument(
         "--context-preserve-first",
         type=int,
-        help="Number of first messages to always preserve (for true-sliding-window: first N Human/System messages ONLY) (default: 2)",
+        help="Number of first messages to always preserve (for sliding-window: first N Human/System messages ONLY) (default: 2)",
     )
     optimization_group.add_argument(
         "--context-preserve-last",

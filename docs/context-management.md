@@ -26,17 +26,23 @@ Browser Copilot provides three context management strategies:
 - **Use Case**: Baseline comparison, debugging, or when token usage is not a concern
 - **Token Usage**: Highest (no reduction)
 
-### 2. True Sliding Window Strategy (Default)
-- **Flag**: `--context-strategy true-sliding-window`
-- **Description**: Sliding window that preserves Human/System messages and fills with recent messages
+### 2. Sliding Window Strategy (Default)
+- **Flag**: `--context-strategy sliding-window`
+- **Description**: Sliding window that preserves first and last messages with middle filling
+- **Algorithm**:
+  1. **ALWAYS preserve first N Human/System messages** (e.g., test instructions, system prompts)
+  2. **ALWAYS preserve last M messages** regardless of budget (with integrity for tool pairs)
+  3. **Check total tokens** after adding both first N and last M
+  4. **If budget remains**, fill backwards from message (last M - 1) with middle messages
+  5. **If first N + last M exceed budget**, show warning but keep both (no middle messages)
 - **Features**:
-  - Preserves first N Human and System messages (test instructions & system prompts)
-  - Works backwards from most recent to fill remaining budget
-  - Maintains message integrity (tool pairs) for recent messages
-  - May exceed window size slightly to preserve integrity
-- **Token Usage**: High reduction while preserving critical context
-- **Best for**: Most browser automation scenarios
-- **Recommended**: Use `--context-preserve-first 2` (default) to keep system prompt and test instructions
+  - Message integrity maintained throughout (AIMessage/ToolMessage pairs stay together)
+  - May exceed window size to preserve integrity
+  - Clear warnings when budget is exceeded
+  - Maintains strict message ordering (no sorting needed)
+- **Token Usage**: Balanced reduction while preserving both initial and recent context
+- **Best for**: Most browser automation scenarios where both test instructions and recent context are critical
+- **Recommended**: Use `--context-preserve-first 2` and `--context-preserve-last 10` (defaults)
 
 ### 3. Smart Trim Strategy
 - **Flag**: `--context-strategy smart-trim`
@@ -85,7 +91,7 @@ python -m browser_copilot --test-suite examples/saucedemo-shopping.md \
 ### Using True Sliding Window with Custom Parameters
 ```bash
 python -m browser_copilot --test-suite examples/weather-forecast.md \
-  --context-strategy true-sliding-window \
+  --context-strategy sliding-window \
   --context-window-size 25000 \
   --context-preserve-first 2
 ```
@@ -118,7 +124,7 @@ For a shopping cart test with ~30 steps:
 | Strategy | Token Usage | Reduction | Notes |
 |----------|------------|-----------|-------|
 | no-op | 31,245 | 0% | Baseline, no trimming |
-| true-sliding-window | 24,014 | 23% | Balanced, preserves context |
+| sliding-window | 24,014 | 23% | Balanced, preserves context |
 | smart-trim | ~20,000-25,000 | 20-36% | Varies based on content |
 
 ## How It Works
@@ -136,9 +142,35 @@ All strategies ensure AIMessage/ToolMessage pairs are kept together. If an AI me
 ### Token Counting
 Tokens are estimated using a simple heuristic: 4 characters ≈ 1 token. This provides fast, reasonable approximations without requiring model-specific tokenizers.
 
+### Sliding Window Algorithm Example
+
+With `--context-window-size 25000 --context-preserve-first 2 --context-preserve-last 10`:
+
+#### Scenario 1: Within Budget
+- **Messages**: 20 total (15,000 tokens)
+- **Result**: All messages kept (under 25,000 token budget)
+
+#### Scenario 2: First + Last Within Budget
+- **Messages**: 30 total (40,000 tokens)
+- **First 2**: Human (1,000) + System (500) = 1,500 tokens
+- **Last 10**: Messages 20-29 = 18,000 tokens
+- **Total**: 19,500 tokens (within 25,000 budget)
+- **Result**: Keeps messages [0, 1, 20-29] + fills middle with messages 19, 18, 17... until budget exhausted
+
+#### Scenario 3: First + Last Exceed Budget
+- **Messages**: 35 total (50,000 tokens)
+- **First 1**: Human (1,119 tokens)
+- **Last 10**: Messages 25-34 = 31,805 tokens
+- **Total**: 32,924 tokens (exceeds 25,000 budget)
+- **Result**: 
+  - Keeps messages [0, 25-34] only
+  - Shows warning: "WARNING: First 1 + Last 10 = 32,924 tokens (exceeds 25,000)"
+  - No middle messages added
+  - May include additional messages for integrity (e.g., message 22 if message 25 depends on it)
+
 ## Best Practices
 
-1. **Start with the default**: `true-sliding-window` works well for most cases
+1. **Start with the default**: `sliding-window` works well for most cases
 2. **Adjust window size based on your model**: GPT-4 can handle larger windows than GPT-3.5
 3. **Use verbose mode** to understand trimming behavior during development
 4. **Monitor token usage** in production to optimize costs
