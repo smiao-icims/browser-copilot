@@ -7,7 +7,8 @@ AI-powered browser test automation.
 
 import logging
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
+import uuid
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -18,6 +19,9 @@ from modelforge.telemetry import TelemetryCallback
 from .agent import AgentFactory
 from .config_manager import ConfigManager
 from .io import StreamHandler
+from .models.execution import ExecutionStep, ExecutionMetadata, ExecutionTiming
+from .models.metrics import TokenMetrics, OptimizationSavings
+from .models.results import BrowserTestResult
 from .token_optimizer import OptimizationLevel, TokenOptimizer
 from .verbose_logger import LangChainVerboseCallback, VerboseLogger
 
@@ -249,22 +253,29 @@ class BrowserPilot:
                 },
             )
 
+        # Create execution metadata
+        metadata = ExecutionMetadata(
+            test_name=test_name,
+            provider=self.provider,
+            model=self.model,
+            browser=browser,
+            headless=headless,
+            viewport_width=viewport_width,
+            viewport_height=viewport_height,
+            token_optimization_enabled=self.token_optimizer is not None,
+            compression_level=self.config.get("compression_level", "medium"),
+            verbose_enabled=self.verbose_logger is not None,
+            session_id=str(kwargs.get("_session_dir", uuid.uuid4()))
+        )
+        
         # Track execution
         start_time = datetime.now(UTC)
-        result = {
-            "success": False,
-            "provider": self.provider,
-            "model": self.model,
-            "browser": browser,
-            "headless": headless,
-            "viewport_size": viewport_size,
-            "test_name": test_name,
-            "execution_time": {"start": start_time.isoformat(), "timezone": "UTC"},
-            "environment": {
-                "token_optimization": self.token_optimizer is not None,
-                "compression_level": self.config.get("compression_level", "medium"),
-            },
-        }
+        
+        # Initialize result components
+        execution_steps: list[ExecutionStep] = []
+        report_content = ""
+        error_message: Optional[str] = None
+        token_metrics: Optional[TokenMetrics] = None
 
         try:
             async with stdio_client(server_params) as (read, write):
@@ -309,18 +320,26 @@ class BrowserPilot:
                                 for tool_msg in chunk.get("tools", {}).get(
                                     "messages", []
                                 ):
-                                    if hasattr(tool_msg, "name"):
+                                    if hasattr(tool_msg, "name") and hasattr(tool_msg, "content"):
+                                        # Create ExecutionStep for tool call
+                                        step = ExecutionStep(
+                                            type="tool_call",
+                                            name=tool_msg.name,
+                                            content=str(tool_msg.content),
+                                            timestamp=datetime.now(UTC)
+                                        )
+                                        execution_steps.append(step)
+                                        
                                         self.stream.write(
                                             f"  Tool: {tool_msg.name}", "info"
                                         )
-                                        if hasattr(tool_msg, "content"):
-                                            # Show first 200 chars of tool response
-                                            content = str(tool_msg.content)[:200]
-                                            if len(str(tool_msg.content)) > 200:
-                                                content += "..."
-                                            self.stream.write(
-                                                f"  Response: {content}", "debug"
-                                            )
+                                        # Show first 200 chars of tool response
+                                        content = str(tool_msg.content)[:200]
+                                        if len(str(tool_msg.content)) > 200:
+                                            content += "..."
+                                        self.stream.write(
+                                            f"  Response: {content}", "debug"
+                                        )
 
                             # Extract and display agent messages
                             if "agent" in chunk:
@@ -331,8 +350,18 @@ class BrowserPilot:
                                         hasattr(agent_msg, "content")
                                         and agent_msg.content
                                     ):
+                                        content = str(agent_msg.content)
+                                        if len(content) > 50:  # Only include substantial messages
+                                            step = ExecutionStep(
+                                                type="agent_message",
+                                                name=None,
+                                                content=content,
+                                                timestamp=datetime.now(UTC)
+                                            )
+                                            execution_steps.append(step)
+                                        
                                         self.stream.write(
-                                            f"  Agent thinking: {str(agent_msg.content)[:200]}...",
+                                            f"  Agent thinking: {content[:200]}...",
                                             "debug",
                                         )
 
@@ -349,69 +378,236 @@ class BrowserPilot:
 
                     # Process execution results
                     duration = (datetime.now(UTC) - start_time).total_seconds()
+                    end_time = datetime.now(UTC)
 
-                    report_content = ""
                     if final_response and hasattr(final_response, "content"):
                         report_content = str(final_response.content)
 
                     # Extract token usage from telemetry
-                    token_usage = self._get_token_usage()
-
-                    end_time = datetime.now(UTC)
-                    result.update(
-                        {
-                            "success": self._check_success(report_content),
-                            "duration": duration,
-                            "duration_seconds": duration,  # Backward compatibility
-                            "steps_executed": len(steps),
-                            "steps": self._extract_steps(steps),
-                            "report": report_content,
-                            "execution_time": {
-                                "start": start_time.isoformat(),
-                                "end": end_time.isoformat(),
-                                "duration_seconds": duration,
-                                "timezone": "UTC",
-                            },
-                            "token_usage": token_usage,
-                            "metrics": {
-                                "total_steps": len(steps),
-                                "execution_time_ms": duration * 1000,
-                                "avg_step_time_ms": (duration * 1000) / len(steps)
-                                if steps
-                                else 0,
-                            },
-                        }
+                    token_metrics = self._get_token_usage()
+                    
+                    # Determine success
+                    success = self._check_success(report_content)
+                    
+                    # Create timing information
+                    timing = ExecutionTiming(
+                        start=start_time,
+                        end=end_time,
+                        duration_seconds=duration,
+                        timezone="UTC"
                     )
-
-                    # Log test completion if verbose
+                    
+                    # Build verbose log if enabled
+                    verbose_log = None
                     if self.verbose_logger:
                         self.verbose_logger.log_test_complete(
-                            bool(result["success"]),
+                            success,
                             duration,
                             f"{len(steps)} steps executed",
                         )
-
-                        # Add verbose log info to result
-                        result["verbose_log"] = {
+                        verbose_log = {
                             "log_file": str(self.verbose_logger.get_log_file_path()),
                             "summary": self.verbose_logger.get_execution_summary(),
                         }
+                    
+                    # Create the result model
+                    result = BrowserTestResult(
+                        success=success,
+                        test_name=test_name,
+                        duration=duration,
+                        report=report_content if success else None,
+                        error=error_message if not success else None,
+                        steps=execution_steps,
+                        execution_time=timing,
+                        metrics={
+                            "total_steps": len(steps),
+                            "execution_time_ms": duration * 1000,
+                            "avg_step_time_ms": (duration * 1000) / len(steps) if steps else 0,
+                        },
+                        token_usage=token_metrics,
+                        environment={
+                            "token_optimization": self.token_optimizer is not None,
+                            "compression_level": self.config.get("compression_level", "medium"),
+                        },
+                        verbose_log=verbose_log,
+                        # Browser-specific fields
+                        provider=self.provider,
+                        model=self.model,
+                        browser=browser,
+                        headless=headless,
+                        viewport_size=viewport_size,
+                        steps_executed=len(steps)
+                    )
+                    
+                    # Return the result as dict for backward compatibility
+                    return result.to_dict()
 
-        except Exception as e:
-            result.update(
-                {
-                    "error": str(e),
-                    "duration_seconds": (
-                        datetime.now(UTC) - start_time
-                    ).total_seconds(),
-                }
+        except TimeoutError as e:
+            # Handle timeout specifically
+            timeout_step = ExecutionStep(
+                type="agent_message",
+                name="timeout_error",
+                content=f"Test execution timed out after {timeout} seconds",
+                timestamp=datetime.now(UTC)
             )
+            execution_steps.append(timeout_step)
+            
+            duration = (datetime.now(UTC) - start_time).total_seconds()
+            timing = ExecutionTiming(
+                start=start_time,
+                end=datetime.now(UTC),
+                duration_seconds=duration,
+                timezone="UTC"
+            )
+            
+            result = BrowserTestResult(
+                success=False,
+                test_name=test_name,
+                duration=duration,
+                report=None,
+                error=f"Test execution timed out after {timeout} seconds",
+                steps=execution_steps,
+                execution_time=timing,
+                metrics={
+                    "total_steps": len(execution_steps),
+                    "execution_time_ms": duration * 1000,
+                    "avg_step_time_ms": (duration * 1000) / len(execution_steps) if execution_steps else 0,
+                },
+                token_usage=self._get_token_usage(),
+                environment={
+                    "token_optimization": self.token_optimizer is not None,
+                    "compression_level": self.config.get("compression_level", "medium"),
+                },
+                verbose_log=None,
+                provider=self.provider,
+                model=self.model,
+                browser=browser,
+                headless=headless,
+                viewport_size=viewport_size,
+                steps_executed=len(execution_steps)
+            )
+            
+            if self.verbose_logger:
+                self.verbose_logger.log_test_complete(
+                    False,
+                    duration,
+                    f"Timeout after {timeout} seconds",
+                )
+                
+            return result.to_dict()
+            
+        except BaseExceptionGroup as eg:
+            # Handle ExceptionGroup (Python 3.11+)
+            duration = (datetime.now(UTC) - start_time).total_seconds()
+            timing = ExecutionTiming(
+                start=start_time,
+                end=datetime.now(UTC),
+                duration_seconds=duration,
+                timezone="UTC"
+            )
+            
+            # Extract first meaningful exception
+            first_exception = None
+            for exc in eg.exceptions:
+                if isinstance(exc, TimeoutError):
+                    first_exception = exc
+                    break
+                elif not isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                    first_exception = exc
+                    break
+            
+            error_msg = str(first_exception) if first_exception else str(eg)
+            
+            result = BrowserTestResult(
+                success=False,
+                test_name=test_name,
+                duration=duration,
+                report=None,
+                error=error_msg,
+                steps=execution_steps,
+                execution_time=timing,
+                metrics={
+                    "total_steps": len(execution_steps),
+                    "execution_time_ms": duration * 1000,
+                    "avg_step_time_ms": (duration * 1000) / len(execution_steps) if execution_steps else 0,
+                },
+                token_usage=self._get_token_usage(),
+                environment={
+                    "token_optimization": self.token_optimizer is not None,
+                    "compression_level": self.config.get("compression_level", "medium"),
+                },
+                verbose_log=None,
+                provider=self.provider,
+                model=self.model,
+                browser=browser,
+                headless=headless,
+                viewport_size=viewport_size,
+                steps_executed=len(execution_steps)
+            )
+            
+            if self.verbose_logger:
+                self.verbose_logger.log_test_complete(
+                    False,
+                    duration,
+                    f"Error: {error_msg}",
+                )
+                
             if verbose:
                 import traceback
-
+                traceback.print_exc()
+                
+            return result.to_dict()
+            
+        except Exception as e:
+            # Handle other exceptions
+            duration = (datetime.now(UTC) - start_time).total_seconds()
+            timing = ExecutionTiming(
+                start=start_time,
+                end=datetime.now(UTC),
+                duration_seconds=duration,
+                timezone="UTC"
+            )
+            
+            result = BrowserTestResult(
+                success=False,
+                test_name=test_name,
+                duration=duration,
+                report=None,
+                error=str(e),
+                steps=execution_steps,
+                execution_time=timing,
+                metrics={
+                    "total_steps": len(execution_steps),
+                    "execution_time_ms": duration * 1000,
+                    "avg_step_time_ms": (duration * 1000) / len(execution_steps) if execution_steps else 0,
+                },
+                token_usage=self._get_token_usage(),
+                environment={
+                    "token_optimization": self.token_optimizer is not None,
+                    "compression_level": self.config.get("compression_level", "medium"),
+                },
+                verbose_log=None,
+                provider=self.provider,
+                model=self.model,
+                browser=browser,
+                headless=headless,
+                viewport_size=viewport_size,
+                steps_executed=len(execution_steps)
+            )
+            
+            if self.verbose_logger:
+                self.verbose_logger.log_test_complete(
+                    False,
+                    duration,
+                    f"Error: {str(e)}",
+                )
+                
+            if verbose:
+                import traceback
                 traceback.print_exc()
 
-        return result
+        # Return the result as dict for backward compatibility
+        return result.to_dict()
 
     def _build_prompt(self, test_suite_content: str) -> str:
         """Build the test execution prompt with instructions"""
@@ -523,53 +719,49 @@ Execute the test now."""
 
         return has_report and has_success and not has_failure
 
-    def _get_token_usage(self) -> dict[str, Any]:
+    def _get_token_usage(self) -> TokenMetrics | None:
         """Extract token usage metrics from telemetry"""
         if not self.telemetry:
-            return {}
+            return None
 
         try:
             # Try to get metrics from telemetry
             if hasattr(self.telemetry, "metrics") and self.telemetry.metrics:
                 metrics = self.telemetry.metrics
-                usage = {}
+                total_tokens = 0
+                prompt_tokens = 0
+                completion_tokens = 0
+                estimated_cost = None
 
                 # Extract token usage if available
                 if hasattr(metrics, "token_usage"):
                     token_usage = metrics.token_usage
-                    usage.update(
-                        {
-                            "total_tokens": getattr(token_usage, "total_tokens", 0),
-                            "prompt_tokens": getattr(token_usage, "prompt_tokens", 0),
-                            "completion_tokens": getattr(
-                                token_usage, "completion_tokens", 0
-                            ),
-                        }
-                    )
+                    total_tokens = getattr(token_usage, "total_tokens", 0)
+                    prompt_tokens = getattr(token_usage, "prompt_tokens", 0)
+                    completion_tokens = getattr(token_usage, "completion_tokens", 0)
 
                 # Extract cost if available
                 if hasattr(metrics, "estimated_cost"):
-                    usage["estimated_cost"] = metrics.estimated_cost
+                    estimated_cost = metrics.estimated_cost
                 # Enhanced LLM cost estimation (if available and no cost from telemetry)
                 elif (
                     hasattr(self.llm, "estimate_cost")
-                    and usage.get("prompt_tokens")
-                    and usage.get("completion_tokens")
+                    and prompt_tokens > 0
+                    and completion_tokens > 0
                 ):
                     try:
-                        enhanced_cost = self.llm.estimate_cost(
-                            usage["prompt_tokens"], usage["completion_tokens"]
+                        estimated_cost = self.llm.estimate_cost(
+                            prompt_tokens, completion_tokens
                         )
-                        usage["estimated_cost"] = enhanced_cost
-                        usage["cost_source"] = "enhanced_llm"
                     except Exception:
                         pass  # Fall back to telemetry cost if enhanced estimation fails
 
                 # Add context length information if we have prompt tokens
-                if usage.get("prompt_tokens", 0) > 0:
-                    context_length = usage["prompt_tokens"]
-                    usage["context_length"] = context_length
+                context_length = prompt_tokens if prompt_tokens > 0 else None
+                max_context_length = None
+                context_usage_percentage = None
 
+                if context_length:
                     # Get context limit from enhanced model-forge LLM (v2.2.1+)
                     max_context = None
 
@@ -610,47 +802,58 @@ Execute the test now."""
 
                     # Set the context usage info if we found a limit
                     if max_context:
-                        usage["max_context_length"] = max_context
-                        usage["context_usage_percentage"] = round(
+                        max_context_length = max_context
+                        context_usage_percentage = round(
                             (context_length / max_context) * 100, 1
                         )
 
                 # Add optimization savings if available
+                optimization_savings = None
                 if self.token_optimizer:
                     opt_metrics = self.token_optimizer.get_metrics()
                     if opt_metrics["original_tokens"] > 0:
-                        usage["optimization"] = {
-                            "original_tokens": opt_metrics["original_tokens"],
-                            "optimized_tokens": opt_metrics["optimized_tokens"],
-                            "reduction_percentage": opt_metrics["reduction_percentage"],
-                            "strategies_applied": opt_metrics["strategies_applied"],
-                        }
-
                         # Estimate cost savings
-                        if usage.get("estimated_cost"):
-                            cost_per_token = (
-                                usage["estimated_cost"] / usage["total_tokens"]
-                            )
+                        estimated_savings = None
+                        if estimated_cost and total_tokens > 0:
+                            cost_per_token = estimated_cost / total_tokens
                             tokens_saved = (
                                 opt_metrics["original_tokens"]
                                 - opt_metrics["optimized_tokens"]
                             )
-                            optimization_dict = usage.get("optimization")
-                            if isinstance(optimization_dict, dict):
-                                optimization_dict["estimated_savings"] = (
-                                    tokens_saved * cost_per_token
-                                )
+                            estimated_savings = tokens_saved * cost_per_token
 
-                return usage
+                        optimization_savings = OptimizationSavings(
+                            original_tokens=opt_metrics["original_tokens"],
+                            optimized_tokens=opt_metrics["optimized_tokens"],
+                            reduction_percentage=opt_metrics["reduction_percentage"],
+                            strategies_applied=opt_metrics["strategies_applied"],
+                            estimated_savings=estimated_savings
+                        )
 
-            return {}
+                # Return TokenMetrics even if counts are zero
+                return TokenMetrics(
+                    total_tokens=total_tokens,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    estimated_cost=estimated_cost,
+                    context_length=context_length,
+                    max_context_length=max_context_length,
+                    context_usage_percentage=context_usage_percentage,
+                    optimization_savings=optimization_savings
+                )
+
+            return None
 
         except Exception:
-            # If anything goes wrong, return empty metrics
-            return {}
+            # If anything goes wrong, return None
+            return None
 
-    def _extract_steps(self, steps: list) -> list:
-        """Extract human-readable steps from agent execution"""
+    def _extract_steps(self, steps: list) -> list[ExecutionStep]:
+        """Extract execution steps from agent execution
+        
+        This method is kept for backward compatibility but could be removed
+        since we now create ExecutionStep objects directly in the main loop.
+        """
         extracted_steps = []
 
         for step in steps:
@@ -660,13 +863,13 @@ Execute the test now."""
                     for tool_msg in step.get("tools", {}).get("messages", []):
                         if hasattr(tool_msg, "name") and hasattr(tool_msg, "content"):
                             content = str(tool_msg.content)
-                            # Keep full content for reports - truncation will be handled by formatter
                             extracted_steps.append(
-                                {
-                                    "type": "tool_call",
-                                    "name": tool_msg.name,
-                                    "content": content,
-                                }
+                                ExecutionStep(
+                                    type="tool_call",
+                                    name=tool_msg.name,
+                                    content=content,
+                                    timestamp=datetime.now(UTC)
+                                )
                             )
 
                 # Extract agent messages
@@ -676,7 +879,12 @@ Execute the test now."""
                             content = str(agent_msg.content)
                             if len(content) > 50:  # Only include substantial messages
                                 extracted_steps.append(
-                                    {"type": "agent_message", "content": content}
+                                    ExecutionStep(
+                                        type="agent_message",
+                                        name=None,
+                                        content=content,
+                                        timestamp=datetime.now(UTC)
+                                    )
                                 )
 
         return extracted_steps

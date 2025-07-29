@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .base import ValidatedModel
-from .execution import ExecutionTiming
+from .execution import ExecutionTiming, ExecutionStep
 from .metrics import TokenMetrics
 
 
@@ -77,7 +77,7 @@ class BrowserTestResult(TestResult):
     metrics: dict[str, Any] = field(default_factory=dict)
 
     # Optional fields
-    steps: list[dict[str, Any]] = field(default_factory=list)
+    steps: list[ExecutionStep] = field(default_factory=list)
     verbose_log: dict[str, Any] | None = None
 
     # Backward compatibility
@@ -111,7 +111,7 @@ class BrowserTestResult(TestResult):
             "viewport_size": self.viewport_size,
             "environment": self.environment,
             "metrics": self.metrics,
-            "steps": self.steps,
+            "steps": [step.to_dict() for step in self.steps],
         }
 
         # Add optional fields if present
@@ -141,6 +141,12 @@ class BrowserTestResult(TestResult):
         if "token_usage" in data and data["token_usage"]:
             token_usage = TokenMetrics.from_dict(data["token_usage"])
 
+        # Parse steps
+        steps = []
+        for step_data in data.get("steps", []):
+            if isinstance(step_data, dict):
+                steps.append(ExecutionStep.from_dict(step_data))
+
         return cls(
             success=data["success"],
             test_name=data["test_name"],
@@ -157,6 +163,6 @@ class BrowserTestResult(TestResult):
             token_usage=token_usage,
             metrics=data.get("metrics", {}),
             error=data.get("error"),
-            steps=data.get("steps", []),
+            steps=steps,
             verbose_log=data.get("verbose_log"),
         )

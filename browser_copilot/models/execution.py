@@ -122,7 +122,8 @@ class ExecutionMetadata(ValidatedModel):
         if not self.test_name:
             raise ValueError("Test name cannot be empty")
 
-        valid_browsers = ["chrome", "firefox", "edge", "safari", "webkit"]
+        # Allow common browser names and playwright browsers
+        valid_browsers = ["chromium", "chrome", "firefox", "edge", "msedge", "safari", "webkit"]
         if self.browser not in valid_browsers:
             raise ValueError(
                 f"Invalid browser: {self.browser}. Must be one of {valid_browsers}"
