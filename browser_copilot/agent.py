@@ -12,12 +12,7 @@ from langgraph.prebuilt import create_react_agent
 from mcp import ClientSession
 
 from .context_management.base import ContextConfig
-from .context_management.react_hooks import create_sliding_window_hook, create_no_op_hook
-from .context_management.react_hooks_simplified import (
-    create_sliding_window_hook_simplified, 
-    create_advanced_sliding_window_hook,
-    create_no_op_hook_simplified
-)
+from .context_management.react_hooks import create_no_op_hook
 from .context_management.true_sliding_window import create_true_sliding_window_hook
 
 
@@ -59,38 +54,15 @@ class AgentFactory:
 
         # Create pre-model hook based on strategy
         pre_model_hook = None
-        if context_strategy == "sliding-window" and context_config:
-            pre_model_hook = create_sliding_window_hook(context_config, verbose)
-        elif context_strategy in ["langchain-trim", "langchain-trim-advanced"] and context_config:
-            from .context_management.react_hooks import create_langchain_trim_hook
-            pre_model_hook = create_langchain_trim_hook(context_config, verbose)
-        elif context_strategy == "last-n":
-            # Special strategy for keeping exactly last N messages
-            from .context_management.react_hooks_safe import create_last_n_hook
-            # Use window_size as the number of messages to keep
-            n = context_config.window_size if context_config else 5
-            pre_model_hook = create_last_n_hook(n=n, verbose=verbose)
-        elif context_strategy == "reverse-trim":
-            # Reverse order trimming that ensures tool pairs are kept
-            from .context_management.react_hooks_reverse import create_reverse_trim_hook
-            pre_model_hook = create_reverse_trim_hook(context_config, verbose)
-        elif context_strategy == "smart-reverse":
-            # Smart reverse trimming with priority scoring
-            from .context_management.react_hooks_reverse import create_smart_reverse_hook
-            pre_model_hook = create_smart_reverse_hook(context_config, verbose)
-        elif context_strategy == "integrity-first":
-            # Message integrity is absolute priority
-            from .context_management.react_hooks_integrity import create_integrity_first_hook
-            pre_model_hook = create_integrity_first_hook(context_config, verbose)
-        elif context_strategy == "smart-trim":
-            # Smart analysis of individual message sizes
+        if context_strategy == "no-op":
+            pre_model_hook = create_no_op_hook()
+        elif context_strategy == "true-sliding-window" and context_config:
+            # True sliding window - preserves first N Human/System messages + recent messages
+            pre_model_hook = create_true_sliding_window_hook(context_config, verbose)
+        elif context_strategy == "smart-trim" and context_config:
+            # Smart analysis of individual message sizes and importance
             from .context_management.react_hooks_smart import create_smart_trim_hook
             pre_model_hook = create_smart_trim_hook(context_config, verbose)
-        elif context_strategy == "true-sliding-window":
-            # True sliding window - just keeps last N tokens worth of messages
-            pre_model_hook = create_true_sliding_window_hook(context_config, verbose)
-        elif context_strategy == "no-op":
-            pre_model_hook = create_no_op_hook()
 
         # Create ReAct agent with browser tools and pre-model hook
         agent = create_react_agent(
