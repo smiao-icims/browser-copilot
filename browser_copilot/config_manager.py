@@ -58,7 +58,7 @@ class ConfigManager:
         "compression_level": "medium",
         "context_strategy": "sliding-window",
         "context_window_size": 50000,
-        "context_preserve_first": 5,
+        "context_preserve_first": 2,
         "context_preserve_last": 10,
     }
 

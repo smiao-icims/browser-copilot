@@ -190,7 +190,7 @@ Examples:
     optimization_group.add_argument(
         "--context-preserve-first",
         type=int,
-        help="Number of first messages to always preserve (for true-sliding-window: first N Human messages ONLY) (default: 5)",
+        help="Number of first messages to always preserve (for true-sliding-window: first N Human/System messages ONLY) (default: 2)",
     )
     optimization_group.add_argument(
         "--context-preserve-last",

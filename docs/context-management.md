@@ -57,15 +57,15 @@ Browser Copilot provides four context management strategies:
 
 ### 5. True Sliding Window Strategy
 - **Flag**: `--context-strategy true-sliding-window`
-- **Description**: Sliding window that preserves ONLY Human messages and fills with recent messages
+- **Description**: Sliding window that preserves Human/System messages and fills with recent messages
 - **Features**:
-  - Preserves first 1-2 Human messages ONLY (skips all non-Human messages)
+  - Preserves first N Human and System messages (skips AI/Tool messages)
   - Works backwards from most recent to fill remaining budget
   - Maintains message integrity (tool pairs) for recent messages
   - May exceed window size to preserve integrity
 - **Token Usage**: High reduction while preserving critical context
-- **Best for**: Long-running tests where initial instructions are crucial
-- **Recommended**: Use `--context-preserve-first 1` or `2` to keep test instructions
+- **Best for**: Long-running tests where initial instructions and system prompts are crucial
+- **Recommended**: Use `--context-preserve-first 1` or `2` to keep test instructions and system prompt
 
 ## Configuration Parameters
 
@@ -125,7 +125,7 @@ python -m browser_copilot --test-suite examples/long-form-test.md \
   --context-window-size 25000 \
   --context-preserve-first 1
 ```
-Note: With true-sliding-window, `--context-preserve-first` preserves ONLY the first N Human messages (typically 1 or 2). All non-Human messages in between are skipped.
+Note: With true-sliding-window, `--context-preserve-first` preserves the first N Human and System messages (typically 1-2). AI and Tool messages are skipped during the preservation phase.
 
 ### Verbose Mode for Debugging
 ```bash

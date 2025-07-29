@@ -289,7 +289,7 @@ class BrowserPilot:
                     from .context_management.base import ContextConfig
                     context_config = ContextConfig(
                         window_size=self.config.get("context_window_size", 50000),
-                        preserve_first_n=self.config.get("context_preserve_first", 5),
+                        preserve_first_n=self.config.get("context_preserve_first", 2),
                         preserve_last_n=self.config.get("context_preserve_last", 10),
                         compression_level=self.config.get("compression_level", "medium"),
                         preserve_errors=True,

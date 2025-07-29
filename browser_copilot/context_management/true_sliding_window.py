@@ -1,15 +1,15 @@
 """
-True sliding window implementation with Human message preservation
+True sliding window implementation with Human/System message preservation
 
 This implementation:
-1. Preserves the first N Human messages (containing test instructions)
+1. Preserves the first N Human and System messages (containing test instructions and system prompts)
 2. Works backwards from the most recent message to fill remaining budget
 3. Always ensures message integrity (tool pairs) for non-preserved messages
 4. May exceed window size to preserve integrity
 """
 
 from typing import Any, Dict, List, Set
-from langchain_core.messages import BaseMessage, AIMessage, ToolMessage, HumanMessage
+from langchain_core.messages import BaseMessage, AIMessage, ToolMessage, HumanMessage, SystemMessage
 
 from .base import ContextConfig
 
@@ -24,7 +24,7 @@ def create_true_sliding_window_hook(
     Args:
         config: Context configuration with:
             - window_size: Total token budget
-            - preserve_first_n: Number of first Human messages to always keep
+            - preserve_first_n: Number of first Human/System messages to always keep
         verbose: Enable verbose logging
         
     Returns:
@@ -48,7 +48,7 @@ def create_true_sliding_window_hook(
             print(f"\n[True Sliding Window] Processing {len(messages)} messages")
             print(f"[True Sliding Window] Total tokens: {total_tokens:,}")
             print(f"[True Sliding Window] Window size: {config.window_size:,}")
-            print(f"[True Sliding Window] Preserve first: {config.preserve_first_n} Human messages")
+            print(f"[True Sliding Window] Preserve first: {config.preserve_first_n} Human/System messages")
         
         # If under window size, keep all
         if total_tokens <= config.window_size:
@@ -79,23 +79,23 @@ def create_true_sliding_window_hook(
                     # This ToolMessage depends on its AIMessage
                     tool_dependencies[i] = {ai_idx}
         
-        # Step 2: First, preserve the first N Human messages ONLY (skip all non-Human messages)
+        # Step 2: First, preserve the first N Human/System messages (skip AI and Tool messages)
         selected_indices = set()
         current_tokens = 0
         
-        # Count and preserve ONLY Human messages, skip everything else
-        human_count = 0
+        # Count and preserve Human and System messages, skip AI and Tool messages
+        preserve_count = 0
         for i, msg in enumerate(messages):
-            if isinstance(msg, HumanMessage):
+            if isinstance(msg, (HumanMessage, SystemMessage)):
                 selected_indices.add(i)
                 current_tokens += count_tokens(msg)
-                human_count += 1
-                if human_count >= config.preserve_first_n:
+                preserve_count += 1
+                if preserve_count >= config.preserve_first_n:
                     break
-            # Non-Human messages are skipped entirely
+            # AI and Tool messages are skipped in this phase
         
-        if verbose and human_count > 0:
-            print(f"[True Sliding Window] Preserved first {human_count} Human messages ({current_tokens:,} tokens)")
+        if verbose and preserve_count > 0:
+            print(f"[True Sliding Window] Preserved first {preserve_count} Human/System messages ({current_tokens:,} tokens)")
         
         # Step 3: Work backwards from the end, selecting messages until we fill the window
         # Once we can't fit a message, we stop (unless needed for integrity)

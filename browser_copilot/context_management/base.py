@@ -70,7 +70,7 @@ class ContextConfig:
     # Preservation rules
     preserve_errors: bool = True
     preserve_screenshots: bool = True
-    preserve_first_n: int = 5  # Always keep first N messages
+    preserve_first_n: int = 2  # Always keep first N messages (typically 1 system + 1 human)
     preserve_last_n: int = 10  # Always keep last N messages
     
     # Compression config
