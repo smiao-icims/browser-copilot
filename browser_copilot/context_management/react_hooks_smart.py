@@ -7,6 +7,7 @@ from collections import defaultdict
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage, SystemMessage
 
 from .base import ContextConfig
+from .debug_formatter import ContextDebugFormatter
 
 
 class MessageInfo(NamedTuple):
@@ -84,7 +85,8 @@ def analyze_messages(messages: List[BaseMessage], verbose: bool = False) -> List
 
 def create_smart_trim_hook(
     config: ContextConfig,
-    verbose: bool = False
+    verbose: bool = False,
+    use_rich_output: bool = None
 ) -> callable:
     """
     Create a hook that makes smart decisions based on individual message sizes
@@ -98,10 +100,18 @@ def create_smart_trim_hook(
     Args:
         config: Context configuration
         verbose: Enable verbose logging
+        use_rich_output: Use rich terminal output (auto-detected if None)
         
     Returns:
         Pre-model hook function
     """
+    # Auto-detect rich output capability
+    if use_rich_output is None:
+        import os
+        # Use rich if not in CI/CD and terminal supports it
+        use_rich_output = os.isatty(1) and not os.getenv('CI')
+    
+    formatter = ContextDebugFormatter(use_rich=use_rich_output)
     def smart_trim_hook(state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Smart trimming based on individual message analysis
@@ -112,11 +122,14 @@ def create_smart_trim_hook(
             return {}
         
         if verbose:
-            print(f"\n[Smart Trim Hook] Processing {len(messages)} messages")
-            print(f"[Smart Trim Hook] Max tokens: {config.window_size}")
+            formatter.format_hook_header("Smart Trim Hook", len(messages), config.window_size)
         
         # Analyze all messages
-        message_infos = analyze_messages(messages, verbose)
+        message_infos = analyze_messages(messages, verbose=False)  # We'll use formatter instead
+        
+        if verbose:
+            # Use formatter for structured output
+            formatter.format_message_analysis(messages)
         
         # Build tool dependency map
         tool_dependencies = {}  # tool_call_id -> AIMessage index
@@ -171,7 +184,9 @@ def create_smart_trim_hook(
             for idx in required_indices:
                 if idx not in included and message_infos[idx].tokens > max_single_message_tokens:
                     if verbose:
-                        print(f"[Smart Trim Hook] Message {idx} is very large ({message_infos[idx].tokens} tokens)")
+                        formatter.format_warning(
+                            f"Message {idx} is very large ({message_infos[idx].tokens} tokens)"
+                        )
                     # Only skip if it's not a critical tool pair
                     if len(required_indices) == 1:  # Single message, not part of a pair
                         skip_group = True
@@ -183,8 +198,10 @@ def create_smart_trim_hook(
             # Check if adding this group would exceed budget
             if token_count + group_tokens > config.window_size:
                 if verbose:
-                    print(f"[Smart Trim Hook] Stopping - adding group at {i} would exceed budget")
-                    print(f"[Smart Trim Hook]   Current: {token_count}, would add: {group_tokens}")
+                    formatter.format_info(
+                        f"Stopping at message {i} - would exceed budget "
+                        f"(current: {token_count}, would add: {group_tokens})"
+                    )
                 break
             
             # Add all messages in the group
@@ -195,17 +212,38 @@ def create_smart_trim_hook(
         result_messages = [info.message for info in message_infos if info.index in included]
         
         if verbose:
-            print(f"\n[Smart Trim Hook] Kept {len(result_messages)} messages")
-            print(f"[Smart Trim Hook] Token usage: {token_count} / {config.window_size}")
-            print(f"[Smart Trim Hook] Excluded {len(messages) - len(result_messages)} messages")
+            # Calculate totals
+            original_tokens = sum(info.tokens for info in message_infos)
             
-            # Show what was excluded
-            excluded_large = [info for info in message_infos 
-                            if info.index not in included and info.tokens > 1000]
-            if excluded_large:
-                print(f"[Smart Trim Hook] Large excluded messages:")
-                for info in excluded_large[:5]:
-                    print(f"  Message {info.index}: {info.type} - {info.tokens} tokens")
+            # Prepare excluded messages info
+            excluded_messages = [
+                (info.index, info.message, info.tokens)
+                for info in message_infos
+                if info.index not in included
+            ]
+            
+            # Format results
+            formatter.format_results(
+                original_count=len(messages),
+                trimmed_count=len(result_messages),
+                original_tokens=original_tokens,
+                trimmed_tokens=token_count,
+                excluded_messages=excluded_messages
+            )
+            
+            # Create JSON summary for metrics
+            summary = ContextDebugFormatter.create_json_summary(
+                hook_name="smart_trim",
+                original_count=len(messages),
+                trimmed_count=len(result_messages),
+                original_tokens=original_tokens,
+                trimmed_tokens=token_count,
+                window_size=config.window_size,
+                strategy="smart-trim"
+            )
+            
+            # Store summary for potential metrics collection
+            smart_trim_hook._last_summary = summary
         
         return {"llm_input_messages": result_messages}
     

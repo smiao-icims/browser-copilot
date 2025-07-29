@@ -170,7 +170,7 @@ Examples:
     )
     optimization_group.add_argument(
         "--context-strategy",
-        choices=["no-op", "sliding-window", "langchain-trim", "langchain-trim-advanced", "last-n", "reverse-trim", "smart-reverse", "integrity-first", "smart-trim"],
+        choices=["no-op", "sliding-window", "langchain-trim", "langchain-trim-advanced", "last-n", "reverse-trim", "smart-reverse", "integrity-first", "smart-trim", "true-sliding-window"],
         default="sliding-window",
         help="Context management strategy: no-op (no trimming), sliding-window (custom implementation), "
              "langchain-trim (LangChain's trim_messages), langchain-trim-advanced (with first/last preservation), "
@@ -178,7 +178,8 @@ Examples:
              "reverse-trim (build from most recent, ensuring tool pairs), "
              "smart-reverse (priority-based grouping), "
              "integrity-first (never break tool pairs, may exceed token limit), "
-             "smart-trim (analyze individual message sizes) "
+             "smart-trim (analyze individual message sizes), "
+             "true-sliding-window (preserves first 1-2 Human messages ONLY, fills rest with recent) "
              "(default: sliding-window)",
     )
     optimization_group.add_argument(
@@ -189,7 +190,7 @@ Examples:
     optimization_group.add_argument(
         "--context-preserve-first",
         type=int,
-        help="Number of first messages to always preserve (default: 5)",
+        help="Number of first messages to always preserve (for true-sliding-window: first N Human messages ONLY) (default: 5)",
     )
     optimization_group.add_argument(
         "--context-preserve-last",

@@ -18,6 +18,7 @@ from .context_management.react_hooks_simplified import (
     create_advanced_sliding_window_hook,
     create_no_op_hook_simplified
 )
+from .context_management.true_sliding_window import create_true_sliding_window_hook
 
 
 class AgentFactory:
@@ -85,6 +86,9 @@ class AgentFactory:
             # Smart analysis of individual message sizes
             from .context_management.react_hooks_smart import create_smart_trim_hook
             pre_model_hook = create_smart_trim_hook(context_config, verbose)
+        elif context_strategy == "true-sliding-window":
+            # True sliding window - just keeps last N tokens worth of messages
+            pre_model_hook = create_true_sliding_window_hook(context_config, verbose)
         elif context_strategy == "no-op":
             pre_model_hook = create_no_op_hook()
 

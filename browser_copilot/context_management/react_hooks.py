@@ -16,6 +16,7 @@ except ImportError:
 
 from .base import Message, MessageType, ContextConfig
 from .manager import BrowserCopilotContextManager
+from .true_sliding_window import create_true_sliding_window_hook
 
 
 def create_sliding_window_hook(
@@ -32,11 +33,7 @@ def create_sliding_window_hook(
     Returns:
         Pre-model hook function
     """
-    # Create context manager
-    manager = BrowserCopilotContextManager(
-        config=config,
-        strategy="sliding-window"
-    )
+    # DON'T create manager here - it needs to work directly with the messages
     
     def sliding_window_pre_model_hook(state: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -50,6 +47,9 @@ def create_sliding_window_hook(
         """
         messages = state.get("messages", [])
         
+        if not messages:
+            return {}
+        
         # CRITICAL: We must preserve AIMessage/ToolMessage pairs
         # If an AIMessage has tool_calls, the corresponding ToolMessages must be kept
         # together to avoid "Bad Request" errors
@@ -60,6 +60,10 @@ def create_sliding_window_hook(
             full_state_tokens = sum(len(str(msg.content)) for msg in messages) // 4
             print(f"[Sliding Window Hook] Full state tokens: {full_state_tokens:,}")
             print(f"[Sliding Window Hook] Max window size: {config.window_size:,}")
+            
+            # Debug: Check what the strategy sees
+            total_tokens_in_manager = sum(len(str(msg.content)) // 4 for msg in messages)
+            print(f"[Sliding Window Hook] DEBUG: Total tokens being added to manager: {total_tokens_in_manager:,}")
         
         # Build tool call dependency map
         tool_call_pairs = {}  # Maps AIMessage index to ToolMessage indices
@@ -114,10 +118,14 @@ def create_sliding_window_hook(
             if i in tool_call_pairs or any(i in indices for indices in tool_call_pairs.values()):
                 preserve = True
                 
+            # Calculate token count for this message
+            token_count = len(content) // 4  # Simple approximation: 4 chars per token
+            
             manager.add_message(Message(
                 type=msg_type,
                 content=content,
                 timestamp=datetime.now(UTC),
+                token_count=token_count,  # CRITICAL: Set token count!
                 tool_name=tool_name,
                 metadata={'original_index': i},  # Track original position
                 preserve=preserve  # Preserve tool call pairs
@@ -125,6 +133,46 @@ def create_sliding_window_hook(
         
         # Get processed messages
         processed = manager.get_context()
+        
+        if verbose:
+            print(f"[Sliding Window Hook] DEBUG: Manager returned {len(processed)} messages")
+            if hasattr(manager.strategy, 'metrics'):
+                metrics = manager.strategy.metrics
+                print(f"[Sliding Window Hook] DEBUG: Strategy metrics - original: {metrics.original_messages}, processed: {metrics.processed_messages}")
+        
+        # Convert back to LangChain messages first (needed for verbose output)
+        new_messages = []
+        for msg in processed:
+            # Try to use original message if available
+            if hasattr(msg, 'metadata') and msg.metadata and 'original_index' in msg.metadata:
+                orig_idx = msg.metadata['original_index']
+                if orig_idx in original_messages_map:
+                    # Use the original message to preserve all attributes
+                    original_msg = original_messages_map[orig_idx]
+                    new_messages.append(original_msg)
+                    continue
+            
+            # Fallback to creating new messages
+            # This should rarely happen, but we need safe fallbacks
+            if verbose:
+                print(f"[Sliding Window Hook] WARNING: Creating new message for {msg.type}")
+            
+            if msg.type == MessageType.SYSTEM:
+                new_messages.append(SystemMessage(content=msg.content))
+            elif msg.type == MessageType.ASSISTANT:
+                new_messages.append(AIMessage(content=msg.content))
+            elif msg.type == MessageType.TOOL_RESPONSE:
+                # For tool responses without original, we need to handle carefully
+                # Check if this is a critical issue
+                if verbose:
+                    print(f"[Sliding Window Hook] ERROR: ToolMessage without original - this may cause Bad Request")
+                # Convert to AIMessage to avoid invalid tool_call_id
+                new_messages.append(AIMessage(
+                    content=f"[Tool Response] {msg.content}",
+                    additional_kwargs={"note": "Converted from ToolMessage due to missing tool_call_id"}
+                ))
+            else:
+                new_messages.append(HumanMessage(content=msg.content))
         
         if verbose:
             metrics = manager.get_metrics()
@@ -162,40 +210,6 @@ def create_sliding_window_hook(
                             print(f"  WARNING: Dropped AIMessage with tool_calls!")
                         elif isinstance(msg, ToolMessage):
                             print(f"  WARNING: Dropped ToolMessage with tool_call_id={getattr(msg, 'tool_call_id', 'N/A')}")
-        
-        # Convert back to LangChain messages
-        new_messages = []
-        for msg in processed:
-            # Try to use original message if available
-            if hasattr(msg, 'metadata') and msg.metadata and 'original_index' in msg.metadata:
-                orig_idx = msg.metadata['original_index']
-                if orig_idx in original_messages_map:
-                    # Use the original message to preserve all attributes
-                    original_msg = original_messages_map[orig_idx]
-                    new_messages.append(original_msg)
-                    continue
-            
-            # Fallback to creating new messages
-            # This should rarely happen, but we need safe fallbacks
-            if verbose:
-                print(f"[Sliding Window Hook] WARNING: Creating new message for {msg.type}")
-            
-            if msg.type == MessageType.SYSTEM:
-                new_messages.append(SystemMessage(content=msg.content))
-            elif msg.type == MessageType.ASSISTANT:
-                new_messages.append(AIMessage(content=msg.content))
-            elif msg.type == MessageType.TOOL_RESPONSE:
-                # For tool responses without original, we need to handle carefully
-                # Check if this is a critical issue
-                if verbose:
-                    print(f"[Sliding Window Hook] ERROR: ToolMessage without original - this may cause Bad Request")
-                # Convert to AIMessage to avoid invalid tool_call_id
-                new_messages.append(AIMessage(
-                    content=f"[Tool Response] {msg.content}",
-                    additional_kwargs={"note": "Converted from ToolMessage due to missing tool_call_id"}
-                ))
-            else:
-                new_messages.append(HumanMessage(content=msg.content))
         
         # Validate messages before returning
         if verbose:

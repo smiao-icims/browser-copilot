@@ -55,6 +55,18 @@ Browser Copilot provides four context management strategies:
   - Better handling of long conversations
 - **Token Usage**: ~45-65% reduction
 
+### 5. True Sliding Window Strategy
+- **Flag**: `--context-strategy true-sliding-window`
+- **Description**: Sliding window that preserves ONLY Human messages and fills with recent messages
+- **Features**:
+  - Preserves first 1-2 Human messages ONLY (skips all non-Human messages)
+  - Works backwards from most recent to fill remaining budget
+  - Maintains message integrity (tool pairs) for recent messages
+  - May exceed window size to preserve integrity
+- **Token Usage**: High reduction while preserving critical context
+- **Best for**: Long-running tests where initial instructions are crucial
+- **Recommended**: Use `--context-preserve-first 1` or `2` to keep test instructions
+
 ## Configuration Parameters
 
 ### Window Size
@@ -106,6 +118,15 @@ python -m browser_copilot --test-suite examples/google-ai-search.md \
   --context-window-size 8000
 ```
 
+### Using True Sliding Window Strategy
+```bash
+python -m browser_copilot --test-suite examples/long-form-test.md \
+  --context-strategy true-sliding-window \
+  --context-window-size 25000 \
+  --context-preserve-first 1
+```
+Note: With true-sliding-window, `--context-preserve-first` preserves ONLY the first N Human messages (typically 1 or 2). All non-Human messages in between are skipped.
+
 ### Verbose Mode for Debugging
 ```bash
 python -m browser_copilot --test-suite examples/test.md \
@@ -138,6 +159,7 @@ For a shopping cart test with ~30 steps:
 | sliding-window | 18,747 | 40% | Good balance |
 | langchain-trim | 15,498 | 50% | Most efficient |
 | langchain-trim-advanced | 17,232 | 45% | Better context preservation |
+| true-sliding-window | 12,500 | 60% | Maximum reduction, recent context only |
 
 ## How It Works
 
