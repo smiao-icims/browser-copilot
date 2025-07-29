@@ -8,7 +8,6 @@ to optimize token usage in ReAct agents.
 from .base import ContextManager, ContextStrategy, Message, ContextConfig, MessageType, MessageImportance
 from .metrics import ContextMetrics
 from .analyzer import MessageAnalyzer, ImportanceScorer
-from .manager import BrowserCopilotContextManager
 
 __all__ = [
     "ContextManager",
@@ -20,5 +19,4 @@ __all__ = [
     "ContextMetrics",
     "MessageAnalyzer",
     "ImportanceScorer",
-    "BrowserCopilotContextManager",
 ]
