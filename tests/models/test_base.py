@@ -392,7 +392,8 @@ class TestSerializationHelpers:
         # Relative path
         rel_path = Path("./relative/path.txt")
         # Path normalizes "./relative" to "relative"
-        assert serialize_path(rel_path) == "relative/path.txt"
+        # Use Path object comparison to handle platform differences
+        assert serialize_path(rel_path) == str(Path("relative/path.txt"))
 
         # Windows path (if on Windows)
         if Path("C:\\").exists():
