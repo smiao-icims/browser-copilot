@@ -116,8 +116,8 @@ class BrowserPilot:
         except (ProviderError, ModelNotFoundError, ConfigurationError) as e:
             raise RuntimeError(f"Failed to load LLM: {e}")
 
-        # Initialize agent factory
-        self.agent_factory = AgentFactory(self.llm)
+        # Initialize agent factory with provider and model info
+        self.agent_factory = AgentFactory(self.llm, self.provider, self.model)
 
     async def run_test_suite(
         self,

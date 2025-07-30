@@ -5,7 +5,7 @@ This tool allows the agent to explicitly ask for human input and continue
 execution after receiving a response, using LangGraph's interrupt mechanism.
 """
 
-from typing import Optional
+from typing import Optional, Dict, Any
 from langchain_core.tools import tool
 from langgraph.types import interrupt
 from modelforge.registry import ModelForgeRegistry
@@ -14,16 +14,36 @@ from modelforge.registry import ModelForgeRegistry
 # Cache for response generator to avoid recreating
 _response_generator = None
 
+# Configuration for HIL tools
+_hil_config: Dict[str, Any] = {
+    "provider_name": "github_copilot",
+    "model_alias": "gpt-4o"
+}
+
+
+def configure_hil_llm(provider_name: str, model_alias: str) -> None:
+    """Configure the LLM settings for HIL response generation.
+    
+    Args:
+        provider_name: The provider to use (e.g., 'github_copilot', 'openai')
+        model_alias: The model to use (e.g., 'gpt-4o', 'gpt-4')
+    """
+    global _response_generator, _hil_config
+    _hil_config["provider_name"] = provider_name
+    _hil_config["model_alias"] = model_alias
+    # Reset the cached generator so it will be recreated with new settings
+    _response_generator = None
+
 
 def get_response_generator():
     """Get or create the response generator LLM instance."""
     global _response_generator
     if _response_generator is None:
         registry = ModelForgeRegistry()
-        # Use the same model as the main agent for consistency
+        # Use the configured model settings
         _response_generator = registry.get_llm(
-            provider_name="github_copilot",
-            model_alias="gpt-4o",
+            provider_name=_hil_config["provider_name"],
+            model_alias=_hil_config["model_alias"],
             enhanced=False  # Explicitly use classic LLM to avoid future warning
         )
         _response_generator.temperature = 0.3

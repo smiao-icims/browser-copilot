@@ -18,14 +18,18 @@ from .context_management.hooks import create_context_hook
 class AgentFactory:
     """Factory for creating browser automation agents"""
 
-    def __init__(self, llm: Any):
+    def __init__(self, llm: Any, provider_name: str = None, model_alias: str = None):
         """
         Initialize AgentFactory with LLM instance
 
         Args:
             llm: Initialized LLM instance from ModelForge
+            provider_name: Optional provider name for HIL configuration
+            model_alias: Optional model alias for HIL configuration
         """
         self.llm = llm
+        self.provider_name = provider_name
+        self.model_alias = model_alias
 
     async def create_browser_agent(
         self,
@@ -57,7 +61,14 @@ class AgentFactory:
         
         # Add HIL tools if enabled
         if hil_enabled:
-            from .hil_detection import ask_human, confirm_action
+            from .hil_detection import ask_human, confirm_action, configure_hil_llm
+            
+            # Configure HIL with current LLM settings if available
+            if self.provider_name and self.model_alias:
+                configure_hil_llm(self.provider_name, self.model_alias)
+                if verbose:
+                    print(f"[Agent] Configured HIL with {self.provider_name}/{self.model_alias}")
+            
             tools.extend([ask_human, confirm_action])
             if verbose:
                 print("[Agent] Added ask_human and confirm_action tools for HIL")

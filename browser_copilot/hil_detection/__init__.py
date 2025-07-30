@@ -5,6 +5,6 @@ Provides tools that allow agents to explicitly ask for human input
 using LangGraph's interrupt mechanism.
 """
 
-from .ask_human_tool import ask_human, confirm_action
+from .ask_human_tool import ask_human, confirm_action, configure_hil_llm
 
-__all__ = ["ask_human", "confirm_action"]
+__all__ = ["ask_human", "confirm_action", "configure_hil_llm"]
