@@ -22,7 +22,7 @@ class TestInputHandler:
         # Create test file
         test_file = temp_dir / "test_input.md"
         test_content = "# Test Scenario\n\n1. Navigate to example.com\n2. Click button"
-        test_file.write_text(test_content)
+        test_file.write_text(test_content, encoding="utf-8")
 
         result = InputHandler.read_from_file(test_file)
         assert result == test_content
@@ -30,7 +30,7 @@ class TestInputHandler:
     def test_read_from_file_with_whitespace(self, temp_dir):
         """Test reading file strips whitespace"""
         test_file = temp_dir / "whitespace.md"
-        test_file.write_text("  \n  Test content  \n  ")
+        test_file.write_text("  \n  Test content  \n  ", encoding="utf-8")
 
         result = InputHandler.read_from_file(test_file)
         assert result == "Test content"
@@ -88,7 +88,7 @@ class TestInputHandler:
     def test_file_read_error(self, temp_dir, monkeypatch):
         """Test handling file read errors"""
         test_file = temp_dir / "error.md"
-        test_file.write_text("content")
+        test_file.write_text("content", encoding="utf-8")
 
         # Mock open to raise an exception
         def mock_open(*args, **kwargs):
@@ -103,7 +103,7 @@ class TestInputHandler:
     def test_empty_file(self, temp_dir):
         """Test reading empty file"""
         test_file = temp_dir / "empty.md"
-        test_file.write_text("")
+        test_file.write_text("", encoding="utf-8")
 
         result = InputHandler.read_from_file(test_file)
         assert result == ""

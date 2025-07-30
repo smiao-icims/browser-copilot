@@ -23,7 +23,7 @@ class TestInputHandler:
         # Create test file
         test_file = temp_dir / "test_input.md"
         test_content = "# Test Scenario\n\n1. Navigate to example.com\n2. Click button"
-        test_file.write_text(test_content)
+        test_file.write_text(test_content, encoding="utf-8")
 
         handler = InputHandler()
         result = handler.read_from_file(test_file)
@@ -54,7 +54,7 @@ class TestInputHandler:
     def test_empty_file(self, temp_dir):
         """Test reading empty file"""
         test_file = temp_dir / "empty.md"
-        test_file.write_text("")
+        test_file.write_text("", encoding="utf-8")
 
         handler = InputHandler()
         result = handler.read_from_file(test_file)
@@ -164,7 +164,7 @@ class TestOutputHandler:
         handler.write_output(formatted_output, Path(output_file))
 
         assert output_file.exists()
-        with open(output_file) as f:
+        with open(output_file, encoding="utf-8") as f:
             content = f.read()
         # Parse the actual structured output (has metadata wrapper)
         parsed = json.loads(content)

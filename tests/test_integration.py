@@ -64,7 +64,7 @@ class TestIntegration:
             assert len(log_files) > 0
 
             # Verify content
-            log_content = log_files[0].read_text()
+            log_content = log_files[0].read_text(encoding="utf-8")
             assert "Test message" in log_content
             assert "Test step" in log_content
             assert "Test error" in log_content
@@ -130,7 +130,7 @@ class TestIntegration:
 1. Navigate to example.com
 2. Click button
 3. Verify success"""
-        test_file.write_text(test_content)
+        test_file.write_text(test_content, encoding="utf-8")
 
         # 1. Read input
         input_handler = InputHandler()
@@ -230,7 +230,7 @@ class TestIntegration:
         # Verify error logged
         log_files = list(storage.get_logs_dir().glob("*.log"))
         assert len(log_files) > 0
-        log_content = log_files[0].read_text()
+        log_content = log_files[0].read_text(encoding="utf-8")
         assert "WARNING" in log_content
         assert "Integration test error" in log_content
 
@@ -265,13 +265,13 @@ class TestIntegration:
 
         # Create old log
         old_log = storage.get_logs_dir() / "old.log"
-        old_log.write_text("old log content")
+        old_log.write_text("old log content", encoding="utf-8")
         old_time = (datetime.now() - timedelta(days=10)).timestamp()
         os.utime(old_log, (old_time, old_time))
 
         # Create recent log
         recent_log = storage.get_logs_dir() / "recent.log"
-        recent_log.write_text("recent log")
+        recent_log.write_text("recent log", encoding="utf-8")
 
         # Run cleanup
         deleted = storage.cleanup_old_logs(days=7)
@@ -387,7 +387,7 @@ class TestIntegration:
         assert saved_files["summary"].exists()  # Only created for successful tests
         
         # Verify JSON serialization
-        json_content = json.loads(saved_files["results"].read_text())
+        json_content = json.loads(saved_files["results"].read_text(encoding="utf-8"))
         assert json_content["success"] is True
         assert json_content["test_name"] == "Integration Test"
         assert json_content["duration"] == 90.0
@@ -513,8 +513,8 @@ class TestIntegration:
         assert model_files["report"].exists()
         
         # JSON content should be similar
-        dict_json = json.loads(dict_files["results"].read_text())
-        model_json = json.loads(model_files["results"].read_text())
+        dict_json = json.loads(dict_files["results"].read_text(encoding="utf-8"))
+        model_json = json.loads(model_files["results"].read_text(encoding="utf-8"))
         
         assert dict_json["success"] == model_json["success"]
         assert dict_json["test_name"] == model_json["test_name"]

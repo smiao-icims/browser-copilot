@@ -123,7 +123,7 @@ class TestReporter:
 
         # Check that report file is created
         assert "report" in saved_files
-        report_content = saved_files["report"].read_text()
+        report_content = saved_files["report"].read_text(encoding="utf-8")
 
         # Check metadata in comments
         assert "Browser Copilot Test Report" in report_content
@@ -138,7 +138,7 @@ class TestReporter:
 
         # Check that report file is created
         assert "report" in saved_files
-        report_content = saved_files["report"].read_text()
+        report_content = saved_files["report"].read_text(encoding="utf-8")
 
         # Check metadata in comments for failed test
         assert "Status: FAILED" in report_content
@@ -156,7 +156,7 @@ class TestReporter:
         assert filepath.suffix == ".md"
         assert "report_" in filepath.name
 
-        content = filepath.read_text()
+        content = filepath.read_text(encoding="utf-8")
         assert "Browser Copilot Test Report" in content
 
     def test_save_report_json(self, temp_dir, sample_result):
@@ -167,7 +167,7 @@ class TestReporter:
         assert filepath.exists()
         assert filepath.suffix == ".json"
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         assert data["success"] is True
         assert data["duration_seconds"] == 25.5
@@ -184,10 +184,10 @@ class TestReporter:
         assert results_path.suffix == ".json"
 
         # Verify content
-        report_content = report_path.read_text()
+        report_content = report_path.read_text(encoding="utf-8")
         assert "Browser Copilot Test Report" in report_content
 
-        with open(results_path) as f:
+        with open(results_path, encoding="utf-8") as f:
             results_data = json.load(f)
         assert results_data["success"] is True
 
@@ -369,5 +369,5 @@ class TestReporter:
         # Test create_html_report with model
         html_path = reporter.create_html_report(result, temp_dir)
         assert html_path.exists()
-        html_content = html_path.read_text()
+        html_content = html_path.read_text(encoding="utf-8")
         assert "✅ PASSED" in html_content
