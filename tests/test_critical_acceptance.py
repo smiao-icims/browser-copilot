@@ -16,6 +16,7 @@ from browser_copilot.models.results import BrowserTestResult
 
 @pytest.mark.asyncio
 @pytest.mark.acceptance
+@pytest.mark.skip(reason="Integration tests require real components (e.g., dockerized Ollama) - pending test strategy refactor")
 class TestCriticalAcceptance:
     """Critical acceptance tests for core user workflows"""
 
