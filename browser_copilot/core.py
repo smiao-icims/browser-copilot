@@ -344,6 +344,9 @@ class BrowserPilot:
                     
                     # Initial input
                     agent_input = {"messages": prompt}
+                    hil_interaction_count = 0
+                    max_hil_interactions = 50  # Safety limit
+                    
                     if config:
                         # Use invoke for interrupt mode (streaming with interrupts is complex)
                         while True:
@@ -353,8 +356,18 @@ class BrowserPilot:
                                 # Check for interrupt
                                 if "__interrupt__" in result:
                                     interrupt_data = result["__interrupt__"]
+                                    hil_interaction_count += 1
+                                    
+                                    # Check if we've hit the interaction limit
+                                    if hil_interaction_count >= max_hil_interactions:
+                                        self.stream.write(
+                                            f"\n⚠️ HIL interaction limit reached ({max_hil_interactions}). Terminating to prevent infinite loops.",
+                                            "warning"
+                                        )
+                                        raise RuntimeError(f"HIL interaction limit ({max_hil_interactions}) exceeded")
+                                    
                                     if self.verbose_logger:
-                                        self.stream.write("\n🔄 [HIL Interrupt] Agent paused for human input", "info")
+                                        self.stream.write(f"\n🔄 [HIL Interrupt #{hil_interaction_count}] Agent paused for human input", "info")
                                         if isinstance(interrupt_data, list) and interrupt_data:
                                             interrupt_info = interrupt_data[0]
                                             if hasattr(interrupt_info, 'value'):
@@ -395,6 +408,13 @@ class BrowserPilot:
                                             import sys
                                             user_input = sys.stdin.readline().strip()
                                             
+                                            # Check for exit commands
+                                            if user_input.lower() in ['exit', 'quit', 'stop', 'abort']:
+                                                self.stream.write("\n⛔ User requested to exit. Terminating test execution.", "warning")
+                                                self.stream.write("="*60 + "\n", "info")
+                                                # Raise a custom exception to exit gracefully
+                                                raise KeyboardInterrupt("User requested exit during HIL interaction")
+                                            
                                             if user_input:
                                                 # Use user's input
                                                 actual_response = user_input
@@ -403,6 +423,9 @@ class BrowserPilot:
                                                 # Use suggested response
                                                 actual_response = suggested_response
                                                 self.stream.write(f"  Using suggested response: {actual_response}", "info")
+                                        except KeyboardInterrupt:
+                                            # Re-raise keyboard interrupt to exit
+                                            raise
                                         except Exception as e:
                                             # Fallback to suggested response on any error
                                             actual_response = suggested_response
@@ -438,6 +461,14 @@ class BrowserPilot:
                                     if self.verbose_logger:
                                         self.stream.write(f"Interrupt exception (expected): {e}", "debug")
                                     continue
+                                elif "recursion limit" in str(e).lower() or isinstance(e, RecursionError):
+                                    # Handle recursion limit gracefully
+                                    self.stream.write(
+                                        f"\n⚠️ Recursion limit reached. The agent has exceeded the maximum number of steps ({recursion_limit}).",
+                                        "warning"
+                                    )
+                                    self.stream.write("This usually indicates the test is too complex or stuck in a loop.", "warning")
+                                    raise RuntimeError(f"Agent recursion limit ({recursion_limit}) exceeded") from e
                                 else:
                                     raise
                     else:

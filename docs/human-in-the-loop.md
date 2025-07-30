@@ -88,6 +88,13 @@ When using `--hil-interactive`, the system will:
 4. **Wait for user input** - press Enter to use suggested or type your own
 5. **Continue execution** with the provided response
 
+### Safety Features:
+
+- **Exit Commands**: Type `exit`, `quit`, `stop`, or `abort` to terminate execution
+- **Interaction Limit**: Maximum 50 HIL interactions to prevent infinite loops
+- **Recursion Protection**: Graceful handling when agent reaches recursion limit
+- **Error Recovery**: Falls back to suggested response on input errors
+
 ### Example Interactive Session:
 
 ```
