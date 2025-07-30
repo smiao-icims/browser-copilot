@@ -22,13 +22,15 @@ def create_browser_pilot_with_mocks(provider="openai", model="gpt-4", config=Non
         mock_registry_instance = MagicMock()
         mock_registry_instance.get_llm.return_value = mock_llm
         mock_registry.return_value = mock_registry_instance
-        
+
         engine = BrowserPilot(provider=provider, model=model, config=config)
         return engine, mock_llm
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Tests need complete rewrite for new architecture - too many integration points")
+@pytest.mark.skip(
+    reason="Tests need complete rewrite for new architecture - too many integration points"
+)
 class TestCoreEngine:
     """Test the core execution engine functionality"""
 
@@ -40,7 +42,7 @@ class TestCoreEngine:
             mock_registry_instance = MagicMock()
             mock_registry_instance.get_llm.return_value = mock_llm
             mock_registry.return_value = mock_registry_instance
-            
+
             # Test basic initialization
             engine = BrowserPilot(provider="openai", model="gpt-4")
 
@@ -54,11 +56,9 @@ class TestCoreEngine:
             config.set("context_strategy", "sliding-window")
             config.set("hil", True)
             config.set("verbose", True)
-            
+
             engine_full = BrowserPilot(
-                provider="anthropic",
-                model="claude-3-sonnet",
-                config=config
+                provider="anthropic", model="claude-3-sonnet", config=config
             )
 
             assert engine_full.provider == "anthropic"
@@ -82,48 +82,48 @@ class TestCoreEngine:
             mock_registry_instance = MagicMock()
             mock_registry_instance.get_llm.return_value = mock_llm
             mock_registry.return_value = mock_registry_instance
-            
+
             # Mock agent factory
             mock_agent = AsyncMock()
             mock_agent.arun.return_value = {"messages": []}
-            
+
             mock_factory_instance = MagicMock()
-            mock_factory_instance.create_browser_agent = AsyncMock(return_value=mock_agent)
+            mock_factory_instance.create_browser_agent = AsyncMock(
+                return_value=mock_agent
+            )
             mock_agent_factory.return_value = mock_factory_instance
-            
+
             mock_load_tools.return_value = []
-            
+
             # Mock MCP client
             mock_session = MagicMock()
-            mock_stdio_client.return_value.__aenter__.return_value = (None, mock_session)
-            
+            mock_stdio_client.return_value.__aenter__.return_value = (
+                None,
+                mock_session,
+            )
+
             # Create engine with config
             config = ConfigManager()
             config.set("context_strategy", "sliding-window")
             config.set("hil", True)
-            
-            engine = BrowserPilot(
-                provider="openai",
-                model="gpt-4",
-                config=config
-            )
+
+            engine = BrowserPilot(provider="openai", model="gpt-4", config=config)
 
             # Trigger agent creation by running a test
             test_scenario = "1. Navigate to example.com"
-            
+
             result = await engine.run_test_suite(
-                test_suite_content=test_scenario,
-                headless=True
+                test_suite_content=test_scenario, headless=True
             )
 
             # Verify test execution completed
             assert isinstance(result, dict)
             assert "duration" in result
-            
+
             # Verify configuration was passed through
             assert engine.config.get("context_strategy") == "sliding-window"
             assert engine.config.get("hil") is True
-            
+
             # Verify the agent factory has access to the configuration
             assert hasattr(engine, "agent_factory")
             assert engine.agent_factory is not None
@@ -141,7 +141,7 @@ class TestCoreEngine:
             mock_registry_instance = MagicMock()
             mock_registry_instance.get_llm.return_value = mock_llm
             mock_registry.return_value = mock_registry_instance
-            
+
             # Setup detailed mock response
             mock_result = {
                 "messages": [
@@ -158,20 +158,23 @@ class TestCoreEngine:
 
             mock_agent = AsyncMock()
             mock_agent.arun.return_value = mock_result
-            
+
             mock_factory_instance = MagicMock()
-            mock_factory_instance.create_browser_agent = AsyncMock(return_value=mock_agent)
+            mock_factory_instance.create_browser_agent = AsyncMock(
+                return_value=mock_agent
+            )
             mock_agent_factory.return_value = mock_factory_instance
-            
+
             mock_load_tools.return_value = [MagicMock()]
-            
+
             # Mock MCP client
             mock_session = MagicMock()
-            mock_stdio_client.return_value.__aenter__.return_value = (None, mock_session)
-
-            engine = BrowserPilot(
-                provider="openai", model="gpt-4"
+            mock_stdio_client.return_value.__aenter__.return_value = (
+                None,
+                mock_session,
             )
+
+            engine = BrowserPilot(provider="openai", model="gpt-4")
 
             # Execute test
             result = await engine.run_test_suite(

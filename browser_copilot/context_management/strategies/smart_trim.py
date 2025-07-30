@@ -122,9 +122,11 @@ class SmartTrimStrategy(ContextStrategy):
                 if info.has_tool_calls and isinstance(info.message, AIMessage):
                     for j, other_info in enumerate(message_infos):
                         if other_info.tool_call_id and other_info.tool_call_id in [
-                            tc.get("id")
-                            if isinstance(tc, dict)
-                            else getattr(tc, "id", None)
+                            (
+                                tc.get("id")
+                                if isinstance(tc, dict)
+                                else getattr(tc, "id", None)
+                            )
                             for tc in info.message.tool_calls
                         ]:
                             required_indices.add(j)

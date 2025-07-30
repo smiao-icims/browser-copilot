@@ -130,9 +130,11 @@ class ReportParser:
                 content = (
                     " ".join(agent_messages)
                     if agent_messages
-                    else f"Tools used: {', '.join(tools_called)}"
-                    if tools_called
-                    else "Completed"
+                    else (
+                        f"Tools used: {', '.join(tools_called)}"
+                        if tools_called
+                        else "Completed"
+                    )
                 )
                 execution_steps.append(
                     ExecutionStep(

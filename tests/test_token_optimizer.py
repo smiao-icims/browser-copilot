@@ -74,9 +74,9 @@ class TestTokenOptimizer:
 
         for original, expected_in_result in test_cases:
             result = optimizer.optimize_prompt(original)
-            assert expected_in_result in result, (
-                f"Expected '{expected_in_result}' in '{result}'"
-            )
+            assert (
+                expected_in_result in result
+            ), f"Expected '{expected_in_result}' in '{result}'"
 
     def test_whitespace_removal(self):
         """Test whitespace optimization"""

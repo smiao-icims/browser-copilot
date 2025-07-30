@@ -63,12 +63,12 @@ class SlidingWindowStrategy(ContextStrategy):
                 return {}
 
             # Step 1: Build tool dependency map
-            tool_dependencies: dict[
-                int, set[int]
-            ] = {}  # Maps message index to indices it depends on
-            reverse_dependencies: dict[
-                int, set[int]
-            ] = {}  # Maps message index to indices that depend on it
+            tool_dependencies: dict[int, set[int]] = (
+                {}
+            )  # Maps message index to indices it depends on
+            reverse_dependencies: dict[int, set[int]] = (
+                {}
+            )  # Maps message index to indices that depend on it
 
             for i, msg in enumerate(messages):
                 if (

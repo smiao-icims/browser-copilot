@@ -333,9 +333,9 @@ class TestCriticalAcceptance:
         ]
 
         for report in success_reports:
-            assert ReportParser.check_success(report) is True, (
-                f"Failed to detect success in: {report}"
-            )
+            assert (
+                ReportParser.check_success(report) is True
+            ), f"Failed to detect success in: {report}"
 
         # Test various failure patterns
         failure_reports = [
@@ -348,9 +348,9 @@ class TestCriticalAcceptance:
         ]
 
         for report in failure_reports:
-            assert ReportParser.check_success(report) is False, (
-                f"Failed to detect failure in: {report}"
-            )
+            assert (
+                ReportParser.check_success(report) is False
+            ), f"Failed to detect failure in: {report}"
 
         # Test edge cases
         edge_cases = [
@@ -360,9 +360,9 @@ class TestCriticalAcceptance:
         ]
 
         for report in edge_cases:
-            assert ReportParser.check_success(report) is False, (
-                f"Edge case failed: {report}"
-            )
+            assert (
+                ReportParser.check_success(report) is False
+            ), f"Edge case failed: {report}"
 
     async def test_error_handling_and_timeout_scenarios(self, temp_dir):
         """

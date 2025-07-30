@@ -767,9 +767,9 @@ class BrowserPilot:
                         metrics={
                             "total_steps": len(steps),
                             "execution_time_ms": duration * 1000,
-                            "avg_step_time_ms": (duration * 1000) / len(steps)
-                            if steps
-                            else 0,
+                            "avg_step_time_ms": (
+                                (duration * 1000) / len(steps) if steps else 0
+                            ),
                         },
                         token_usage=token_metrics,
                         environment={
@@ -822,9 +822,11 @@ class BrowserPilot:
                 metrics={
                     "total_steps": len(execution_steps),
                     "execution_time_ms": duration * 1000,
-                    "avg_step_time_ms": (duration * 1000) / len(execution_steps)
-                    if execution_steps
-                    else 0,
+                    "avg_step_time_ms": (
+                        (duration * 1000) / len(execution_steps)
+                        if execution_steps
+                        else 0
+                    ),
                 },
                 token_usage=self._get_token_usage(),
                 environment={
@@ -886,9 +888,11 @@ class BrowserPilot:
                 metrics={
                     "total_steps": len(execution_steps),
                     "execution_time_ms": duration * 1000,
-                    "avg_step_time_ms": (duration * 1000) / len(execution_steps)
-                    if execution_steps
-                    else 0,
+                    "avg_step_time_ms": (
+                        (duration * 1000) / len(execution_steps)
+                        if execution_steps
+                        else 0
+                    ),
                 },
                 token_usage=self._get_token_usage(),
                 environment={
@@ -943,9 +947,11 @@ class BrowserPilot:
                 metrics={
                     "total_steps": len(execution_steps),
                     "execution_time_ms": duration * 1000,
-                    "avg_step_time_ms": (duration * 1000) / len(execution_steps)
-                    if execution_steps
-                    else 0,
+                    "avg_step_time_ms": (
+                        (duration * 1000) / len(execution_steps)
+                        if execution_steps
+                        else 0
+                    ),
                 },
                 token_usage=self._get_token_usage(),
                 environment={
