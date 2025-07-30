@@ -29,6 +29,7 @@ def configure_hil_llm(provider_name: str, model_alias: str) -> None:
         model_alias: The model to use (e.g., 'gpt-4o', 'gpt-4')
     """
     global _response_generator, _hil_config
+    print(f"[HIL] configure_hil_llm called with provider={provider_name}, model={model_alias}")
     _hil_config["provider_name"] = provider_name
     _hil_config["model_alias"] = model_alias
     # Reset the cached generator so it will be recreated with new settings
@@ -39,6 +40,7 @@ def get_response_generator():
     """Get or create the response generator LLM instance."""
     global _response_generator
     if _response_generator is None:
+        print(f"[HIL] Creating response generator with config: {_hil_config}")
         registry = ModelForgeRegistry()
         # Use the configured model settings
         _response_generator = registry.get_llm(
@@ -48,6 +50,7 @@ def get_response_generator():
         )
         _response_generator.temperature = 0.3
         _response_generator.max_tokens = 100
+        print(f"[HIL] Response generator created successfully")
     return _response_generator
 
 
@@ -113,8 +116,10 @@ Guidelines for your response:
 Response:"""
     
     try:
+        print(f"[HIL] Invoking LLM with prompt length: {len(prompt)}")
         response = await llm.ainvoke(prompt)
         suggested = response.content.strip()
+        print(f"[HIL] LLM raw response: {suggested}")
         # Ensure response is not too long
         if len(suggested) > 100:
             suggested = suggested[:100]
@@ -122,6 +127,8 @@ Response:"""
     except Exception as e:
         # Fallback to simple default if LLM fails
         print(f"[HIL] Warning: LLM response generation failed: {e}")
+        import traceback
+        traceback.print_exc()
         return "Continue with test"
 
 
