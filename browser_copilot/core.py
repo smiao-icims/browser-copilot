@@ -401,6 +401,11 @@ class BrowserPilot:
                                     suggested_response = "Continue"
                                     question = ""
                                     context = ""
+                                    
+                                    # Debug: log raw interrupt data
+                                    if self.verbose_logger:
+                                        self.stream.write(f"[HIL] Raw interrupt data: {interrupt_data}", "debug")
+                                    
                                     if isinstance(interrupt_data, list) and interrupt_data:
                                         interrupt_info = interrupt_data[0]
                                         if hasattr(interrupt_info, 'value') and isinstance(interrupt_info.value, dict):
@@ -408,6 +413,11 @@ class BrowserPilot:
                                             suggested_response = hil_data.get('suggested_response', 'Continue')
                                             question = hil_data.get('question', hil_data.get('action', ''))
                                             context = hil_data.get('context', hil_data.get('details', ''))
+                                            
+                                            if self.verbose_logger:
+                                                self.stream.write(f"[HIL] Extracted - Question: {question}", "debug")
+                                                self.stream.write(f"[HIL] Extracted - Context: {context}", "debug")
+                                                self.stream.write(f"[HIL] Extracted - Suggested: {suggested_response}", "debug")
                                     
                                     # Check if interactive mode is enabled
                                     if self.config.get('hil_interactive', False):

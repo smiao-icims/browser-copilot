@@ -62,6 +62,11 @@ async def generate_suggested_response(question: str, context: Optional[str] = No
     Returns:
         A suggested response appropriate for automated testing
     """
+    # Debug logging
+    print(f"[HIL] generate_suggested_response called with:")
+    print(f"[HIL]   Question: {question}")
+    print(f"[HIL]   Context: {context}")
+    
     llm = get_response_generator()
     
     prompt = f"""You are helping with automated browser testing. The test agent is asking for human input.
@@ -136,8 +141,15 @@ async def ask_human(question: str, context: Optional[str] = None) -> str:
     Returns:
         The human's response
     """
+    # Debug logging
+    print(f"[HIL] ask_human tool called with:")
+    print(f"[HIL]   Question: {question}")
+    print(f"[HIL]   Context: {context}")
+    
     # Generate suggested response using LLM
     suggested_response = await generate_suggested_response(question, context)
+    
+    print(f"[HIL]   Generated suggestion: {suggested_response}")
     
     # Prepare interrupt data
     interrupt_data = {
