@@ -162,30 +162,32 @@ class SlidingWindowStrategy(ContextStrategy):
                     # If it's a ToolMessage, we need its AIMessage
                     if i in reverse_dependencies:
                         for dep_idx in reverse_dependencies[i]:
-                            if dep_idx not in selected_indices:
-                                to_add.add(dep_idx)
+                            to_add.add(dep_idx)
                     
-                    # If it's an AIMessage, check if any of its tools are already selected
+                    # If it's an AIMessage with tool calls, we need ALL its ToolMessages
                     if i in tool_dependencies:
                         for dep_idx in tool_dependencies[i]:
-                            if dep_idx in selected_indices:
-                                # We need to include all tools for integrity
-                                for tool_idx in tool_dependencies[i]:
-                                    if tool_idx not in selected_indices:
-                                        to_add.add(tool_idx)
-                                break
+                            to_add.add(dep_idx)
                     
-                    # Calculate tokens needed
-                    tokens_needed = sum(self.count_tokens(messages[idx]) for idx in to_add if idx not in selected_indices)
+                    # Remove already selected messages from to_add
+                    new_to_add = to_add - selected_indices
+                    
+                    # If nothing new to add, skip
+                    if not new_to_add:
+                        i -= 1
+                        continue
+                    
+                    # Calculate tokens needed for NEW messages only
+                    tokens_needed = sum(self.count_tokens(messages[idx]) for idx in new_to_add)
                     
                     # Check if we can fit this
                     if tokens_needed <= remaining_budget:
-                        selected_indices.update(to_add)
+                        selected_indices.update(new_to_add)
                         current_tokens += tokens_needed
                         remaining_budget -= tokens_needed
                         
                         if self.verbose:
-                            sorted_added = sorted(to_add)
+                            sorted_added = sorted(new_to_add)
                             if len(sorted_added) == 1:
                                 print(f"[Sliding Window] Added middle message {sorted_added[0]} ({tokens_needed} tokens)")
                             else:
