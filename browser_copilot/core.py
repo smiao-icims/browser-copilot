@@ -308,7 +308,10 @@ class BrowserPilot:
                         recursion_limit=100,
                         context_strategy=context_strategy,
                         context_config=context_config,
-                        verbose=self.verbose_logger is not None
+                        hil_detection=not self.config.get('no_hil_detection', False),
+                        hil_detection_model=self.config.get('hil_detection_model', None),
+                        use_interrupt=self.config.get('hil_use_interrupt', False),
+                        verbose=self.verbose_logger is not None or self.config.get('hil_verbose', False)
                     )
 
                     # Build execution prompt
@@ -329,15 +332,87 @@ class BrowserPilot:
                     # Execute test suite
                     steps = []
                     final_response = None
-
-                    async for chunk in agent.astream({"messages": prompt}):
-                        steps.append(chunk)
-
-                        # In verbose mode, show every step
+                    
+                    # Configure for interrupt mode if enabled
+                    use_interrupt = self.config.get('hil_use_interrupt', False)
+                    if self.verbose_logger:
+                        self.stream.write(f"[DEBUG] hil_use_interrupt from config: {use_interrupt}", "debug")
+                    
+                    config = None
+                    if use_interrupt:
+                        # Create config with thread ID for checkpointing
+                        test_name = self.config.get('test_scenario', 'test').replace('/', '_').replace('.md', '')
+                        thread_id = f"test_{test_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        config = {"configurable": {"thread_id": thread_id}}
                         if self.verbose_logger:
-                            self.stream.write(
-                                f"\n[STEP {len(steps)}] Processing...", "debug"
-                            )
+                            self.stream.write(f"Using interrupt mode with thread ID: {thread_id}", "debug")
+                    
+                    # Initial input
+                    agent_input = {"messages": prompt}
+                    if config:
+                        # Use invoke for interrupt mode (streaming with interrupts is complex)
+                        while True:
+                            try:
+                                result = await agent.ainvoke(agent_input, config)
+                                
+                                # Check for interrupt
+                                if "__interrupt__" in result:
+                                    interrupt_data = result["__interrupt__"]
+                                    if self.verbose_logger:
+                                        self.stream.write("\n🔄 [HIL Interrupt] Agent paused for human input", "info")
+                                        if isinstance(interrupt_data, list) and interrupt_data:
+                                            interrupt_info = interrupt_data[0]
+                                            if hasattr(interrupt_info, 'value'):
+                                                hil_info = interrupt_info.value
+                                                self.stream.write(f"  Type: {hil_info.get('hil_type', 'unknown')}", "debug")
+                                                self.stream.write(f"  Request: {hil_info.get('agent_request', '')}", "debug")
+                                                self.stream.write(f"  Suggested: {hil_info.get('suggested_response', '')}", "debug")
+                                    
+                                    # In automated mode, use suggested response
+                                    suggested_response = "Continue"
+                                    if isinstance(interrupt_data, list) and interrupt_data:
+                                        interrupt_info = interrupt_data[0]
+                                        if hasattr(interrupt_info, 'value') and isinstance(interrupt_info.value, dict):
+                                            suggested_response = interrupt_info.value.get('suggested_response', 'Continue')
+                                    
+                                    if self.verbose_logger:
+                                        self.stream.write(f"  Auto-resuming with: {suggested_response}", "info")
+                                    
+                                    # Resume with Command
+                                    from langgraph.types import Command
+                                    agent_input = Command(resume=suggested_response)
+                                    
+                                    # Log the HIL event (don't create ExecutionStep as it has invalid type)
+                                    if self.verbose_logger:
+                                        self.stream.write(f"[HIL] Continuing execution after auto-response", "debug")
+                                    
+                                    continue
+                                
+                                # No interrupt, process result
+                                if "messages" in result:
+                                    for msg in result["messages"]:
+                                        if hasattr(msg, "content") and msg.content:
+                                            final_response = msg
+                                break
+                                
+                            except Exception as e:
+                                if "interrupt" in str(e).lower():
+                                    # This is expected for interrupt errors
+                                    if self.verbose_logger:
+                                        self.stream.write(f"Interrupt exception (expected): {e}", "debug")
+                                    continue
+                                else:
+                                    raise
+                    else:
+                        # Non-interrupt mode - use streaming
+                        async for chunk in agent.astream({"messages": prompt}):
+                            steps.append(chunk)
+
+                            # In verbose mode, show every step
+                            if self.verbose_logger:
+                                self.stream.write(
+                                    f"\n[STEP {len(steps)}] Processing...", "debug"
+                                )
 
                             # Extract and display tool calls
                             if "tools" in chunk:
@@ -389,16 +464,16 @@ class BrowserPilot:
                                             "debug",
                                         )
 
-                        elif len(steps) % 5 == 0:
-                            self.stream.write(
-                                f"Progress: {len(steps)} steps...", "debug"
-                            )
+                            elif len(steps) % 5 == 0:
+                                self.stream.write(
+                                    f"Progress: {len(steps)} steps...", "debug"
+                                )
 
-                        # Extract final response from agent
-                        if "agent" in chunk and "messages" in chunk["agent"]:
-                            for msg in chunk["agent"]["messages"]:
-                                if hasattr(msg, "content") and msg.content:
-                                    final_response = msg
+                            # Extract final response from agent
+                            if "agent" in chunk and "messages" in chunk["agent"]:
+                                for msg in chunk["agent"]["messages"]:
+                                    if hasattr(msg, "content") and msg.content:
+                                        final_response = msg
 
                     # Process execution results
                     duration = (datetime.now(UTC) - start_time).total_seconds()

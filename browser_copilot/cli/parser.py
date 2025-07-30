@@ -194,6 +194,36 @@ Examples:
         help="Number of last messages to always preserve (default: 10)",
     )
 
+    # Human-in-the-Loop Detection
+    hil_group = parser.add_argument_group("Human-in-the-Loop Detection")
+    hil_group.add_argument(
+        "--no-hil-detection",
+        action="store_true",
+        help="Disable Human-in-the-Loop detection and handling",
+    )
+    hil_group.add_argument(
+        "--hil-detection-model",
+        type=str,
+        help="Model to use for HIL detection (default: gpt-3.5-turbo, use 'none' for pattern-only)",
+    )
+    hil_group.add_argument(
+        "--hil-confidence-threshold",
+        type=float,
+        default=0.7,
+        help="Confidence threshold for HIL detection (0.0-1.0, default: 0.7)",
+    )
+    hil_group.add_argument(
+        "--hil-verbose",
+        action="store_true",
+        help="Enable verbose HIL detection logging",
+    )
+    
+    hil_group.add_argument(
+        "--hil-use-interrupt",
+        action="store_true",
+        help="Use interrupt() mechanism for HIL (enables pause/resume with checkpointing)",
+    )
+
     # Configuration management
     config_group = parser.add_argument_group("Configuration Management")
     config_group.add_argument(
