@@ -315,7 +315,8 @@ class TestModelJSONEncoder:
         # Check structure is preserved
         assert "timestamp" in decoded
         assert len(decoded["files"]) == 2
-        assert decoded["metadata"]["path"] == str(Path("/metadata"))
+        # Use Path comparison for cross-platform compatibility
+        assert Path(decoded["metadata"]["path"]) == Path("/metadata")
 
     def test_serializable_model_encoding(self):
         """Test encoding of SerializableModel instances"""
@@ -408,7 +409,8 @@ class TestSerializationHelpers:
         path_str = "/home/user/file.txt"
         path = deserialize_path(path_str)
         assert isinstance(path, Path)
-        assert str(path) == path_str
+        # On Windows, forward slashes get converted to backslashes
+        assert Path(str(path)) == Path(path_str)
 
         # Empty string
         empty_path = deserialize_path("")
