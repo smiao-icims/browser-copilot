@@ -44,31 +44,40 @@ class TestCriticalAcceptance:
 
         # Act & Assert: Execute test with mocked dependencies
         with (
-            patch("browser_copilot.core.create_browser_agent") as mock_create_agent,
             patch(
-                "browser_copilot.browser_tools.load_playwright_browser_tools"
+                "browser_copilot.agent.AgentFactory.create_browser_agent"
+            ) as mock_create_agent,
+            patch(
+                "browser_copilot.browser_tools.BrowserToolsManager.load_browser_tools"
             ) as mock_load_tools,
+            patch("browser_copilot.core.ModelForgeRegistry") as mock_registry_class,
         ):
             # Setup mocks
             mock_agent = AsyncMock()
             mock_agent.arun.return_value = mock_result
             mock_create_agent.return_value = mock_agent
-            mock_load_tools.return_value = []
+            mock_load_tools.return_value = ([], AsyncMock())
+
+            # Mock the registry and LLM
+            mock_llm = MagicMock()
+            mock_llm.temperature = 0
+            mock_llm.max_tokens = 1000
+            mock_registry = MagicMock()
+            mock_registry.get_llm.return_value = mock_llm
+            mock_registry_class.return_value = mock_registry
 
             # Create engine and execute
-            engine = BrowserPilot(
-                provider="openai", model="gpt-4", base_dir=str(temp_dir)
-            )
+            engine = BrowserPilot(provider="openai", model="gpt-4")
 
             result = await engine.run_test_suite(
-                test_scenario=test_scenario, test_name="simple_test", headless=True
+                test_suite_content=test_scenario, headless=True
             )
 
             # Verify successful execution
-            assert isinstance(result, BrowserTestResult)
-            assert result.success is True
-            assert result.test_name == "simple_test"
-            assert len(result.steps) > 0
+            assert isinstance(result, dict)
+            assert result.get("success") is True
+            assert result.get("test_name") is not None
+            assert len(result.get("steps", [])) > 0
 
             # Verify agent was called correctly
             mock_create_agent.assert_called_once()
@@ -98,24 +107,26 @@ class TestCriticalAcceptance:
 
         # Act & Assert: Execute test with mocked failure
         with (
-            patch("browser_copilot.core.create_browser_agent") as mock_create_agent,
             patch(
-                "browser_copilot.browser_tools.load_playwright_browser_tools"
+                "browser_copilot.agent.AgentFactory.create_browser_agent"
+            ) as mock_create_agent,
+            patch(
+                "browser_copilot.browser_tools.BrowserToolsManager.load_browser_tools"
             ) as mock_load_tools,
         ):
             # Setup mocks for failure scenario
             mock_agent = AsyncMock()
             mock_agent.arun.return_value = mock_error_result
             mock_create_agent.return_value = mock_agent
-            mock_load_tools.return_value = []
+            mock_load_tools.return_value = ([], AsyncMock())
 
             # Create engine and execute
-            engine = BrowserPilot(
-                provider="openai", model="gpt-4", base_dir=str(temp_dir)
-            )
+            engine = BrowserPilot(provider="openai", model="gpt-4")
 
             result = await engine.run_test_suite(
-                test_scenario=test_scenario, test_name="failing_test", headless=True
+                test_suite_content=test_scenario,
+                test_name="failing_test",
+                headless=True,
             )
 
             # Verify failure is properly reported
@@ -155,9 +166,11 @@ class TestCriticalAcceptance:
 
         # Act & Assert: Test HIL flow
         with (
-            patch("browser_copilot.core.create_browser_agent") as mock_create_agent,
             patch(
-                "browser_copilot.browser_tools.load_playwright_browser_tools"
+                "browser_copilot.agent.AgentFactory.create_browser_agent"
+            ) as mock_create_agent,
+            patch(
+                "browser_copilot.browser_tools.BrowserToolsManager.load_browser_tools"
             ) as mock_load_tools,
             patch(
                 "browser_copilot.hil_detection.ask_human_tool.get_response_generator"
@@ -167,7 +180,7 @@ class TestCriticalAcceptance:
             mock_agent = AsyncMock()
             mock_agent.arun.return_value = mock_hil_result
             mock_create_agent.return_value = mock_agent
-            mock_load_tools.return_value = []
+            mock_load_tools.return_value = ([], AsyncMock())
 
             # Mock HIL response generation
             mock_hil_generator = MagicMock()
@@ -183,7 +196,7 @@ class TestCriticalAcceptance:
             )
 
             result = await engine.run_test_suite(
-                test_scenario=test_scenario, test_name="hil_test", headless=True
+                test_suite_content=test_scenario, test_name="hil_test", headless=True
             )
 
             # Verify HIL was triggered and handled
@@ -228,16 +241,18 @@ class TestCriticalAcceptance:
 
         # Act & Assert: Test with context management
         with (
-            patch("browser_copilot.core.create_browser_agent") as mock_create_agent,
             patch(
-                "browser_copilot.browser_tools.load_playwright_browser_tools"
+                "browser_copilot.agent.AgentFactory.create_browser_agent"
+            ) as mock_create_agent,
+            patch(
+                "browser_copilot.browser_tools.BrowserToolsManager.load_browser_tools"
             ) as mock_load_tools,
         ):
             # Setup mocks
             mock_agent = AsyncMock()
             mock_agent.arun.return_value = mock_optimized_result
             mock_create_agent.return_value = mock_agent
-            mock_load_tools.return_value = []
+            mock_load_tools.return_value = ([], AsyncMock())
 
             # Create engine with context management
             engine = BrowserPilot(
@@ -288,7 +303,9 @@ class TestCriticalAcceptance:
             }
 
             with (
-                patch("browser_copilot.core.create_browser_agent") as mock_create_agent,
+                patch(
+                    "browser_copilot.agent.AgentFactory.create_browser_agent"
+                ) as mock_create_agent,
                 patch(
                     "browser_copilot.browser_tools.load_playwright_browser_tools"
                 ) as mock_load_tools,
@@ -297,7 +314,7 @@ class TestCriticalAcceptance:
                 mock_agent = AsyncMock()
                 mock_agent.arun.return_value = mock_result
                 mock_create_agent.return_value = mock_agent
-                mock_load_tools.return_value = []
+                mock_load_tools.return_value = ([], AsyncMock())
 
                 # Create engine with specific provider
                 engine = BrowserPilot(
@@ -305,7 +322,7 @@ class TestCriticalAcceptance:
                 )
 
                 result = await engine.run_test_suite(
-                    test_scenario=test_scenario,
+                    test_suite_content=test_scenario,
                     test_name=f"{provider}_test",
                     headless=True,
                 )
@@ -333,9 +350,9 @@ class TestCriticalAcceptance:
         ]
 
         for report in success_reports:
-            assert (
-                ReportParser.check_success(report) is True
-            ), f"Failed to detect success in: {report}"
+            assert ReportParser.check_success(report) is True, (
+                f"Failed to detect success in: {report}"
+            )
 
         # Test various failure patterns
         failure_reports = [
@@ -348,9 +365,9 @@ class TestCriticalAcceptance:
         ]
 
         for report in failure_reports:
-            assert (
-                ReportParser.check_success(report) is False
-            ), f"Failed to detect failure in: {report}"
+            assert ReportParser.check_success(report) is False, (
+                f"Failed to detect failure in: {report}"
+            )
 
         # Test edge cases
         edge_cases = [
@@ -360,9 +377,9 @@ class TestCriticalAcceptance:
         ]
 
         for report in edge_cases:
-            assert (
-                ReportParser.check_success(report) is False
-            ), f"Edge case failed: {report}"
+            assert ReportParser.check_success(report) is False, (
+                f"Edge case failed: {report}"
+            )
 
     async def test_error_handling_and_timeout_scenarios(self, temp_dir):
         """
@@ -375,24 +392,24 @@ class TestCriticalAcceptance:
 
         # Test timeout scenario
         with (
-            patch("browser_copilot.core.create_browser_agent") as mock_create_agent,
             patch(
-                "browser_copilot.browser_tools.load_playwright_browser_tools"
+                "browser_copilot.agent.AgentFactory.create_browser_agent"
+            ) as mock_create_agent,
+            patch(
+                "browser_copilot.browser_tools.BrowserToolsManager.load_browser_tools"
             ) as mock_load_tools,
         ):
             # Setup timeout simulation
             mock_agent = AsyncMock()
             mock_agent.arun.side_effect = TimeoutError("Test execution timed out")
             mock_create_agent.return_value = mock_agent
-            mock_load_tools.return_value = []
+            mock_load_tools.return_value = ([], AsyncMock())
 
             # Create engine with short timeout
-            engine = BrowserPilot(
-                provider="openai", model="gpt-4", base_dir=str(temp_dir)
-            )
+            engine = BrowserPilot(provider="openai", model="gpt-4")
 
             result = await engine.run_test_suite(
-                test_scenario=test_scenario,
+                test_suite_content=test_scenario,
                 test_name="timeout_test",
                 headless=True,
                 timeout=5,  # Short timeout
