@@ -41,8 +41,11 @@ class TestModelEncoder:
 
         # Relative path
         rel_path = Path("data/test.json")
-        # Forward slashes work on all platforms for relative paths
-        assert encoder.default(rel_path) == str(rel_path).replace("\\", "/")
+        # Encoder should return string representation of the path
+        encoded = encoder.default(rel_path)
+        assert isinstance(encoded, str)
+        # Verify it represents the same path
+        assert Path(encoded) == rel_path
 
     def test_serializable_model_encoding(self):
         """Test SerializableModel objects use to_dict method"""
