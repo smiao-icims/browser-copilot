@@ -289,8 +289,11 @@ class TestModelJSONEncoder:
 
         path = Path("/home/user/file.txt")
         encoded = json.dumps({"path": path}, cls=ModelJSONEncoder)
-
-        assert encoded == '{"path": "/home/user/file.txt"}'
+        
+        # Parse the JSON to check the value (handles platform-specific path separators)
+        decoded = json.loads(encoded)
+        assert "path" in decoded
+        assert decoded["path"] == str(path)  # str(Path) handles platform differences
 
     def test_nested_encoding(self):
         """Test encoding of nested structures"""
@@ -312,7 +315,7 @@ class TestModelJSONEncoder:
         # Check structure is preserved
         assert "timestamp" in decoded
         assert len(decoded["files"]) == 2
-        assert decoded["metadata"]["path"] == "/metadata"
+        assert decoded["metadata"]["path"] == str(Path("/metadata"))
 
     def test_serializable_model_encoding(self):
         """Test encoding of SerializableModel instances"""
@@ -384,7 +387,7 @@ class TestSerializationHelpers:
 
         # Absolute path
         path = Path("/home/user/file.txt")
-        assert serialize_path(path) == "/home/user/file.txt"
+        assert serialize_path(path) == str(path)
 
         # Relative path
         rel_path = Path("./relative/path.txt")
