@@ -55,9 +55,9 @@ class TestReportParserComprehensive:
 
         for i, pattern in enumerate(success_patterns):
             result = ReportParser.check_success(pattern)
-            assert (
-                result is True
-            ), f"Failed to detect success in pattern {i}: {pattern[:50]}..."
+            assert result is True, (
+                f"Failed to detect success in pattern {i}: {pattern[:50]}..."
+            )
 
     def test_failure_detection_comprehensive_patterns(self):
         """Test failure detection with comprehensive patterns"""
@@ -102,9 +102,9 @@ class TestReportParserComprehensive:
 
         for i, pattern in enumerate(failure_patterns):
             result = ReportParser.check_success(pattern)
-            assert (
-                result is False
-            ), f"Failed to detect failure in pattern {i}: {pattern[:50]}..."
+            assert result is False, (
+                f"Failed to detect failure in pattern {i}: {pattern[:50]}..."
+            )
 
     def test_edge_case_patterns(self):
         """Test edge cases and ambiguous patterns"""
@@ -136,9 +136,9 @@ class TestReportParserComprehensive:
 
         for pattern, expected in edge_cases:
             result = ReportParser.check_success(pattern)
-            assert (
-                result == expected
-            ), f"Edge case failed for: '{pattern}' (expected {expected}, got {result})"
+            assert result == expected, (
+                f"Edge case failed for: '{pattern}' (expected {expected}, got {result})"
+            )
 
     def test_real_world_report_patterns(self):
         """Test with realistic report patterns from actual usage"""
@@ -447,6 +447,6 @@ Test completed with 3 screenshots captured.
 
         for scenario in international_reports:
             result = ReportParser.check_success(scenario["report"])
-            assert (
-                result == scenario["expected"]
-            ), f"International test failed for: {scenario['report']}"
+            assert result == scenario["expected"], (
+                f"International test failed for: {scenario['report']}"
+            )
