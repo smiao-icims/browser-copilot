@@ -20,7 +20,7 @@ The `run_test_suite` method currently returns a dictionary with the following st
     "headless": bool,
     "viewport_size": str,  # "1920x1080"
     "test_name": str,
-    
+
     # Execution timing
     "execution_time": {
         "start": str,  # ISO format
@@ -30,13 +30,13 @@ The `run_test_suite` method currently returns a dictionary with the following st
     },
     "duration": float,  # Same as duration_seconds
     "duration_seconds": float,  # Backward compatibility
-    
+
     # Environment info
     "environment": {
         "token_optimization": bool,
         "compression_level": str
     },
-    
+
     # Execution details
     "steps_executed": int,
     "steps": [
@@ -46,11 +46,11 @@ The `run_test_suite` method currently returns a dictionary with the following st
             "content": str
         }
     ],
-    
+
     # Results
     "report": str,
     "error": str | None,  # Only if failed
-    
+
     # Token usage
     "token_usage": {
         "total_tokens": int,
@@ -68,14 +68,14 @@ The `run_test_suite` method currently returns a dictionary with the following st
             "estimated_savings": float
         }
     },
-    
+
     # Metrics
     "metrics": {
         "total_steps": int,
         "execution_time_ms": float,
         "avg_step_time_ms": float
     },
-    
+
     # Optional verbose log
     "verbose_log": {
         "log_file": str,
@@ -153,9 +153,9 @@ for tool_msg in chunk.get("tools", {}).get("messages", []):
 def _get_token_usage(self) -> Optional[TokenMetrics]:
     if not self.telemetry:
         return None
-    
+
     # ... existing logic ...
-    
+
     optimization = None
     if self.token_optimizer and opt_metrics["original_tokens"] > 0:
         optimization = OptimizationSavings(
@@ -165,7 +165,7 @@ def _get_token_usage(self) -> Optional[TokenMetrics]:
             strategies_applied=opt_metrics["strategies_applied"],
             estimated_savings=savings
         )
-    
+
     return TokenMetrics(
         total_tokens=total,
         prompt_tokens=prompt,
@@ -222,10 +222,10 @@ return result.to_dict()
 def _extract_steps(self, steps: list) -> List[ExecutionStep]:
     """Extract typed steps from agent execution"""
     execution_steps = []
-    
+
     for step in steps:
         # ... existing logic but create ExecutionStep instances
-    
+
     return execution_steps
 
 def _check_success(self, report_content: str) -> bool:
@@ -249,10 +249,10 @@ def _check_success(self, report_content: str) -> bool:
 # In BrowserTestResult.to_dict()
 def to_dict(self) -> Dict[str, Any]:
     data = super().to_dict()
-    
+
     # Add backward compatibility fields
     data["duration_seconds"] = data["duration"]
-    
+
     # Flatten execution_time for compatibility
     if "execution_time" in data:
         timing = data["execution_time"]
@@ -262,7 +262,7 @@ def to_dict(self) -> Dict[str, Any]:
             "duration_seconds": timing["duration_seconds"],
             "timezone": timing["timezone"]
         }
-    
+
     return data
 ```
 
@@ -273,7 +273,7 @@ def to_dict(self) -> Dict[str, Any]:
 def run_test_suite_typed(self, ...) -> BrowserTestResult:
     """New method that returns typed result"""
     # Same implementation but return model instead of dict
-    
+
 def run_test_suite(self, ...) -> Dict[str, Any]:
     """Existing method - now delegates to typed version"""
     result = self.run_test_suite_typed(...)

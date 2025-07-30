@@ -252,13 +252,13 @@ evaluation:
         - examples/form-filling.md
       timeout: 300
       retry_limit: 2
-    
+
   baselines:
     v1.0.0:
       success_rate: 0.95
       avg_tokens: 15000
       avg_time: 45.0
-  
+
   alerts:
     success_rate_drop: 0.05
     token_increase: 0.15

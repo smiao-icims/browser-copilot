@@ -7,8 +7,8 @@ This document outlines tasks for refactoring the HIL implementation to address a
 ## Phase 1: Foundation Setup (Week 1)
 
 ### Task 1.1: Create HIL Package Structure
-**Priority**: High  
-**Estimated Time**: 2 hours  
+**Priority**: High
+**Estimated Time**: 2 hours
 **Dependencies**: None
 
 - [ ] Create `browser_copilot/hil/` package
@@ -38,8 +38,8 @@ browser_copilot/hil/
 ```
 
 ### Task 1.2: Implement Data Models
-**Priority**: High  
-**Estimated Time**: 3 hours  
+**Priority**: High
+**Estimated Time**: 3 hours
 **Dependencies**: Task 1.1
 
 - [ ] Create `HILConfig` dataclass with validation
@@ -50,8 +50,8 @@ browser_copilot/hil/
 - [ ] Write unit tests for models
 
 ### Task 1.3: Create HIL Manager Core
-**Priority**: High  
-**Estimated Time**: 4 hours  
+**Priority**: High
+**Estimated Time**: 4 hours
 **Dependencies**: Task 1.2
 
 - [ ] Implement `HILManager` class skeleton
@@ -64,8 +64,8 @@ browser_copilot/hil/
 ## Phase 2: Strategy Implementation (Week 1-2)
 
 ### Task 2.1: Define Strategy Interface
-**Priority**: High  
-**Estimated Time**: 2 hours  
+**Priority**: High
+**Estimated Time**: 2 hours
 **Dependencies**: Task 1.2
 
 - [ ] Create `HILStrategy` abstract base class
@@ -75,8 +75,8 @@ browser_copilot/hil/
 - [ ] Document strategy contract
 
 ### Task 2.2: Implement LLM Strategy
-**Priority**: High  
-**Estimated Time**: 6 hours  
+**Priority**: High
+**Estimated Time**: 6 hours
 **Dependencies**: Task 2.1
 
 - [ ] Create `LLMStrategy` class
@@ -87,8 +87,8 @@ browser_copilot/hil/
 - [ ] Write comprehensive tests
 
 ### Task 2.3: Implement Interactive Strategy
-**Priority**: High  
-**Estimated Time**: 4 hours  
+**Priority**: High
+**Estimated Time**: 4 hours
 **Dependencies**: Task 2.1
 
 - [ ] Create `InteractiveStrategy` class
@@ -99,8 +99,8 @@ browser_copilot/hil/
 - [ ] Add input validation
 
 ### Task 2.4: Implement Default Strategy
-**Priority**: Medium  
-**Estimated Time**: 2 hours  
+**Priority**: Medium
+**Estimated Time**: 2 hours
 **Dependencies**: Task 2.1
 
 - [ ] Create `DefaultStrategy` class
@@ -112,8 +112,8 @@ browser_copilot/hil/
 ## Phase 3: Error Handling & Resilience (Week 2)
 
 ### Task 3.1: Create Error Hierarchy
-**Priority**: High  
-**Estimated Time**: 2 hours  
+**Priority**: High
+**Estimated Time**: 2 hours
 **Dependencies**: Task 1.1
 
 - [ ] Define `HILError` base class
@@ -123,8 +123,8 @@ browser_copilot/hil/
 - [ ] Create error documentation
 
 ### Task 3.2: Implement Retry Manager
-**Priority**: High  
-**Estimated Time**: 4 hours  
+**Priority**: High
+**Estimated Time**: 4 hours
 **Dependencies**: Task 3.1
 
 - [ ] Create `RetryManager` class
@@ -135,8 +135,8 @@ browser_copilot/hil/
 - [ ] Write retry tests
 
 ### Task 3.3: Build Error Handler
-**Priority**: High  
-**Estimated Time**: 3 hours  
+**Priority**: High
+**Estimated Time**: 3 hours
 **Dependencies**: Task 3.1, Task 3.2
 
 - [ ] Create `HILErrorHandler` class
@@ -149,8 +149,8 @@ browser_copilot/hil/
 ## Phase 4: Tool Integration (Week 2-3)
 
 ### Task 4.1: Refactor Tool Creation
-**Priority**: High  
-**Estimated Time**: 4 hours  
+**Priority**: High
+**Estimated Time**: 4 hours
 **Dependencies**: Phase 2
 
 - [ ] Create `create_hil_tools` factory
@@ -161,8 +161,8 @@ browser_copilot/hil/
 - [ ] Test tool creation
 
 ### Task 4.2: Update Core Integration
-**Priority**: High  
-**Estimated Time**: 6 hours  
+**Priority**: High
+**Estimated Time**: 6 hours
 **Dependencies**: Task 4.1
 
 - [ ] Update `BrowserCopilot` to use HILManager
@@ -173,8 +173,8 @@ browser_copilot/hil/
 - [ ] Test integration
 
 ### Task 4.3: Migrate Interrupt Handling
-**Priority**: High  
-**Estimated Time**: 4 hours  
+**Priority**: High
+**Estimated Time**: 4 hours
 **Dependencies**: Task 4.2
 
 - [ ] Move interrupt logic to HILManager
@@ -186,8 +186,8 @@ browser_copilot/hil/
 ## Phase 5: Testing & Quality (Week 3)
 
 ### Task 5.1: Create Test Infrastructure
-**Priority**: High  
-**Estimated Time**: 3 hours  
+**Priority**: High
+**Estimated Time**: 3 hours
 **Dependencies**: Phase 4
 
 - [ ] Create HIL test fixtures
@@ -197,8 +197,8 @@ browser_copilot/hil/
 - [ ] Set up integration tests
 
 ### Task 5.2: Write Comprehensive Tests
-**Priority**: High  
-**Estimated Time**: 6 hours  
+**Priority**: High
+**Estimated Time**: 6 hours
 **Dependencies**: Task 5.1
 
 - [ ] Unit test all components
@@ -209,8 +209,8 @@ browser_copilot/hil/
 - [ ] Test thread safety
 
 ### Task 5.3: Performance Testing
-**Priority**: Medium  
-**Estimated Time**: 3 hours  
+**Priority**: Medium
+**Estimated Time**: 3 hours
 **Dependencies**: Task 5.2
 
 - [ ] Create performance benchmarks
@@ -222,8 +222,8 @@ browser_copilot/hil/
 ## Phase 6: Migration & Documentation (Week 3-4)
 
 ### Task 6.1: Create Migration Guide
-**Priority**: High  
-**Estimated Time**: 2 hours  
+**Priority**: High
+**Estimated Time**: 2 hours
 **Dependencies**: Phase 5
 
 - [ ] Document breaking changes
@@ -233,8 +233,8 @@ browser_copilot/hil/
 - [ ] Update changelog
 
 ### Task 6.2: Update User Documentation
-**Priority**: High  
-**Estimated Time**: 3 hours  
+**Priority**: High
+**Estimated Time**: 3 hours
 **Dependencies**: Phase 5
 
 - [ ] Update HIL documentation
@@ -244,8 +244,8 @@ browser_copilot/hil/
 - [ ] Update examples
 
 ### Task 6.3: Implement Feature Flags
-**Priority**: Medium  
-**Estimated Time**: 3 hours  
+**Priority**: Medium
+**Estimated Time**: 3 hours
 **Dependencies**: Phase 4
 
 - [ ] Add feature flag system

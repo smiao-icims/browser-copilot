@@ -64,12 +64,12 @@ def from_layers(cls,
                defaults: Dict[str, Any]) -> 'AppConfig':
     """
     Merge configuration layers with proper precedence.
-    
+
     Priority: CLI > Environment > File > Defaults
     """
     # Deep merge implementation
     merged = deep_merge(defaults, config_file, env_vars, cli_args)
-    
+
     # Convert to nested models
     return cls(
         provider=ProviderConfig.from_dict(merged['provider']),
@@ -88,7 +88,7 @@ def from_layers(cls,
 @dataclass
 class BrowserConfig(SerializableModel):
     browser: str = "chromium"
-    
+
     def __post_init__(self):
         if self.browser not in SUPPORTED_BROWSERS:
             raise ValueError(
@@ -105,7 +105,7 @@ class ProviderConfig(SerializableModel):
     provider: str
     model: str
     api_key: Optional[str] = None
-    
+
     def validate(self):
         if self.provider != "github_copilot" and not self.api_key:
             raise ValueError(f"API key required for provider: {self.provider}")
@@ -124,7 +124,7 @@ class ConfigManager:
             DeprecationWarning,
             stacklevel=2
         )
-        
+
         # Map string keys to model attributes
         if '.' in key:
             # Handle nested access like "browser.headless"
@@ -135,7 +135,7 @@ class ConfigManager:
                 if value is None:
                     return default
             return value
-        
+
         return getattr(self._config, key, default)
 ```
 
@@ -144,21 +144,21 @@ class ConfigManager:
 ```python
 class ConfigMigrator:
     """Helps migrate from dict to model-based config."""
-    
+
     @staticmethod
     def migrate_dict_config(old_config: Dict[str, Any]) -> AppConfig:
         """Convert old dict config to new model format."""
         # Handle old key names
         if 'llm_provider' in old_config:
             old_config['provider'] = old_config.pop('llm_provider')
-        
+
         # Handle flat to nested conversion
         provider_config = {
             'provider': old_config.pop('provider', None),
             'model': old_config.pop('model', None),
             'api_key': old_config.pop('api_key', None)
         }
-        
+
         return AppConfig.from_dict({
             'provider': provider_config,
             **old_config

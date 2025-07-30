@@ -33,31 +33,31 @@ class TestReportParserComprehensive:
             """
             Test Results:
             - Step 1: ✅ Passed
-            - Step 2: ✅ Passed  
+            - Step 2: ✅ Passed
             - Step 3: ✅ Passed
-            
+
             Overall Status: **PASSED**
             """,
             # With additional context
             """
             Browser Automation Test Report
             ================================
-            
+
             Test Name: Login Flow Test
             Duration: 45.2 seconds
             Steps Executed: 8
-            
+
             All steps completed successfully!
-            
+
             Overall Status: PASSED
             """,
         ]
 
         for i, pattern in enumerate(success_patterns):
             result = ReportParser.check_success(pattern)
-            assert result is True, (
-                f"Failed to detect success in pattern {i}: {pattern[:50]}..."
-            )
+            assert (
+                result is True
+            ), f"Failed to detect success in pattern {i}: {pattern[:50]}..."
 
     def test_failure_detection_comprehensive_patterns(self):
         """Test failure detection with comprehensive patterns"""
@@ -81,30 +81,30 @@ class TestReportParserComprehensive:
             - Step 1: Success
             - Step 2: ❌ Failed - Element not found
             - Step 3: Skipped
-            
+
             Overall Status: **FAILED**
             """,
             # With error details
             """
             Browser Automation Test Report
             ================================
-            
+
             Test Name: Login Flow Test
             Duration: 12.1 seconds
             Steps Executed: 3/8
-            
+
             Error: Timeout waiting for login button
             Stack Trace: ...
-            
+
             Overall Status: FAILED
             """,
         ]
 
         for i, pattern in enumerate(failure_patterns):
             result = ReportParser.check_success(pattern)
-            assert result is False, (
-                f"Failed to detect failure in pattern {i}: {pattern[:50]}..."
-            )
+            assert (
+                result is False
+            ), f"Failed to detect failure in pattern {i}: {pattern[:50]}..."
 
     def test_edge_case_patterns(self):
         """Test edge cases and ambiguous patterns"""
@@ -136,9 +136,9 @@ class TestReportParserComprehensive:
 
         for pattern, expected in edge_cases:
             result = ReportParser.check_success(pattern)
-            assert result == expected, (
-                f"Edge case failed for: '{pattern}' (expected {expected}, got {result})"
-            )
+            assert (
+                result == expected
+            ), f"Edge case failed for: '{pattern}' (expected {expected}, got {result})"
 
     def test_real_world_report_patterns(self):
         """Test with realistic report patterns from actual usage"""
@@ -146,15 +146,15 @@ class TestReportParserComprehensive:
         successful_report = """
 # Browser Test Execution Report
 
-**Test Name:** E-commerce Checkout Flow  
-**Duration:** 2 minutes 34 seconds  
-**Browser:** Chromium (Headless)  
+**Test Name:** E-commerce Checkout Flow
+**Duration:** 2 minutes 34 seconds
+**Browser:** Chromium (Headless)
 **Timestamp:** 2024-01-15 14:30:25 UTC
 
 ## Execution Steps
 
 1. ✅ **Navigate to Homepage** - Completed in 1.2s
-2. ✅ **Search for Product** - Found 15 results in 0.8s  
+2. ✅ **Search for Product** - Found 15 results in 0.8s
 3. ✅ **Add Item to Cart** - Product added successfully
 4. ✅ **Proceed to Checkout** - Redirected to checkout page
 5. ✅ **Fill Shipping Info** - All fields completed
@@ -163,7 +163,7 @@ class TestReportParserComprehensive:
 
 ## Test Results
 
-All 7 steps completed successfully.  
+All 7 steps completed successfully.
 No errors or warnings encountered.
 
 **Overall Status:** PASSED ✅
@@ -176,7 +176,7 @@ No errors or warnings encountered.
 # Browser Test Execution Report
 
 **Test Name:** Login Authentication Test
-**Duration:** 45 seconds  
+**Duration:** 45 seconds
 **Browser:** Firefox (Headless)
 **Timestamp:** 2024-01-15 14:35:12 UTC
 
@@ -184,7 +184,7 @@ No errors or warnings encountered.
 
 1. ✅ **Navigate to Login Page** - Completed in 1.1s
 2. ✅ **Enter Username** - Field filled successfully
-3. ✅ **Enter Password** - Field filled successfully  
+3. ✅ **Enter Password** - Field filled successfully
 4. ❌ **Click Login Button** - ERROR: Element not found
 
 ## Error Details
@@ -311,7 +311,7 @@ TimeoutError: Waiting for element with selector 'button[type="submit"]' timed ou
 ![Homepage Screenshot](screenshot_1.png)
 Successfully loaded the homepage.
 
-## Step 2: Login Form  
+## Step 2: Login Form
 ![Login Form](screenshot_2.png)
 Filled in login credentials.
 
@@ -447,6 +447,6 @@ Test completed with 3 screenshots captured.
 
         for scenario in international_reports:
             result = ReportParser.check_success(scenario["report"])
-            assert result == scenario["expected"], (
-                f"International test failed for: {scenario['report']}"
-            )
+            assert (
+                result == scenario["expected"]
+            ), f"International test failed for: {scenario['report']}"

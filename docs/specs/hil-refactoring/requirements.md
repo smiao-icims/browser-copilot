@@ -59,8 +59,8 @@ This plan outlines a systematic refactoring to achieve clean, modular, testable 
 # browser_copilot/hil/manager.py
 class HILManager:
     """Manages all Human-in-the-Loop interactions"""
-    
-    def __init__(self, 
+
+    def __init__(self,
                  config: HILConfig,
                  llm_factory: Optional[Callable] = None,
                  logger: Optional[Logger] = None):
@@ -69,8 +69,8 @@ class HILManager:
         self._logger = logger or logging.getLogger(__name__)
         self._strategy = self._create_strategy()
         self._interaction_count = 0
-    
-    async def handle_interrupt(self, 
+
+    async def handle_interrupt(self,
                              interrupt_data: InterruptData) -> str:
         """Handle an interrupt from the agent"""
         pass
@@ -88,7 +88,7 @@ class HILConfig:
     model: str = "gpt-4"
     max_interactions: int = 50
     interaction_timeout: float = 30.0
-    
+
     def __post_init__(self):
         self._validate()
 ```
@@ -107,9 +107,9 @@ from abc import ABC, abstractmethod
 
 class HILStrategy(ABC):
     """Base strategy for HIL responses"""
-    
+
     @abstractmethod
-    async def get_response(self, 
+    async def get_response(self,
                           prompt: HILPrompt) -> HILResponse:
         """Get response for HIL prompt"""
         pass
@@ -120,11 +120,11 @@ class HILStrategy(ABC):
 # browser_copilot/hil/strategies/llm_strategy.py
 class LLMStrategy(HILStrategy):
     """Uses LLM for intelligent responses"""
-    
+
 # browser_copilot/hil/strategies/interactive_strategy.py
 class InteractiveStrategy(HILStrategy):
     """Prompts user for real input"""
-    
+
 # browser_copilot/hil/strategies/default_strategy.py
 class DefaultStrategy(HILStrategy):
     """Uses predefined responses"""
@@ -137,13 +137,13 @@ class DefaultStrategy(HILStrategy):
 # browser_copilot/hil/exceptions.py
 class HILError(BrowserCopilotError):
     """Base HIL exception"""
-    
+
 class HILTimeoutError(HILError):
     """User input timeout"""
-    
+
 class HILLimitExceededError(HILError):
     """Interaction limit exceeded"""
-    
+
 class HILConfigurationError(HILError):
     """Invalid HIL configuration"""
 ```
@@ -165,9 +165,9 @@ class HILRetryPolicy:
 # browser_copilot/hil/input_handler.py
 class AsyncInputHandler:
     """Non-blocking input handler"""
-    
-    async def get_input(self, 
-                       prompt: str, 
+
+    async def get_input(self,
+                       prompt: str,
                        timeout: float) -> str:
         """Get user input with timeout"""
         pass
@@ -181,7 +181,7 @@ class AsyncInputHandler:
 @pytest.fixture
 def mock_llm():
     """Mock LLM for testing"""
-    
+
 @pytest.fixture
 def hil_manager():
     """Configured HIL manager for tests"""

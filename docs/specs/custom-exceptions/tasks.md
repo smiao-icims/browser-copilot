@@ -1,6 +1,6 @@
 # Custom Exceptions - Tasks
 
-**Last Updated**: July 30, 2025  
+**Last Updated**: July 30, 2025
 **Overall Progress**: 15% Complete
 
 ## 1. Overview
@@ -14,9 +14,9 @@ This document breaks down the implementation of custom exceptions into specific,
 ### Phase 1: Foundation (Sprint 1)
 
 #### Task 1.1: Create Exception Module Structure ⚠️ PARTIALLY COMPLETE
-**Priority**: P0  
-**Estimate**: 2 hours  
-**Actual**: 1 hour  
+**Priority**: P0
+**Estimate**: 2 hours
+**Actual**: 1 hour
 **Assignee**: TBD
 
 - [x] ~~Create `browser_copilot/exceptions.py`~~ Created as `components/exceptions.py`
@@ -30,9 +30,9 @@ This document breaks down the implementation of custom exceptions into specific,
 - No circular import issues
 
 #### Task 1.2: Implement Base Exception Class ⚠️ MINIMAL IMPLEMENTATION
-**Priority**: P0  
-**Estimate**: 4 hours  
-**Actual**: 0.5 hours  
+**Priority**: P0
+**Estimate**: 4 hours
+**Actual**: 0.5 hours
 **Dependencies**: Task 1.1
 
 - [x] Implement `BrowserPilotError` class (basic version)
@@ -49,9 +49,9 @@ This document breaks down the implementation of custom exceptions into specific,
 - No performance regression
 
 #### Task 1.3: Define Exception Categories ⚠️ PARTIALLY COMPLETE
-**Priority**: P0  
-**Estimate**: 3 hours  
-**Actual**: 1 hour  
+**Priority**: P0
+**Estimate**: 3 hours
+**Actual**: 1 hour
 **Dependencies**: Task 1.2
 
 - [x] Create `ConfigurationError` class
@@ -71,8 +71,8 @@ This document breaks down the implementation of custom exceptions into specific,
 ### Phase 2: Specific Exceptions (Sprint 1-2)
 
 #### Task 2.1: Implement Configuration Exceptions ❌ NOT STARTED
-**Priority**: P1  
-**Estimate**: 3 hours  
+**Priority**: P1
+**Estimate**: 3 hours
 **Dependencies**: Task 1.3
 
 - [ ] Create `MissingConfigError`
@@ -89,8 +89,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - Suggestions for common fixes
 
 #### Task 2.2: Implement Execution Exceptions
-**Priority**: P1  
-**Estimate**: 3 hours  
+**Priority**: P1
+**Estimate**: 3 hours
 **Dependencies**: Task 1.3
 
 - [ ] Create `TestExecutionError`
@@ -105,8 +105,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - Timeout includes limit and actual time
 
 #### Task 2.3: Implement Browser Exceptions
-**Priority**: P1  
-**Estimate**: 3 hours  
+**Priority**: P1
+**Estimate**: 3 hours
 **Dependencies**: Task 1.3
 
 - [ ] Create `BrowserInitError`
@@ -123,8 +123,8 @@ This document breaks down the implementation of custom exceptions into specific,
 ### Phase 3: Helper Utilities (Sprint 2)
 
 #### Task 3.1: Create Exception Factory
-**Priority**: P2  
-**Estimate**: 4 hours  
+**Priority**: P2
+**Estimate**: 4 hours
 **Dependencies**: Phase 2 tasks
 
 - [ ] Create `ExceptionFactory` class
@@ -139,8 +139,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - Type hints on all methods
 
 #### Task 3.2: Implement Error Handler Decorator
-**Priority**: P2  
-**Estimate**: 4 hours  
+**Priority**: P2
+**Estimate**: 4 hours
 **Dependencies**: Task 1.2
 
 - [ ] Create `handle_errors` decorator
@@ -155,8 +155,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - Original exception in chain
 
 #### Task 3.3: Create Context Manager
-**Priority**: P2  
-**Estimate**: 3 hours  
+**Priority**: P2
+**Estimate**: 3 hours
 **Dependencies**: Task 1.2
 
 - [ ] Create `error_context` context manager
@@ -172,8 +172,8 @@ This document breaks down the implementation of custom exceptions into specific,
 ### Phase 4: Integration (Sprint 2-3)
 
 #### Task 4.1: Update CLI Module ❌ NOT STARTED
-**Priority**: P1  
-**Estimate**: 6 hours  
+**Priority**: P1
+**Estimate**: 6 hours
 **Dependencies**: Phase 2 complete
 
 - [ ] Replace ValueError with ValidationError
@@ -194,8 +194,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - Better error messages
 
 #### Task 4.2: Update Core Module ⚠️ MINIMAL PROGRESS
-**Priority**: P1  
-**Estimate**: 6 hours  
+**Priority**: P1
+**Estimate**: 6 hours
 **Dependencies**: Phase 2 complete
 
 - [ ] Replace generic exceptions
@@ -204,7 +204,7 @@ This document breaks down the implementation of custom exceptions into specific,
 - [ ] Update all error paths
 - [ ] Maintain compatibility
 
-**Current State**: 
+**Current State**:
 - Using ModelForge exceptions (ConfigurationError, ModelNotFoundError, ProviderError)
 - Still using RuntimeError and ValueError in many places
 - Components use custom exceptions but core.py doesn't
@@ -219,8 +219,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - All tests pass
 
 #### Task 4.3: Update Config Manager
-**Priority**: P1  
-**Estimate**: 4 hours  
+**Priority**: P1
+**Estimate**: 4 hours
 **Dependencies**: Task 2.1
 
 - [ ] Use ConfigurationError types
@@ -235,8 +235,8 @@ This document breaks down the implementation of custom exceptions into specific,
 ### Phase 5: Documentation (Sprint 3)
 
 #### Task 5.1: Create Exception Reference
-**Priority**: P2  
-**Estimate**: 4 hours  
+**Priority**: P2
+**Estimate**: 4 hours
 **Dependencies**: Phase 1-3 complete
 
 - [ ] Document all exception types
@@ -250,8 +250,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - `docs/migration/exceptions.md`
 
 #### Task 5.2: Update Contributing Guide
-**Priority**: P3  
-**Estimate**: 2 hours  
+**Priority**: P3
+**Estimate**: 2 hours
 **Dependencies**: Task 5.1
 
 - [ ] Add exception guidelines
@@ -262,8 +262,8 @@ This document breaks down the implementation of custom exceptions into specific,
 ### Phase 6: Testing & Validation (Sprint 3)
 
 #### Task 6.1: Integration Testing
-**Priority**: P1  
-**Estimate**: 6 hours  
+**Priority**: P1
+**Estimate**: 6 hours
 **Dependencies**: Phase 4 complete
 
 - [ ] Test exception flow end-to-end
@@ -272,8 +272,8 @@ This document breaks down the implementation of custom exceptions into specific,
 - [ ] Test error recovery paths
 
 #### Task 6.2: Performance Testing
-**Priority**: P2  
-**Estimate**: 3 hours  
+**Priority**: P2
+**Estimate**: 3 hours
 **Dependencies**: Phase 4 complete
 
 - [ ] Benchmark exception creation
@@ -342,7 +342,7 @@ graph TD
 ## 6. Risk Mitigation
 
 ### Risk: Breaking Changes
-**Mitigation**: 
+**Mitigation**:
 - Gradual rollout
 - Compatibility layer
 - Comprehensive testing
@@ -369,7 +369,7 @@ A task is complete when:
 1. **Basic Exception Hierarchy** in `browser_copilot/components/exceptions.py`:
    - `BrowserPilotError` (base class)
    - `ConfigurationError`
-   - `BrowserSetupError` 
+   - `BrowserSetupError`
    - `ExecutionError`
    - `AnalysisError`
 

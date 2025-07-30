@@ -96,7 +96,7 @@ async def execute(messages):
     while not done:
         # 1. Send all messages to LLM
         response = await llm.invoke(messages)
-        
+
         # 2. Parse response for tool calls
         if has_tool_calls(response):
             tool_results = await execute_tools(response.tool_calls)
@@ -105,7 +105,7 @@ async def execute(messages):
             # Final response
             messages.append(response)
             done = True
-    
+
     return messages
 ```
 
@@ -180,7 +180,7 @@ async for chunk in agent.astream(input):
     #   "agent": {"messages": [...]},
     #   "tools": {"messages": [...]}
     # }
-    
+
     # Must accumulate messages correctly
     all_messages.extend(extract_messages(chunk))
 ```
@@ -227,7 +227,7 @@ else:
 
 ```python
 # Instead of truncating, summarize
-original = "Clicked button with id='submit-form', waited for response, 
+original = "Clicked button with id='submit-form', waited for response,
            page loaded successfully with confirmation message"
 compressed = "Form submitted successfully"
 ```

@@ -376,7 +376,7 @@ def create_html_report(
         <h1>Browser Copilot Test Report</h1>
         <p>Generated: {result.get("timestamp", datetime.now().isoformat())}</p>
     </div>
-    
+
     <div class="metrics">
         <div class="metric-card">
             <h3>Status</h3>
@@ -405,7 +405,7 @@ def create_html_report(
             <p>${result.get("token_usage", {}).get("estimated_cost", 0):.4f}</p>
         </div>
     </div>
-    
+
     <div class="report-content">
         <h2>Test Report</h2>
         <pre>{report_content}</pre>

@@ -148,7 +148,7 @@ duration = result.get("duration_second")  # Silent None if typo
 ```python
 class BrowserTestResult:
     # ... dataclass fields ...
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to legacy dictionary format"""
         return {
@@ -156,7 +156,7 @@ class BrowserTestResult:
             "duration_seconds": self.duration,  # Map to old key
             # ... other mappings ...
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "BrowserTestResult":
         """Construct from legacy dictionary"""
@@ -172,7 +172,7 @@ class BrowserTestResult:
 ### 8.1 Breaking Changes
 
 **Risk**: Accidentally breaking existing integrations
-**Mitigation**: 
+**Mitigation**:
 - Comprehensive test suite before refactoring
 - Canary testing with real usage patterns
 - Feature flag for gradual rollout

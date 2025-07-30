@@ -289,7 +289,7 @@ class TestModelJSONEncoder:
 
         path = Path("/home/user/file.txt")
         encoded = json.dumps({"path": path}, cls=ModelJSONEncoder)
-        
+
         # Parse the JSON to check the value (handles platform-specific path separators)
         decoded = json.loads(encoded)
         assert "path" in decoded

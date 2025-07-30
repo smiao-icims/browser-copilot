@@ -40,14 +40,14 @@ This document outlines the technical design for Browser Copilot's evaluation fra
 ```python
 class EvalRunner:
     """Orchestrates evaluation execution."""
-    
+
     def __init__(self):
         self.suite_loader = SuiteLoader()
         self.model_manager = ModelManager()
         self.metric_collector = MetricCollector()
         self.executor = TestExecutor()
         self.storage = EvalStorage()
-    
+
     async def run_evaluation(
         self,
         suite_name: str,
@@ -58,19 +58,19 @@ class EvalRunner:
         """Execute evaluation suite."""
         # Load suite
         suite = self.suite_loader.load(suite_name)
-        
+
         # Initialize model
         llm = self.model_manager.create_model(provider, model)
-        
+
         # Execute tests
         results = []
         for test in suite.tests:
             result = await self.executor.run_test(test, llm, config)
             results.append(result)
-            
+
         # Collect metrics
         metrics = self.metric_collector.aggregate(results)
-        
+
         # Store results
         eval_run = EvalRun(
             suite=suite_name,
@@ -80,7 +80,7 @@ class EvalRunner:
             metrics=metrics
         )
         self.storage.save(eval_run)
-        
+
         return eval_run
 ```
 
@@ -89,7 +89,7 @@ class EvalRunner:
 ```python
 class MetricCollector:
     """Collects and aggregates evaluation metrics."""
-    
+
     def __init__(self):
         self.collectors = [
             SuccessMetricCollector(),
@@ -98,18 +98,18 @@ class MetricCollector:
             ContextMetricCollector(),
             QualityMetricCollector()
         ]
-    
+
     def collect_from_result(self, result: TestResult) -> Dict[str, Any]:
         """Extract metrics from single test result."""
         metrics = {}
         for collector in self.collectors:
             metrics.update(collector.collect(result))
         return metrics
-    
+
     def aggregate(self, results: List[TestResult]) -> EvalMetrics:
         """Aggregate metrics across all test results."""
         all_metrics = [self.collect_from_result(r) for r in results]
-        
+
         return EvalMetrics(
             success_rate=self._calculate_success_rate(results),
             total_tokens=sum(m['tokens'] for m in all_metrics),
@@ -142,20 +142,20 @@ class TestCase:
     expected_outcomes: List[str]
     complexity: str  # basic, intermediate, advanced
     timeout: int = 60
-    
+
 class SuiteLoader:
     """Loads test suites from configuration."""
-    
+
     def __init__(self, suite_dir: str = "evaluation/suites"):
         self.suite_dir = Path(suite_dir)
         self._suites = self._load_all_suites()
-    
+
     def load(self, name: str) -> TestSuite:
         """Load a specific test suite."""
         if name not in self._suites:
             raise ValueError(f"Suite '{name}' not found")
         return self._suites[name]
-    
+
     def _load_all_suites(self) -> Dict[str, TestSuite]:
         """Load all suite definitions."""
         suites = {}
@@ -170,7 +170,7 @@ class SuiteLoader:
 ```python
 class ComparisonEngine:
     """Compares evaluation results across models."""
-    
+
     def compare(
         self,
         runs: List[EvalRun],
@@ -179,19 +179,19 @@ class ComparisonEngine:
         """Compare multiple evaluation runs."""
         if metrics is None:
             metrics = ['success_rate', 'total_tokens', 'total_time']
-        
+
         comparison = ComparisonResult()
-        
+
         for metric in metrics:
             values = {run.model: getattr(run.metrics, metric) for run in runs}
             comparison.add_metric_comparison(metric, values)
-            
+
         # Statistical analysis
         comparison.calculate_significance()
         comparison.identify_best_performer()
-        
+
         return comparison
-    
+
     def compare_to_baseline(
         self,
         run: EvalRun,
@@ -199,11 +199,11 @@ class ComparisonEngine:
     ) -> RegressionResult:
         """Check for regression against baseline."""
         regression = RegressionResult()
-        
+
         for metric, baseline_value in baseline.metrics.items():
             current_value = getattr(run.metrics, metric)
             regression.check_metric(metric, current_value, baseline_value)
-            
+
         return regression
 ```
 
@@ -221,7 +221,7 @@ class EvalRun:
     config: Dict[str, Any]
     results: List[TestResult]
     metrics: EvalMetrics
-    
+
 @dataclass
 class EvalMetrics:
     """Aggregated metrics for evaluation run."""
@@ -229,25 +229,25 @@ class EvalMetrics:
     success_rate: float
     steps_completed: int
     steps_total: int
-    
+
     # Performance metrics
     total_tokens: int
     prompt_tokens: int
     completion_tokens: int
     total_time: float
     avg_time_per_step: float
-    
+
     # Quality metrics
     errors_encountered: int
     retries_needed: int
     human_in_loop_count: int
-    
+
     # Context metrics
     context_metrics: ContextMetrics
-    
+
     # Cost metrics
     estimated_cost: float
-    
+
 @dataclass
 class ContextMetrics:
     """Context management specific metrics."""
@@ -264,17 +264,17 @@ class ContextMetrics:
 ```python
 class EvalStorage:
     """Manages evaluation data persistence."""
-    
+
     def __init__(self, db_path: str = "evaluation.db"):
         self.db_path = db_path
         self._init_database()
-    
+
     def save(self, run: EvalRun) -> None:
         """Save evaluation run to storage."""
         with self._get_connection() as conn:
             # Save run metadata
             conn.execute("""
-                INSERT INTO eval_runs 
+                INSERT INTO eval_runs
                 (id, timestamp, suite, provider, model, config)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (
@@ -285,13 +285,13 @@ class EvalStorage:
                 run.model,
                 json.dumps(run.config)
             ))
-            
+
             # Save metrics
             self._save_metrics(conn, run.id, run.metrics)
-            
+
             # Save detailed results
             self._save_results(conn, run.id, run.results)
-    
+
     def query_runs(
         self,
         suite: Optional[str] = None,
@@ -310,14 +310,14 @@ class EvalStorage:
 ```python
 class ReportGenerator:
     """Generates evaluation reports in multiple formats."""
-    
+
     def __init__(self):
         self.formatters = {
             'markdown': MarkdownFormatter(),
             'json': JsonFormatter(),
             'html': HtmlFormatter()
         }
-    
+
     def generate_summary_report(
         self,
         run: EvalRun,
@@ -325,16 +325,16 @@ class ReportGenerator:
     ) -> str:
         """Generate summary report for single run."""
         formatter = self.formatters[format]
-        
+
         sections = [
             self._create_overview_section(run),
             self._create_metrics_section(run),
             self._create_performance_section(run),
             self._create_recommendations_section(run)
         ]
-        
+
         return formatter.format_report(sections)
-    
+
     def generate_comparison_report(
         self,
         comparison: ComparisonResult,
@@ -342,14 +342,14 @@ class ReportGenerator:
     ) -> str:
         """Generate comparison report across models."""
         formatter = self.formatters[format]
-        
+
         sections = [
             self._create_comparison_overview(comparison),
             self._create_metric_tables(comparison),
             self._create_winner_analysis(comparison),
             self._create_recommendation(comparison)
         ]
-        
+
         return formatter.format_report(sections)
 ```
 
@@ -373,17 +373,17 @@ def eval():
 def run(suite, provider, model, compare, output):
     """Run evaluation suite."""
     runner = EvalRunner()
-    
+
     # Run primary evaluation
     primary_run = runner.run_evaluation(suite, provider, model)
-    
+
     # Run comparisons if requested
     comparison_runs = []
     for comp_model in compare:
         comp_provider, comp_name = comp_model.split('/')
         comp_run = runner.run_evaluation(suite, comp_provider, comp_name)
         comparison_runs.append(comp_run)
-    
+
     # Generate report
     reporter = ReportGenerator()
     if comparison_runs:
@@ -391,7 +391,7 @@ def run(suite, provider, model, compare, output):
         report = reporter.generate_comparison_report(comparison)
     else:
         report = reporter.generate_summary_report(primary_run)
-    
+
     click.echo(report)
 ```
 
@@ -400,21 +400,21 @@ def run(suite, provider, model, compare, output):
 ```python
 class EvalTelemetryCallback(BaseTelemetryCallback):
     """Telemetry callback for evaluation metrics."""
-    
+
     def __init__(self, collector: MetricCollector):
         self.collector = collector
         self.events = []
-    
+
     def on_llm_start(self, **kwargs):
         self.start_time = time.time()
-    
+
     def on_llm_end(self, response, **kwargs):
         self.events.append({
             'type': 'llm_call',
             'duration': time.time() - self.start_time,
             'tokens': response.usage_metadata
         })
-    
+
     def get_metrics(self) -> Dict[str, Any]:
         return self.collector.extract_from_events(self.events)
 ```
@@ -424,7 +424,7 @@ class EvalTelemetryCallback(BaseTelemetryCallback):
 ```python
 class ContextAwareEvaluator:
     """Evaluates context management effectiveness."""
-    
+
     def evaluate_context_strategy(
         self,
         suite: TestSuite,
@@ -432,7 +432,7 @@ class ContextAwareEvaluator:
     ) -> ContextComparisonResult:
         """Compare different context strategies."""
         results = {}
-        
+
         for strategy in strategies:
             config = ContextConfig(strategy=strategy)
             run = self.runner.run_evaluation(
@@ -442,7 +442,7 @@ class ContextAwareEvaluator:
                 context_config=config
             )
             results[strategy] = run
-        
+
         return self._analyze_context_impact(results)
 ```
 
@@ -458,9 +458,9 @@ def test_metric_collection():
         tokens=1500,
         time=45.2
     )
-    
+
     metrics = collector.collect_from_result(result)
-    
+
     assert metrics['success'] == True
     assert metrics['tokens'] == 1500
     assert metrics['execution_time'] == 45.2
@@ -472,9 +472,9 @@ def test_comparison_significance():
         create_mock_run('gpt-4', success_rate=0.95),
         create_mock_run('gpt-3.5', success_rate=0.85)
     ]
-    
+
     comparison = engine.compare(runs)
-    
+
     assert comparison.is_significant('success_rate')
     assert comparison.best_performer('success_rate') == 'gpt-4'
 ```
@@ -484,19 +484,19 @@ def test_comparison_significance():
 async def test_full_evaluation_flow():
     """Test complete evaluation workflow."""
     runner = EvalRunner()
-    
+
     # Run evaluation
     run = await runner.run_evaluation(
         suite='basic',
         provider='openai',
         model='gpt-3.5-turbo'
     )
-    
+
     # Verify results
     assert run.metrics.success_rate > 0.8
     assert run.metrics.total_tokens > 0
     assert len(run.results) == 5  # basic suite has 5 tests
-    
+
     # Check storage
     stored = runner.storage.get_run(run.id)
     assert stored == run

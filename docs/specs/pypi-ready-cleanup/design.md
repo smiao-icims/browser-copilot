@@ -1,6 +1,6 @@
 # PyPI-Ready Code Quality Design
 
-**Date**: July 30, 2025  
+**Date**: July 30, 2025
 **Version**: 1.0
 
 ## Overview
@@ -23,7 +23,7 @@ This design document outlines the specific approach to transform Browser Copilot
 
 ### 3. User-Focused Quality
 - Error messages that help users
-- Documentation that answers real questions  
+- Documentation that answers real questions
 - Examples that work out of the box
 - Installation that doesn't frustrate
 
@@ -36,14 +36,14 @@ browser_copilot/
 ├── core.py                  # 1000+ lines, needs splitting
 ├── components/              # UNUSED - DELETE ENTIRELY
 │   ├── __init__.py
-│   ├── llm_manager.py      
-│   ├── browser_config.py    
-│   ├── prompt_builder.py    
-│   ├── test_executor.py     
-│   ├── result_analyzer.py   
-│   ├── token_metrics.py     
-│   ├── models.py           
-│   └── exceptions.py        
+│   ├── llm_manager.py
+│   ├── browser_config.py
+│   ├── prompt_builder.py
+│   ├── test_executor.py
+│   ├── result_analyzer.py
+│   ├── token_metrics.py
+│   ├── models.py
+│   └── exceptions.py
 ├── models/                  # KEEP - Well structured
 ├── cli/                     # KEEP - Working well
 ├── io/                      # KEEP - Good separation
@@ -95,7 +95,7 @@ Current structure of core.py:
 ```python
 # Lines 1-200: Imports and constants
 # Lines 200-400: BrowserPilot.__init__
-# Lines 400-600: Tool management  
+# Lines 400-600: Tool management
 # Lines 600-800: Execution logic
 # Lines 800-1000: Utility methods
 # Lines 1000+: Main entry point
@@ -110,7 +110,7 @@ Target structure:
 # New files:
 constants.py      # All constants
 browser_tools.py  # Tool creation
-execution.py      # Test execution logic  
+execution.py      # Test execution logic
 validation.py     # Input validation
 ```
 
@@ -124,7 +124,7 @@ repos:
   - repo: https://github.com/psf/black
     hooks:
       - id: black
-  - repo: https://github.com/charliermarsh/ruff-pre-commit  
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
     hooks:
       - id: ruff
         args: [--fix]
@@ -228,19 +228,19 @@ docs/
 ```python
 def execute_test(self, test_path: str, timeout: int = 30) -> TestResult:
     """Execute a browser automation test.
-    
+
     Args:
         test_path: Path to the test file or '-' for stdin
         timeout: Maximum execution time in seconds
-        
+
     Returns:
         TestResult containing success status and details
-        
+
     Raises:
         TestNotFoundError: If test file doesn't exist
         TestTimeoutError: If test exceeds timeout
         BrowserError: If browser operations fail
-        
+
     Example:
         >>> pilot = BrowserPilot()
         >>> result = pilot.execute_test("tests/login.md")
@@ -328,7 +328,7 @@ Repository = "https://github.com/yourusername/browser-copilot"
 - 45% test coverage
 - Confusing structure
 
-### After Cleanup  
+### After Cleanup
 - Zero unused files
 - <400 line core.py
 - Single implementations

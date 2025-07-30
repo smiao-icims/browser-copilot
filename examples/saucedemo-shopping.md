@@ -50,7 +50,7 @@ A complete end-to-end shopping example using the SauceDemo test site. This examp
 30. Wait for the checkout page to load
 31. Verify checkout page is displayed (URL should contain "/checkout-step-one.html")
 32. For the First Name field: Click on the "First Name" input field, then immediately type "Test" in that field
-33. For the Last Name field: Click on the "Last Name" input field, then immediately type "User" in that field  
+33. For the Last Name field: Click on the "Last Name" input field, then immediately type "User" in that field
 34. For the Postal Code field: Click on the "Zip/Postal Code" input field, then immediately type "12345" in that field
 35. Click the "Continue" button
 36. Wait for the checkout overview page to load
@@ -94,7 +94,7 @@ Password: secret_sauce
 Note: Some products will have incorrect images
 
 # Performance Glitch User (Slow Loading)
-Username: performance_glitch_user  
+Username: performance_glitch_user
 Password: secret_sauce
 Note: All actions will have delays
 

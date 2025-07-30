@@ -97,7 +97,7 @@ For pages with loading states:
 
 **Problem**: The first field in a form (especially "First Name") is often missed or not properly filled.
 
-**Solution**: 
+**Solution**:
 1. Always explicitly click on form fields before typing
 2. Make sure to complete each field before moving to the next
 3. Use clear, sequential test instructions:

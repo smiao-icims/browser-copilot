@@ -7,7 +7,7 @@ Browser Copilot is designed for autonomous browser automation without human inte
 ## Problem Statement
 
 ### Current Issue
-- LLM generates questions like "Would you like to explore these results further?" 
+- LLM generates questions like "Would you like to explore these results further?"
 - Agent waits for human response that never comes
 - Test execution stalls or fails
 - Particularly problematic when context is trimmed (losing test instructions)
@@ -36,7 +36,7 @@ The system MUST detect when LLM is requesting human input:
    - Detect when no tool calls are made
    - Identify conversational patterns vs. action patterns
 
-### Prevention (HIL-002)  
+### Prevention (HIL-002)
 **Priority**: High
 
 The system MUST prevent human-in-the-loop responses:
@@ -85,7 +85,7 @@ When human-in-the-loop is detected:
    class ResponseAnalyzer:
        def is_human_in_loop(self, response: str) -> bool:
            """Detect if response is asking for human input."""
-           
+
        def extract_implied_action(self, response: str) -> Optional[str]:
            """Extract what the LLM would likely do if human said 'yes'."""
    ```
@@ -95,7 +95,7 @@ When human-in-the-loop is detected:
    class ContextInjector:
        def inject_autonomy_reminder(self, messages: List[Message]) -> List[Message]:
            """Add reminders about autonomous operation."""
-           
+
        def ensure_test_context(self, messages: List[Message]) -> List[Message]:
            """Ensure test instructions remain in context."""
    ```
@@ -105,7 +105,7 @@ When human-in-the-loop is detected:
    class AutoResponder:
        def generate_continuation(self, context: Dict) -> str:
            """Generate appropriate continuation response."""
-           
+
        def create_affirmative_response(self) -> Message:
            """Create 'yes, continue' style response."""
    ```
@@ -138,12 +138,12 @@ human_in_loop:
       - "do you want"
       - "please confirm"
     confidence_threshold: 0.8
-  
+
   prevention:
     preserve_test_context: true
     inject_autonomy_reminders: true
     reminder_frequency: 5  # every N messages
-  
+
   recovery:
     auto_continue: true
     max_recovery_attempts: 3
@@ -160,7 +160,7 @@ human_in_loop:
 ## Success Metrics
 
 1. **Zero HIL Occurrences**: Target 0% human-in-loop responses
-2. **Recovery Success**: 100% successful recovery when HIL detected  
+2. **Recovery Success**: 100% successful recovery when HIL detected
 3. **No False Positives**: Legitimate questions in test output not flagged
 4. **Performance Impact**: <10ms per response analysis
 

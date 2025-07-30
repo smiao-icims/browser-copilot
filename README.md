@@ -201,7 +201,7 @@ Tests are written in simple markdown format with numbered steps:
 1. Navigate to https://example.com/login
 2. Click on the email input field
 3. Type "user@example.com"
-4. Click on the password field  
+4. Click on the password field
 5. Type "securepassword123"
 6. Click the "Login" button
 7. Verify that the dashboard page is displayed
@@ -279,7 +279,7 @@ browser-copilot test.md --hil-interactive
 Question: Should I click "Accept All Cookies" or "Reject All"?
 Context: Testing privacy compliance on the website
 
-💡 AI Response: I'll click "Reject All" to test the website's behavior 
+💡 AI Response: I'll click "Reject All" to test the website's behavior
 with minimal cookies, which is important for privacy compliance testing.
 ============================================================
 ```
@@ -325,7 +325,7 @@ browser-copilot test.md --system-prompt custom-prompt.txt
 
 # Example prompt file:
 cat > prompt.txt << EOF
-You are a meticulous QA engineer. 
+You are a meticulous QA engineer.
 Always take screenshots before and after actions.
 Wait 2 seconds after each navigation.
 EOF
@@ -399,7 +399,7 @@ options:
   --no-token-optimization  Disable token optimization
   --config FILE        Path to configuration file
   --save-config        Save current settings as defaults
-  
+
   context management:
   --context-strategy   Strategy: no-op, sliding-window, langchain-trim
   --context-window-size SIZE  Max tokens for context window

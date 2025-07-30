@@ -120,19 +120,19 @@ Example:
 from typing import Dict, Any, Optional
 
 def process_results(
-    data: Dict[str, Any], 
+    data: Dict[str, Any],
     timeout: Optional[float] = None
 ) -> Dict[str, Any]:
     """
     Process test execution results.
-    
+
     Args:
         data: Raw test result data
         timeout: Optional timeout in seconds
-        
+
     Returns:
         Processed results dictionary
-        
+
     Raises:
         ValueError: If data is invalid
     """
@@ -269,7 +269,7 @@ Since development is primarily done on macOS/Linux, pay special attention to Win
 While you can't fully simulate Windows, you can:
 
 1. **Use CI/CD**: Push changes and monitor Windows CI builds on GitHub Actions
-2. **Write defensive code**: 
+2. **Write defensive code**:
    - Always specify encoding explicitly
    - Always close resources properly
    - Use pathlib for all path operations

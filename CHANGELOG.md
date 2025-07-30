@@ -95,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Single agent architecture for improved efficiency
-- ModelForge integration for LLM provider management  
+- ModelForge integration for LLM provider management
 - Markdown-based test format
 - Basic token usage tracking
 - Multi-browser support (Chromium, Firefox, WebKit)

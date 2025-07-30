@@ -46,10 +46,10 @@ from datetime import datetime
 
 class BrowserPilotError(Exception):
     """Base exception for all Browser Copilot errors.
-    
+
     Provides context information and optional suggestions for resolution.
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -63,10 +63,10 @@ class BrowserPilotError(Exception):
         self.suggestion = suggestion
         self.error_code = error_code
         self.timestamp = datetime.utcnow()
-        
+
         # Add automatic context
         self._add_automatic_context()
-    
+
     def _add_automatic_context(self) -> None:
         """Add automatic context information."""
         import platform
@@ -76,7 +76,7 @@ class BrowserPilotError(Exception):
             "platform": platform.system(),
             "error_type": self.__class__.__name__
         })
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert exception to dictionary for serialization."""
         return {
@@ -87,28 +87,28 @@ class BrowserPilotError(Exception):
             "suggestion": self.suggestion,
             "timestamp": self.timestamp.isoformat()
         }
-    
+
     def to_json(self) -> str:
         """Convert exception to JSON string."""
         return json.dumps(self.to_dict(), indent=2)
-    
+
     def __str__(self) -> str:
         """Human-readable string representation."""
         parts = [f"{self.__class__.__name__}: {self.message}"]
-        
+
         if self.error_code:
             parts.append(f"Code: {self.error_code}")
-            
+
         if self.context:
             # Show only key context items in string
-            key_context = {k: v for k, v in self.context.items() 
+            key_context = {k: v for k, v in self.context.items()
                           if k in ["path", "provider", "browser", "step"]}
             if key_context:
                 parts.append(f"Context: {key_context}")
-        
+
         if self.suggestion:
             parts.append(f"Suggestion: {self.suggestion}")
-            
+
         return " | ".join(parts)
 ```
 
@@ -117,7 +117,7 @@ class BrowserPilotError(Exception):
 ```python
 class ConfigurationError(BrowserPilotError):
     """Raised for configuration-related errors."""
-    
+
     def __init__(self, message: str, config_key: Optional[str] = None, **kwargs):
         if config_key:
             kwargs.setdefault("context", {})["config_key"] = config_key
@@ -126,7 +126,7 @@ class ConfigurationError(BrowserPilotError):
 
 class TestExecutionError(BrowserPilotError):
     """Raised when test execution fails."""
-    
+
     def __init__(
         self,
         message: str,
@@ -147,7 +147,7 @@ class TestExecutionError(BrowserPilotError):
 ```python
 class ExceptionFactory:
     """Factory for creating consistent exceptions."""
-    
+
     @staticmethod
     def configuration_not_found(key: str, available: list[str]) -> ConfigurationError:
         return ConfigurationError(
@@ -156,7 +156,7 @@ class ExceptionFactory:
             suggestion=f"Available keys: {', '.join(available)}",
             error_code="CONFIG_001"
         )
-    
+
     @staticmethod
     def browser_not_supported(browser: str) -> ValidationError:
         valid = ["chromium", "firefox", "safari", "edge", "webkit"]
@@ -194,7 +194,7 @@ def handle_errors(
                         suggestion="Check the logs for more details"
                     ) from e
                 raise
-                
+
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             try:
@@ -206,7 +206,7 @@ def handle_errors(
                         context={"original_error": type(e).__name__}
                     ) from e
                 raise
-                
+
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
     return decorator
 ```
@@ -284,7 +284,7 @@ import logging
 
 class ExceptionLogger:
     """Log exceptions with full context."""
-    
+
     @staticmethod
     def log_exception(e: BrowserPilotError, logger: logging.Logger):
         """Log exception with appropriate level."""

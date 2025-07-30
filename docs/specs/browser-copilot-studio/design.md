@@ -41,13 +41,13 @@ Browser Copilot Studio is an interactive CLI environment for test automation, pr
 ```python
 class StudioShell:
     """Interactive shell for Browser Copilot Studio"""
-    
+
     def __init__(self, config: StudioConfig):
         self.config = config
         self.session_manager = SessionManager()
         self.command_parser = CommandParser()
         self.prompt = StudioPrompt()
-    
+
     async def run(self):
         """Main REPL loop"""
         while True:
@@ -84,19 +84,19 @@ class CommandRegistry:
 ```python
 class TestDesigner:
     """Conversational test design engine"""
-    
+
     async def design_test(self, intent: str) -> TestSuite:
         """Design test through conversation"""
         conversation = []
         test_steps = []
-        
+
         while not self.is_complete(test_steps):
             response = await self.ai_assistant.get_next_question(
                 intent, conversation, test_steps
             )
             user_input = await self.get_user_response(response)
             conversation.append((response, user_input))
-            
+
             if action := self.extract_action(user_input):
                 test_steps.append(action)
                 await self.preview_action(action)
@@ -107,12 +107,12 @@ class TestDesigner:
 ```python
 class BrowserController:
     """Manages persistent browser session"""
-    
+
     def __init__(self):
         self.browser = None
         self.context = None
         self.page = None
-    
+
     async def ensure_browser(self):
         """Ensure browser is running"""
         if not self.browser:
@@ -126,12 +126,12 @@ class BrowserController:
 ```python
 class SessionManager:
     """Manages studio sessions"""
-    
+
     def __init__(self):
         self.current_session = None
         self.session_history = []
         self.checkpoints = []
-    
+
     async def save_checkpoint(self, name: str):
         """Save current state as checkpoint"""
         checkpoint = {
@@ -232,11 +232,11 @@ class StudioSession:
 ```python
 class AIAssistant:
     """AI assistant for test design"""
-    
+
     def __init__(self, llm_provider: str, model: str):
         self.llm = ModelForgeRegistry().get_llm(provider, model)
         self.prompt_manager = PromptManager()
-    
+
     async def suggest_next_step(self, context: TestContext) -> str:
         """Suggest next test step based on context"""
         prompt = self.prompt_manager.build_suggestion_prompt(context)
@@ -264,7 +264,7 @@ class AIAssistant:
 ```python
 class StudioErrorHandler:
     """Handle errors gracefully in studio"""
-    
+
     async def handle_browser_error(self, error: Exception):
         """Handle browser disconnection"""
         if isinstance(error, BrowserDisconnectedError):
@@ -309,12 +309,12 @@ class StudioErrorHandler:
 ```python
 class StudioPlugin(ABC):
     """Base class for studio plugins"""
-    
+
     @abstractmethod
     async def on_command(self, command: Command) -> Optional[Any]:
         """Handle custom commands"""
         pass
-    
+
     @abstractmethod
     async def on_test_step(self, step: TestStep) -> None:
         """React to test steps"""

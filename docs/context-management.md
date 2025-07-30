@@ -162,7 +162,7 @@ With `--context-window-size 25000 --context-preserve-first 2 --context-preserve-
 - **First 1**: Human (1,119 tokens)
 - **Last 10**: Messages 25-34 = 31,805 tokens
 - **Total**: 32,924 tokens (exceeds 25,000 budget)
-- **Result**: 
+- **Result**:
   - Keeps messages [0, 25-34] only
   - Shows warning: "WARNING: First 1 + Last 10 = 32,924 tokens (exceeds 25,000)"
   - No middle messages added

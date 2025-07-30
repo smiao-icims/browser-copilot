@@ -22,7 +22,7 @@ class ViewportConfig(SerializableModel):
     """Browser viewport configuration"""
     width: int = 1920
     height: int = 1080
-    
+
     def validate(self) -> None:
         if self.width <= 0 or self.height <= 0:
             raise ValueError("Viewport dimensions must be positive")
@@ -36,7 +36,7 @@ class BrowserConfig(SerializableModel):
     timeout: int = 30
     locale: str = "en-US"
     timezone: str = "America/New_York"
-    
+
     def validate(self) -> None:
         if self.browser not in ["chromium", "firefox", "webkit"]:
             raise ValueError(f"Unsupported browser: {self.browser}")
@@ -53,14 +53,14 @@ class ProviderConfig(SerializableModel):
     base_url: Optional[str] = None
     temperature: float = 0.0
     max_tokens: Optional[int] = None
-    
+
     def validate(self) -> None:
         if not self.provider:
             raise ValueError("Provider is required")
         if not self.model:
             raise ValueError("Model is required")
 
-@dataclass 
+@dataclass
 class OptimizationConfig(SerializableModel):
     """Token optimization configuration"""
     enabled: bool = True
@@ -68,7 +68,7 @@ class OptimizationConfig(SerializableModel):
     max_context_length: int = 4000
     preserve_recent: int = 1000
     skip_screenshots: bool = False
-    
+
     def validate(self) -> None:
         if self.compression_level not in ["none", "low", "medium", "high"]:
             raise ValueError(f"Invalid compression level: {self.compression_level}")
@@ -81,7 +81,7 @@ class ExecutionConfig(SerializableModel):
     continue_on_error: bool = False
     verbose: bool = False
     debug: bool = False
-    
+
 @dataclass
 class StorageConfig(SerializableModel):
     """Storage configuration"""
@@ -100,11 +100,11 @@ class AppConfig(SerializableModel):
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
     storage: StorageConfig = field(default_factory=StorageConfig)
     system_prompt: Optional[str] = None
-    
+
     @classmethod
-    def from_layers(cls, 
+    def from_layers(cls,
                    cli_args: Dict[str, Any],
-                   env_vars: Dict[str, Any], 
+                   env_vars: Dict[str, Any],
                    config_file: Dict[str, Any],
                    defaults: Dict[str, Any]) -> 'AppConfig':
         """Create config from multiple layers with priority"""
@@ -119,12 +119,12 @@ class ConfigManager:
     def __init__(self):
         self._config: Optional[AppConfig] = None
         self._legacy_mode: bool = False
-        
+
     def load(self) -> AppConfig:
         """Load configuration from all sources"""
         # Internally uses AppConfig
         pass
-        
+
     def get(self, key: str, default: Any = None) -> Any:
         """Legacy dict-like interface"""
         # Maps to config model attributes
@@ -167,7 +167,7 @@ class ExecutionStep(SerializableModel):
     details: Dict[str, Any] = field(default_factory=dict)
     level: LogLevel = LogLevel.INFO
     duration_ms: Optional[float] = None
-    
+
     @property
     def formatted_timestamp(self) -> str:
         return self.timestamp.isoformat()
@@ -182,7 +182,7 @@ class ToolCall(SerializableModel):
     duration_ms: Optional[float] = None
     success: bool = True
     error: Optional[str] = None
-    
+
     def get_truncated_result(self, max_length: int = 200) -> Any:
         """Get result truncated for display"""
         # Implementation
@@ -197,7 +197,7 @@ class TokenUsageLog(SerializableModel):
     total_tokens: int
     estimated_cost: Optional[float] = None
     model: Optional[str] = None
-    
+
 @dataclass
 class ErrorLog(SerializableModel):
     """Structured error information"""
@@ -219,19 +219,19 @@ class LogSession(SerializableModel):
     tool_calls: List[ToolCall] = field(default_factory=list)
     token_usage_logs: List[TokenUsageLog] = field(default_factory=list)
     errors: List[ErrorLog] = field(default_factory=list)
-    
+
     @property
     def duration(self) -> Optional[float]:
         if self.end_time:
             return (self.end_time - self.start_time).total_seconds()
         return None
-    
-    @property 
+
+    @property
     def total_token_usage(self) -> TokenMetrics:
         """Aggregate token usage across all calls"""
         # Implementation
         pass
-    
+
     def get_summary(self) -> Dict[str, Any]:
         """Get execution summary"""
         # Implementation
@@ -263,13 +263,13 @@ class OptimizationMetrics(SerializableModel):
     original_tokens: int = 0
     optimized_tokens: int = 0
     strategies_applied: List[OptimizationStrategy] = field(default_factory=list)
-    
+
     @property
     def reduction_percentage(self) -> float:
         if self.original_tokens == 0:
             return 0.0
         return ((self.original_tokens - self.optimized_tokens) / self.original_tokens) * 100
-    
+
     @property
     def tokens_saved(self) -> int:
         return self.original_tokens - self.optimized_tokens
@@ -280,11 +280,11 @@ class CostAnalysis(SerializableModel):
     original_cost: float
     optimized_cost: float
     cost_per_1k_tokens: float
-    
+
     @property
     def savings(self) -> float:
         return self.original_cost - self.optimized_cost
-    
+
     @property
     def savings_percentage(self) -> float:
         if self.original_cost == 0:
@@ -299,7 +299,7 @@ class OptimizationResult(SerializableModel):
     metrics: OptimizationMetrics
     cost_analysis: Optional[CostAnalysis] = None
     optimization_level: str = "medium"
-    
+
     def get_summary(self) -> Dict[str, Any]:
         """Get optimization summary for reporting"""
         return {
@@ -317,17 +317,17 @@ class OptimizationResult(SerializableModel):
 
 class Reporter:
     """Updated to work with BrowserTestResult model"""
-    
+
     def print_results(self, result: BrowserTestResult, no_color: bool = False) -> None:
         """Print test results using model properties"""
         # Use result.success, result.duration, etc.
         pass
-    
+
     def save_results(self, result: BrowserTestResult, output_dir: str = "reports") -> Dict[str, Path]:
         """Save results using model serialization"""
         # Use result.to_dict() for JSON serialization
         pass
-    
+
     def generate_html_report(self, result: BrowserTestResult) -> str:
         """Generate HTML using model structure"""
         # Access typed properties instead of dict keys
@@ -349,11 +349,11 @@ class WizardHistoryEntry(SerializableModel):
     step: int
     timestamp: datetime
     provider: Optional[str] = None
-    model: Optional[str] = None  
+    model: Optional[str] = None
     browser: str = "chromium"
     headless: bool = True
     compression_level: str = "medium"
-    
+
 @dataclass
 class WizardConfig(SerializableModel):
     """Typed configuration output from wizard"""
@@ -361,7 +361,7 @@ class WizardConfig(SerializableModel):
     browser: BrowserConfig
     optimization: OptimizationConfig
     execution: ExecutionConfig
-    
+
     def to_cli_args(self) -> List[str]:
         """Convert to CLI arguments"""
         # Implementation
@@ -372,7 +372,7 @@ class WizardConfig(SerializableModel):
 class WizardState:
     # ... existing fields ...
     history: List[WizardHistoryEntry] = field(default_factory=list)
-    
+
     def to_config(self) -> WizardConfig:
         """Return typed configuration"""
         # Implementation

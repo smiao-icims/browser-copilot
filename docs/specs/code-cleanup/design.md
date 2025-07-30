@@ -1,6 +1,6 @@
 # Code Cleanup Design
 
-**Date**: July 30, 2025  
+**Date**: July 30, 2025
 **Version**: 1.0
 
 ## Overview
@@ -47,10 +47,10 @@ This document provides the detailed design for cleaning up the Browser Copilot c
 # Current duplicate structure:
 browser_copilot/
 ├── models/           # KEEP THIS
-│   ├── base.py      
-│   ├── execution.py  
-│   ├── metrics.py    
-│   └── results.py    
+│   ├── base.py
+│   ├── execution.py
+│   ├── metrics.py
+│   └── results.py
 └── components/
     └── models.py     # REMOVE THIS
 ```
@@ -144,7 +144,7 @@ git push origin archive/unused-components-2025-07-30
 # Before cleanup
 python benchmark.py --baseline
 
-# After cleanup  
+# After cleanup
 python benchmark.py --compare baseline
 ```
 
@@ -194,7 +194,7 @@ browser_copilot/utils/validation.py  # Merged best of both
 class BrowserPilot:
     def __init__(self):
         # 200 lines of init
-    
+
     def run_test_suite(self):
         # 300 lines of logic
 
@@ -235,7 +235,7 @@ browser_copilot/utils/parse.py   # Extracted utilities
 ## Success Validation
 
 - [ ] All unused components removed
-- [ ] No duplicate model definitions  
+- [ ] No duplicate model definitions
 - [ ] Core.py under 500 lines
 - [ ] All tests passing
 - [ ] Performance unchanged or improved

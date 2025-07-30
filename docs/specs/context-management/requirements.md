@@ -41,12 +41,12 @@ Browser Copilot uses LangGraph's ReAct agents for browser automation, which accu
   - Current test phase/step being executed
   - Critical state information (login status, cart contents, etc.)
   - Error messages and recovery context
-  
+
 - **Selectively preserve**:
   - Screenshot paths and key observations
   - Form data that was entered
   - Verification results
-  
+
 - **Safe to prune**:
   - Successful navigation confirmations
   - Intermediate wait operations
@@ -147,23 +147,23 @@ Browser Copilot uses LangGraph's ReAct agents for browser automation, which accu
 context_management:
   enabled: true
   strategy: "sliding_window"  # or "checkpoint", "hybrid"
-  
+
   sliding_window:
     size: 15  # number of recent interactions to keep
     preserve_errors: true
     preserve_screenshots: true
-    
+
   compression:
     level: "medium"  # none, low, medium, high
     truncate_snapshots: true
     max_snapshot_depth: 3
     summarize_console: true
-    
+
   checkpoints:
     auto_checkpoint: true
     checkpoint_phases: ["login", "cart", "checkout"]
     max_checkpoint_size: 500  # tokens
-    
+
   pruning:
     importance_threshold: "low"
     merge_similar: true

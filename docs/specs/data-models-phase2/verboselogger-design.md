@@ -34,12 +34,12 @@ class ExecutionStep(SerializableModel):
     details: Dict[str, Any] = field(default_factory=dict)
     level: LogLevel = LogLevel.INFO
     duration_ms: Optional[float] = None
-    
+
     @property
     def formatted_timestamp(self) -> str:
         """ISO format timestamp for consistency."""
         return self.timestamp.isoformat()
-    
+
     @property
     def elapsed_since(self, start: datetime) -> float:
         """Elapsed time since a reference point."""
@@ -58,7 +58,7 @@ class ToolCall(SerializableModel):
     duration_ms: Optional[float] = None
     success: bool = True
     error: Optional[str] = None
-    
+
     def get_truncated_result(self, max_length: int = 200) -> Any:
         """Get result suitable for display."""
         if isinstance(self.result, str) and len(self.result) > max_length:
@@ -77,33 +77,33 @@ class LogSession(SerializableModel):
     end_time: Optional[datetime] = None
     log_file: Optional[Path] = None
     test_name: Optional[str] = None
-    
+
     # Event collections
     execution_steps: List[ExecutionStep] = field(default_factory=list)
     tool_calls: List[ToolCall] = field(default_factory=list)
     token_usage_logs: List[TokenUsageLog] = field(default_factory=list)
     errors: List[ErrorLog] = field(default_factory=list)
-    
+
     @property
     def duration(self) -> Optional[float]:
         """Total session duration in seconds."""
         if self.end_time:
             return (self.end_time - self.start_time).total_seconds()
         return None
-    
+
     @property
     def total_tokens(self) -> int:
         """Total tokens used across all LLM calls."""
         return sum(log.total_tokens for log in self.token_usage_logs)
-    
+
     @property
     def total_cost(self) -> float:
         """Total estimated cost."""
         return sum(
-            log.estimated_cost for log in self.token_usage_logs 
+            log.estimated_cost for log in self.token_usage_logs
             if log.estimated_cost
         )
-    
+
     def get_timeline(self) -> List[Union[ExecutionStep, ToolCall, ErrorLog]]:
         """Get all events in chronological order."""
         events = []
@@ -118,7 +118,7 @@ class LogSession(SerializableModel):
 ```python
 class LogLevel(Enum):
     DEBUG = "DEBUG"
-    INFO = "INFO" 
+    INFO = "INFO"
     WARNING = "WARNING"
     ERROR = "ERROR"
 
@@ -128,19 +128,19 @@ class StepType(Enum):
     INTERACTION = "interaction"
     VERIFICATION = "verification"
     SCREENSHOT = "screenshot"
-    
+
     # Tool lifecycle
     TOOL_START = "tool_start"
     TOOL_END = "tool_end"
-    
+
     # LLM interactions
     LLM_CALL = "llm_call"
     LLM_RESPONSE = "llm_response"
-    
+
     # Test lifecycle
     TEST_START = "test_start"
     TEST_END = "test_end"
-    
+
     # Other
     CUSTOM = "custom"
 ```
@@ -172,7 +172,7 @@ for step in session.execution_steps:
 ```python
 # Easy to analyze performance
 navigation_steps = [
-    s for s in session.execution_steps 
+    s for s in session.execution_steps
     if s.type == StepType.NAVIGATION
 ]
 avg_duration = statistics.mean(s.duration_ms for s in navigation_steps)
@@ -205,8 +205,8 @@ class VerboseLogger:
             start_time=datetime.now(),
             log_file=self.log_file
         )
-    
-    def log_step(self, step_type: str, description: str, 
+
+    def log_step(self, step_type: str, description: str,
                  details: dict[str, Any] | None = None,
                  level: str = "INFO") -> None:
         """Log an execution step with proper typing."""
@@ -218,10 +218,10 @@ class VerboseLogger:
             level=LogLevel[level]
         )
         self.session.execution_steps.append(step)
-        
+
         # Still log to file/console
         self._write_log(step)
-    
+
     def get_execution_summary(self) -> dict[str, Any]:
         """Get structured summary using models."""
         return self.session.get_summary()
@@ -244,7 +244,7 @@ def log_tool_call(self, tool_name: str, parameters: dict[str, Any],
         duration_ms=duration_ms
     )
     self.session.tool_calls.append(tool_call)
-    
+
     # Also maintain old dict format temporarily
     if self._legacy_mode:
         self.tool_calls.append(tool_call.to_dict())
@@ -259,16 +259,16 @@ def analyze_log_session(log_file: Path) -> LogAnalysis:
     """Analyze a log file using structured models."""
     with open(log_file) as f:
         data = json.load(f)
-    
+
     session = LogSession.from_dict(data)
-    
+
     return LogAnalysis(
         total_duration=session.duration,
         total_steps=len(session.execution_steps),
         total_tokens=session.total_tokens,
         errors=len(session.errors),
         avg_tool_duration=statistics.mean(
-            tc.duration_ms for tc in session.tool_calls 
+            tc.duration_ms for tc in session.tool_calls
             if tc.duration_ms
         )
     )

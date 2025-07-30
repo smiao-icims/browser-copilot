@@ -17,7 +17,7 @@ class TestTestSuiteEnhancer:
 
         test_content = """# Login Test
 1. Navigate to login page
-2. Enter username  
+2. Enter username
 3. Enter password
 4. Click submit"""
 

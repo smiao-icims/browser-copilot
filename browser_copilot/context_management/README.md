@@ -82,10 +82,10 @@ class MyStrategy(ContextStrategy):
             # Your logic here
             return {"llm_input_messages": trimmed_messages}
         return my_hook
-    
+
     def get_name(self) -> str:
         return "my-strategy"
-    
+
     def get_description(self) -> str:
         return "Description of what this strategy does"
 ```

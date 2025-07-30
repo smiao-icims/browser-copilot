@@ -11,12 +11,12 @@ A simple test to find today's weather forecast for a specific location using wea
 
 1. Navigate to https://weather.com
 2. Wait for page to load completely
-3. **CRITICAL DIALOG HANDLING**: 
+3. **CRITICAL DIALOG HANDLING**:
    - when "weather.com” would like to use your current location dialog appears, answer "Allow"
    - dismiss any other pop-ups or dialogs that may appear
 4. find the search box (usually labeled "Search City or Zip Code")
 5. Enter "10001" in the search field
-6. Press Enter or click the search button  
+6. Press Enter or click the search button
 7. Wait for results to load
 8. Verify the location shows "New York, NY" or "Manhattan, NY"
 9. Find and record today's temperature (both high and low)

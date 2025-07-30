@@ -37,19 +37,19 @@ BrowserPilot (Orchestrator, ~150 lines)
 ```python
 class LLMManager:
     """Manages LLM lifecycle and configuration"""
-    
+
     def __init__(self, provider: str, model: str, config: ConfigManager):
         self.provider = provider
         self.model = model
         self.config = config
         self.registry = ModelForgeRegistry()
-        
+
     def create_llm(self, callbacks: list[Any]) -> Any:
         """Create and configure LLM instance"""
-        
+
     def get_model_metadata(self) -> ModelMetadata:
         """Retrieve model capabilities and limits"""
-        
+
     def estimate_cost(self, prompt_tokens: int, completion_tokens: int) -> float:
         """Estimate token costs"""
 ```
@@ -78,19 +78,19 @@ class BrowserOptions:
 
 class BrowserConfigBuilder:
     """Builds MCP server configuration for browser automation"""
-    
+
     VALID_BROWSERS = ["chromium", "chrome", "firefox", "webkit", "safari", "edge"]
     BROWSER_ALIASES = {"chrome": "chromium", "edge": "msedge", "safari": "webkit"}
-    
+
     def validate_browser(self, browser: str) -> str:
         """Validate and normalize browser name"""
-        
+
     def build_mcp_args(self, options: BrowserOptions) -> list[str]:
         """Build MCP server command arguments"""
-        
+
     def create_session_directory(self, test_name: str, base_dir: Path) -> Path:
         """Create directory for test session artifacts"""
-        
+
     def get_server_params(self, options: BrowserOptions) -> StdioServerParameters:
         """Get complete server parameters"""
 ```
@@ -115,22 +115,22 @@ class ExecutionResult:
 
 class TestExecutor:
     """Handles test execution through agent interaction"""
-    
+
     def __init__(self, stream_handler: StreamHandler, verbose: bool = False):
         self.stream = stream_handler
         self.verbose = verbose
-        
+
     async def execute(
-        self, 
-        agent: Any, 
+        self,
+        agent: Any,
         prompt: str,
         timeout: int | None = None
     ) -> ExecutionResult:
         """Execute test through agent"""
-        
+
     def _process_chunk(self, chunk: dict, step_num: int) -> ExecutionStep:
         """Process individual execution chunk"""
-        
+
     def _extract_steps(self, raw_steps: list) -> list[ExecutionStep]:
         """Convert raw agent output to structured steps"""
 ```
@@ -148,7 +148,7 @@ class TestExecutor:
 ```python
 class PromptBuilder:
     """Constructs prompts for test execution"""
-    
+
     DEFAULT_INSTRUCTIONS = """
     IMPORTANT INSTRUCTIONS:
     1. Execute each test step methodically using the browser automation tools
@@ -156,21 +156,21 @@ class PromptBuilder:
     3. Take screenshots at key points using browser_take_screenshot
     ...
     """
-    
+
     def __init__(self, optimizer: TokenOptimizer | None = None):
         self.optimizer = optimizer
-        
+
     def build(
-        self, 
-        test_content: str, 
+        self,
+        test_content: str,
         system_prompt: str | None = None,
         browser: str = "unknown"
     ) -> str:
         """Build complete prompt from test content"""
-        
+
     def optimize(self, prompt: str) -> tuple[str, OptimizationMetrics]:
         """Optimize prompt if optimizer available"""
-        
+
     def extract_test_name(self, test_content: str) -> str:
         """Extract test name from content"""
 ```
@@ -199,30 +199,30 @@ class TestResult:
 
 class ResultAnalyzer:
     """Analyzes test execution results"""
-    
+
     SUCCESS_PATTERNS = [
         r"overall status[:\*]*\s*passed",
         r"status[:\*]*\s*passed",
         r"all tests passed",
         r"test passed successfully",
     ]
-    
+
     FAILURE_PATTERNS = [
         r"overall status[:\*]*\s*failed",
         r"status[:\*]*\s*failed",
         r"test failed",
     ]
-    
+
     def analyze(
         self,
         execution_result: ExecutionResult,
         test_metadata: dict[str, Any]
     ) -> TestResult:
         """Analyze execution result and build test result"""
-        
+
     def check_success(self, report_content: str) -> bool:
         """Determine if test passed based on report"""
-        
+
     def _has_valid_report(self, content: str) -> bool:
         """Check if content contains valid test report"""
 ```
@@ -249,22 +249,22 @@ class TokenMetrics:
 
 class TokenMetricsCollector:
     """Collects token usage and cost metrics"""
-    
+
     def __init__(self, telemetry: TelemetryCallback, llm_manager: LLMManager):
         self.telemetry = telemetry
         self.llm_manager = llm_manager
-        
+
     def collect(self, optimizer: TokenOptimizer | None = None) -> TokenMetrics:
         """Collect token metrics from execution"""
-        
+
     def _extract_from_telemetry(self) -> dict[str, Any]:
         """Extract base metrics from telemetry"""
-        
+
     def _calculate_context_usage(self, prompt_tokens: int) -> dict[str, float]:
         """Calculate context utilization"""
-        
+
     def _calculate_optimization_savings(
-        self, 
+        self,
         base_metrics: dict,
         optimizer: TokenOptimizer
     ) -> dict[str, Any]:
@@ -284,7 +284,7 @@ class TokenMetricsCollector:
 ```python
 class BrowserPilot:
     """Orchestrates AI-powered browser test automation"""
-    
+
     def __init__(
         self,
         provider: str,
@@ -296,42 +296,42 @@ class BrowserPilot:
         # Initialize configuration
         self.config = config or ConfigManager()
         self.stream = stream or StreamHandler()
-        
+
         # Initialize components
         self.llm_manager = LLMManager(provider, model, self.config)
         self.browser_config = BrowserConfigBuilder()
         self.prompt_builder = self._create_prompt_builder()
         self.executor = TestExecutor(self.stream, self.config.get("verbose", False))
         self.analyzer = ResultAnalyzer()
-        
+
         # Create telemetry and logging
         self.telemetry = TelemetryCallback(provider=provider, model=model)
         self._setup_logging()
-        
+
     async def run_test_suite(
         self,
         test_suite_content: str,
         **options
     ) -> dict[str, Any]:
         """Execute test suite with browser automation"""
-        
+
         # Phase 1: Configuration
         browser_options = self._build_browser_options(**options)
         server_params = self.browser_config.get_server_params(browser_options)
-        
+
         # Phase 2: Setup
         test_name = self.prompt_builder.extract_test_name(test_suite_content)
         prompt = self.prompt_builder.build(test_suite_content, self.system_prompt)
-        
+
         # Phase 3: Execution
         async with self._create_mcp_session(server_params) as session:
             agent = await self._create_agent(session)
             result = await self.executor.execute(agent, prompt, options.get("timeout"))
-            
+
         # Phase 4: Analysis
         metrics_collector = TokenMetricsCollector(self.telemetry, self.llm_manager)
         token_metrics = metrics_collector.collect(self.prompt_builder.optimizer)
-        
+
         return self.analyzer.analyze(result, {
             "test_name": test_name,
             "provider": self.provider,
