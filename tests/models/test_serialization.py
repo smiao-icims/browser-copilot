@@ -36,11 +36,13 @@ class TestModelEncoder:
 
         # Unix-style path
         path = Path("/home/user/file.txt")
-        assert encoder.default(path) == "/home/user/file.txt"
+        # Use str(Path) for cross-platform compatibility
+        assert encoder.default(path) == str(path)
 
         # Relative path
         rel_path = Path("data/test.json")
-        assert encoder.default(rel_path) == "data/test.json"
+        # Forward slashes work on all platforms for relative paths
+        assert encoder.default(rel_path) == str(rel_path).replace("\\", "/")
 
     def test_serializable_model_encoding(self):
         """Test SerializableModel objects use to_dict method"""
@@ -127,7 +129,8 @@ class TestModelEncoder:
         assert data["name"] == "test"
         assert data["inner"]["value"] == 42
         assert data["inner"]["timestamp"] == "2024-01-15T10:30:00+00:00"
-        assert data["path"] == "/test/path"
+        # Compare Path objects for cross-platform compatibility
+        assert Path(data["path"]) == Path("/test/path")
 
     def test_fallback_to_default(self):
         """Test encoder falls back to default for unknown types"""
