@@ -61,6 +61,9 @@ class AgentFactory:
         
         # Add HIL tools if enabled
         if hil_enabled:
+            if verbose:
+                print(f"[Agent] HIL is enabled, loading HIL tools...")
+                
             from .hil_detection import ask_human, confirm_action, configure_hil_llm
             
             # Configure HIL with current LLM settings if available
@@ -71,7 +74,18 @@ class AgentFactory:
             
             tools.extend([ask_human, confirm_action])
             if verbose:
-                print("[Agent] Added ask_human and confirm_action tools for HIL")
+                print(f"[Agent] Added ask_human and confirm_action tools for HIL")
+                print(f"[Agent] Total tools available: {len(tools)}")
+                tool_names = []
+                for t in tools:
+                    if hasattr(t, 'name'):
+                        tool_names.append(t.name)
+                    else:
+                        tool_names.append(str(t))
+                print(f"[Agent] Tool names: {tool_names}")
+        else:
+            if verbose:
+                print(f"[Agent] HIL is disabled")
 
         # Create pre-model hook using the factory
         pre_model_hook = None

@@ -28,6 +28,11 @@ IMPORTANT INSTRUCTIONS:
    - Never click all fields first and then go back to type
    - If a field doesn't accept input, click it again
 7. Be especially careful with the first field in a form - complete it fully before moving on
+8. ERROR HANDLING - CRITICAL:
+   - When you encounter an error or unexpected behavior, use the ask_human tool
+   - Provide clear context about what went wrong and what you were trying to do
+   - Wait for guidance before proceeding with alternative approaches
+   - The ask_human tool helps ensure test reliability and correctness
 
 At the end, generate a comprehensive test report in markdown format:
 

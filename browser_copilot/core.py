@@ -349,13 +349,19 @@ class BrowserPilot:
                     # Configure for HIL mode if enabled
                     hil_enabled = self.config.get('hil', True)
                     config = None
+                    
+                    if self.verbose_logger:
+                        self.stream.write(f"[HIL] HIL enabled from config: {hil_enabled}", "debug")
+                        self.stream.write(f"[HIL] Config hil value: {self.config.get('hil', 'NOT SET')}", "debug")
+                        self.stream.write(f"[HIL] Config hil_interactive value: {self.config.get('hil_interactive', 'NOT SET')}", "debug")
+                    
                     if hil_enabled:
                         # Create config with thread ID for checkpointing
                         test_name = self.config.get('test_scenario', 'test').replace('/', '_').replace('.md', '')
                         thread_id = f"test_{test_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                         config = {"configurable": {"thread_id": thread_id}}
                         if self.verbose_logger:
-                            self.stream.write(f"HIL mode enabled with thread ID: {thread_id}", "debug")
+                            self.stream.write(f"[HIL] HIL mode enabled with thread ID: {thread_id}", "debug")
                     
                     # Initial input
                     agent_input = {"messages": prompt}
