@@ -157,3 +157,47 @@ NameError: name 'recursion_limit' is not defined
 - Particularly useful for long e-commerce flows with multiple pages and interactions
 
 **Result**: Agent can now execute up to 200 steps before hitting the recursion limit.
+
+## Phase 2: Organize Code (In Progress)
+
+### Task 2.2: Extract Constants ✅
+
+**Files created:**
+- `browser_copilot/constants.py` (63 lines)
+  - Model context limits
+  - Browser configurations
+  - Default values for all settings
+  - Optimization levels and report formats
+
+### Task 2.4: Extract Validation Logic ✅
+
+**Files created:**
+- `browser_copilot/validation/validator.py` (193 lines)
+- `browser_copilot/validation/__init__.py` (4 lines)
+  - Input validation for test files
+  - Browser validation and normalization
+  - Configuration validation
+  - Custom ValidationError exception
+
+### Task 2.4a: Extract Prompt Building ✅
+
+**Files created:**
+- `browser_copilot/prompts/builder.py` (158 lines)
+- `browser_copilot/prompts/__init__.py` (4 lines)
+  - Test execution prompt building
+  - HIL prompt generation
+  - Analysis prompt templates
+  - Token optimization integration
+
+### Task 2.5: Update Core.py (In Progress)
+
+**Changes made:**
+- Updated imports to use new modules
+- Replaced hardcoded values with constants
+- Replaced prompt building logic with PromptBuilder
+- Replaced model context limits with constant
+
+**Progress:**
+- core.py reduced from 1,191 to 1,152 lines (39 lines saved)
+- Created 422 lines in new organized modules
+- Better separation of concerns achieved

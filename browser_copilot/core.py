@@ -18,11 +18,23 @@ from modelforge.telemetry import TelemetryCallback
 
 from .agent import AgentFactory
 from .config_manager import ConfigManager
+from .constants import (
+    DEFAULT_RECURSION_LIMIT,
+    DEFAULT_CONTEXT_WINDOW_SIZE,
+    DEFAULT_PRESERVE_FIRST_N,
+    DEFAULT_PRESERVE_LAST_N,
+    DEFAULT_COMPRESSION_LEVEL,
+    MODEL_CONTEXT_LIMITS,
+    SESSION_DIR_FORMAT,
+    TIMESTAMP_FORMAT,
+)
 from .io import StreamHandler
 from .models.execution import ExecutionStep, ExecutionMetadata, ExecutionTiming
 from .models.metrics import TokenMetrics, OptimizationSavings
 from .models.results import BrowserTestResult
+from .prompts import PromptBuilder
 from .token_optimizer import OptimizationLevel, TokenOptimizer
+from .validation import InputValidator, ValidationError
 from .verbose_logger import LangChainVerboseCallback, VerboseLogger
 
 
@@ -224,11 +236,11 @@ class BrowserPilot:
         if kwargs.get("save_trace") or kwargs.get("save_session"):
             # Create session-specific output directory
             test_name_normalized = self._normalize_test_name(test_name)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
             session_dir = (
                 self.config.storage.base_dir
                 / "sessions"
-                / f"{test_name_normalized}_{timestamp}"
+                / SESSION_DIR_FORMAT.format(test_name=test_name_normalized, timestamp=timestamp)
             )
             session_dir.mkdir(parents=True, exist_ok=True)
             browser_args.extend(["--output-dir", str(session_dir)])
@@ -288,10 +300,10 @@ class BrowserPilot:
                     # Build context config from CLI/config
                     from .context_management.base import ContextConfig
                     context_config = ContextConfig(
-                        window_size=self.config.get("context_window_size", 50000),
-                        preserve_first_n=self.config.get("context_preserve_first", 2),
-                        preserve_last_n=self.config.get("context_preserve_last", 10),
-                        compression_level=self.config.get("compression_level", "medium"),
+                        window_size=self.config.get("context_window_size", DEFAULT_CONTEXT_WINDOW_SIZE),
+                        preserve_first_n=self.config.get("context_preserve_first", DEFAULT_PRESERVE_FIRST_N),
+                        preserve_last_n=self.config.get("context_preserve_last", DEFAULT_PRESERVE_LAST_N),
+                        compression_level=self.config.get("compression_level", DEFAULT_COMPRESSION_LEVEL),
                         preserve_errors=True,
                         preserve_screenshots=True,
                     )
@@ -303,7 +315,7 @@ class BrowserPilot:
                         self.stream.write(f"Preserve first: {context_config.preserve_first_n}, last: {context_config.preserve_last_n}", "debug")
                     
                     # Create browser automation agent using AgentFactory with context management
-                    recursion_limit = 200
+                    recursion_limit = DEFAULT_RECURSION_LIMIT
                     agent = await self.agent_factory.create_browser_agent(
                         session=session, 
                         recursion_limit=recursion_limit,
@@ -795,73 +807,28 @@ class BrowserPilot:
 
     def _build_prompt(self, test_suite_content: str) -> str:
         """Build the test execution prompt with instructions"""
-        # Use custom system prompt if provided
-        if self.system_prompt:
-            base_prompt = self.system_prompt
-        else:
-            base_prompt = ""
-
-        # Combine prompts
-        full_prompt = f"""{base_prompt}{test_suite_content.strip()}
-
-IMPORTANT INSTRUCTIONS:
-1. Execute each test step methodically using the browser automation tools
-2. Use browser_snapshot before interacting with elements
-3. Take screenshots at key points using browser_take_screenshot
-4. Handle errors gracefully and continue if possible
-5. Wait for page loads after navigation
-6. For form fields - IMPORTANT:
-   - Process each field completely before moving to the next
-   - Click a field and immediately type in it (don't click multiple fields then type)
-   - For each field: click it, then type the value right away
-   - Never click all fields first and then go back to type
-   - If a field doesn't accept input, click it again
-7. Be especially careful with the first field in a form - complete it fully before moving on
-
-At the end, generate a comprehensive test report in markdown format:
-
-# Test Execution Report
-
-## Summary
-- Overall Status: PASSED or FAILED
-- Duration: X seconds
-- Browser: {self.browser if hasattr(self, "browser") else "Unknown"}
-
-## Test Results
-
-### [Test Name]
-**Status:** PASSED/FAILED
-
-**Steps Executed:**
-1. ✅ [Step description] - [What happened]
-2. ❌ [Step description] - Error: [What went wrong]
-
-**Screenshots Taken:**
-- [List of screenshots with descriptions]
-
-## Issues Encountered
-[Any errors or unexpected behaviors]
-
-## Recommendations
-[Suggestions for improvement]
-
-Execute the test now."""
-
-        # Apply token optimization if enabled
+        # Create prompt builder
+        prompt_builder = PromptBuilder(
+            system_prompt=self.system_prompt,
+            token_optimizer=self.token_optimizer,
+        )
+        
+        # Build the prompt
+        prompt = prompt_builder.build_test_prompt(
+            test_suite_content=test_suite_content,
+            browser=self.browser if hasattr(self, "browser") else "Unknown",
+        )
+        
+        # Log optimization if it occurred
         if self.token_optimizer:
-            optimized_prompt = self.token_optimizer.optimize_prompt(full_prompt)
-
-            # Log optimization metrics
             metrics = self.token_optimizer.get_metrics()
             if metrics["reduction_percentage"] > 0:
                 self.stream.write(
                     f"Prompt optimized: {metrics['reduction_percentage']:.1f}% reduction",
                     "debug",
                 )
-
-            return optimized_prompt
-
-        return full_prompt
+        
+        return prompt
 
     def _check_success(self, report_content: str) -> bool:
         """
@@ -1149,13 +1116,7 @@ Execute the test now."""
             Dictionary mapping model identifiers to their context limits
         """
         # Fallback context limits (only used when model-forge metadata is unavailable)
-        return {
-            # Common fallback limits - model-forge should provide accurate data
-            "github_copilot_gpt_4o": 128000,
-            "openai_gpt_4o": 128000,
-            "anthropic_claude_3_5_sonnet": 200000,
-            "google_gemini_1_5_pro": 2000000,
-        }
+        return MODEL_CONTEXT_LIMITS
 
     def _normalize_test_name(self, test_name: str) -> str:
         """
