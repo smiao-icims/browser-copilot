@@ -363,19 +363,61 @@ class BrowserPilot:
                                                 self.stream.write(f"  Request: {hil_info.get('agent_request', '')}", "debug")
                                                 self.stream.write(f"  Suggested: {hil_info.get('suggested_response', '')}", "debug")
                                     
-                                    # In automated mode, use suggested response
+                                    # Extract interrupt information
                                     suggested_response = "Continue"
+                                    question = ""
+                                    context = ""
                                     if isinstance(interrupt_data, list) and interrupt_data:
                                         interrupt_info = interrupt_data[0]
                                         if hasattr(interrupt_info, 'value') and isinstance(interrupt_info.value, dict):
-                                            suggested_response = interrupt_info.value.get('suggested_response', 'Continue')
+                                            hil_data = interrupt_info.value
+                                            suggested_response = hil_data.get('suggested_response', 'Continue')
+                                            question = hil_data.get('question', hil_data.get('action', ''))
+                                            context = hil_data.get('context', hil_data.get('details', ''))
                                     
-                                    if self.verbose_logger:
-                                        self.stream.write(f"  Auto-resuming with: {suggested_response}", "info")
+                                    # Check if interactive mode is enabled
+                                    if self.config.get('hil_interactive', False):
+                                        # Interactive mode - prompt for real human input
+                                        self.stream.write("\n" + "="*60, "info")
+                                        self.stream.write("🤔 HUMAN INPUT REQUIRED", "info")
+                                        self.stream.write("="*60, "info")
+                                        
+                                        if question:
+                                            self.stream.write(f"\nQuestion: {question}", "info")
+                                        if context:
+                                            self.stream.write(f"Context: {context}", "info")
+                                        
+                                        self.stream.write(f"\nSuggested response: {suggested_response}", "info")
+                                        self.stream.write("\nEnter your response (or press Enter to use suggested):", "info")
+                                        
+                                        try:
+                                            # Read from stdin with a prompt
+                                            import sys
+                                            user_input = sys.stdin.readline().strip()
+                                            
+                                            if user_input:
+                                                # Use user's input
+                                                actual_response = user_input
+                                                self.stream.write(f"  Using your response: {actual_response}", "info")
+                                            else:
+                                                # Use suggested response
+                                                actual_response = suggested_response
+                                                self.stream.write(f"  Using suggested response: {actual_response}", "info")
+                                        except Exception as e:
+                                            # Fallback to suggested response on any error
+                                            actual_response = suggested_response
+                                            self.stream.write(f"  Error reading input, using suggested: {actual_response}", "warning")
+                                        
+                                        self.stream.write("="*60 + "\n", "info")
+                                    else:
+                                        # Automated mode - use suggested response
+                                        actual_response = suggested_response
+                                        if self.verbose_logger:
+                                            self.stream.write(f"  Auto-resuming with: {actual_response}", "info")
                                     
                                     # Resume with Command
                                     from langgraph.types import Command
-                                    agent_input = Command(resume=suggested_response)
+                                    agent_input = Command(resume=actual_response)
                                     
                                     # Log the HIL event (don't create ExecutionStep as it has invalid type)
                                     if self.verbose_logger:

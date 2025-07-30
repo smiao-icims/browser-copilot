@@ -39,6 +39,11 @@ async def run_test_command(args) -> int:
         # HIL is enabled by default
         cli_args['hil'] = True
     
+    # Handle hil_interactive flag
+    if 'hil_interactive' in cli_args and cli_args['hil_interactive']:
+        # Interactive mode requires HIL to be enabled
+        cli_args['hil'] = True
+    
     config.set_cli_args(cli_args)
 
     # Initialize stream handler

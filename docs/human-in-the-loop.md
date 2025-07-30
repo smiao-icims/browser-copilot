@@ -7,12 +7,21 @@ Browser Copilot supports human-in-the-loop interactions, allowing AI agents to a
 HIL is **enabled by default**. To run in fully automated mode without HIL, use the `--no-hil` flag:
 
 ```bash
-# Default behavior - HIL enabled
+# Default behavior - HIL enabled with LLM responses
 browser-copilot test.md
+
+# Interactive mode - prompts for real human input
+browser-copilot test.md --hil-interactive
 
 # Disable HIL for full automation
 browser-copilot test.md --no-hil
 ```
+
+### HIL Modes
+
+1. **Default Mode**: HIL enabled with LLM-generated responses
+2. **Interactive Mode** (`--hil-interactive`): Prompts for real human input via console
+3. **Disabled** (`--no-hil`): No HIL tools available
 
 ## How It Works
 
@@ -69,9 +78,39 @@ HIL uses LLM-powered response generation with few-shot examples for intelligent 
 
 The LLM analyzes context to make appropriate decisions for test automation scenarios.
 
+## Interactive Mode
+
+When using `--hil-interactive`, the system will:
+
+1. **Pause execution** when ask_human or confirm_action is called
+2. **Display the question** and context in the console
+3. **Show suggested response** from the LLM
+4. **Wait for user input** - press Enter to use suggested or type your own
+5. **Continue execution** with the provided response
+
+### Example Interactive Session:
+
+```
+============================================================
+🤔 HUMAN INPUT REQUIRED
+============================================================
+
+Question: What search term should I use?
+Context: Testing Google search functionality
+
+Suggested response: artificial intelligence
+
+Enter your response (or press Enter to use suggested):
+> machine learning
+
+Using your response: machine learning
+============================================================
+```
+
 ## Implementation Details
 
 - Uses LangGraph's checkpointing for state persistence
 - Each test session gets a unique thread ID
 - Interrupts are handled via `Command(resume=response)`
 - Tools are added by default (use `--no-hil` to disable)
+- Interactive mode reads from stdin for real human input

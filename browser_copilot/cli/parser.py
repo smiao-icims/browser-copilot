@@ -201,6 +201,11 @@ Examples:
         action="store_true",
         help="Disable Human-in-the-Loop mode (HIL is enabled by default)",
     )
+    hil_group.add_argument(
+        "--hil-interactive",
+        action="store_true",
+        help="Enable interactive mode for HIL - prompts for real human input instead of LLM responses",
+    )
 
     # Configuration management
     config_group = parser.add_argument_group("Configuration Management")
