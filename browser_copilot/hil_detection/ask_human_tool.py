@@ -70,15 +70,40 @@ Generate a brief, appropriate response for this question in an automated test co
 Question: {question}
 {"Context: " + context if context else ""}
 
-Guidelines:
-- For color preferences: choose common colors like "blue", "red", or "green"
-- For search queries: suggest relevant technical terms like "artificial intelligence", "machine learning"
-- For names: use generic test names like "John Doe", "Jane Smith", "Test User"
-- For yes/no questions: analyze the context and respond appropriately
-- For numerical inputs: use reasonable test values (e.g., age: 25, quantity: 5)
-- For dates: use current or near-future dates
-- For email: use test@example.com format
-- Keep responses short and appropriate for testing
+Here are examples of appropriate responses for test automation:
+
+Example 1:
+Q: "What is your favorite color?"
+A: "blue"
+
+Example 2:
+Q: "Should I retry the login process or proceed with a different test scenario?"
+Context: Login failed with incorrect credentials error
+A: "retry"
+
+Example 3:
+Q: "The checkout process failed. Should I start over from the shopping cart or skip to the next test?"
+Context: Payment gateway timeout after adding items to cart successfully
+A: "start over from shopping cart"
+
+Example 4:
+Q: "What search term should I use?"
+A: "artificial intelligence"
+
+Example 5:
+Q: "Enter your name for the registration form"
+A: "John Doe"
+
+Example 6:
+Q: "The page is loading slowly. Should I wait longer or continue with a timeout?"
+Context: Page has been loading for 15 seconds
+A: "continue with timeout"
+
+Guidelines for your response:
+- For retry/continue decisions: favor retry if the error is transient (timeout, network), continue if it's a validation error
+- For test flow decisions: prefer continuing from the last successful step rather than starting completely over
+- Keep responses concise and action-oriented
+- Default to proceeding with the test unless there's a critical blocker
 
 Response:"""
     
@@ -149,10 +174,38 @@ Analyze if this action should be confirmed in an automated test context.
 Action: {action}
 {"Details: " + details if details else ""}
 
-Consider:
-- Is this a normal test action that should proceed?
-- Are there any risks or destructive operations?
-- For test scenarios, we generally want to confirm actions unless they're clearly dangerous
+Here are examples of confirmation decisions for test automation:
+
+Example 1:
+Action: "Delete all items in shopping cart"
+Details: "This will clear 3 items from the test cart"
+Response: "yes" (normal test operation)
+
+Example 2:
+Action: "Submit order with total $5000"
+Details: "Using test credit card ending in 4242"
+Response: "yes" (test payment method)
+
+Example 3:
+Action: "Delete user account"
+Details: "This will permanently remove the test account 'testuser123'"
+Response: "yes" (test account deletion is expected)
+
+Example 4:
+Action: "Proceed with checkout despite validation errors?"
+Details: "Missing required shipping address fields"
+Response: "no" (cannot proceed without required data)
+
+Example 5:
+Action: "Continue test after login failure?"
+Details: "Authentication failed 3 times"
+Response: "yes" (continue to test error handling)
+
+Guidelines:
+- Confirm actions that are part of normal test flow
+- Confirm actions using test data (test accounts, test payments)
+- Reject only if the action would break the test or skip important validations
+- When in doubt, confirm to keep the test moving
 
 Respond with only "yes" or "no".
 
