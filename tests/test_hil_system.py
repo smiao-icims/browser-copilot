@@ -16,7 +16,9 @@ from browser_copilot.hil_detection.ask_human_tool import (
 )
 
 
-@pytest.mark.skip(reason="HIL system tests need complete refactor for ModelForge integration")
+@pytest.mark.skip(
+    reason="HIL system tests need complete refactor for ModelForge integration"
+)
 class TestHILSystem:
     """Test the Human-in-the-Loop system functionality"""
 
@@ -45,7 +47,9 @@ class TestHILSystem:
             assert "context" in properties
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires LangGraph context - needs integration test setup")
+    @pytest.mark.skip(
+        reason="Requires LangGraph context - needs integration test setup"
+    )
     @patch("browser_copilot.hil_detection.ask_human_tool.get_response_generator")
     async def test_ask_human_execution_with_mock_llm(self, mock_get_generator):
         """Test ask_human execution with mocked LLM response"""
@@ -69,7 +73,9 @@ class TestHILSystem:
         # Verify LLM was called
         mock_get_generator.assert_called_once()
 
-    @pytest.mark.skip(reason="HIL system refactored to use ModelForge - test needs update")
+    @pytest.mark.skip(
+        reason="HIL system refactored to use ModelForge - test needs update"
+    )
     def test_configure_hil_llm_with_different_providers(self):
         """Test HIL LLM configuration with different providers"""
         # Test OpenAI configuration
@@ -100,7 +106,9 @@ class TestHILSystem:
                 model="claude-3-sonnet", api_key="test-key", temperature=0.1
             )
 
-    @pytest.mark.skip(reason="HIL system refactored to use ModelForge - test needs update")
+    @pytest.mark.skip(
+        reason="HIL system refactored to use ModelForge - test needs update"
+    )
     def test_configure_hil_llm_error_handling(self):
         """Test HIL LLM configuration error handling"""
         # Test unsupported provider
@@ -111,7 +119,9 @@ class TestHILSystem:
         with pytest.raises(ValueError, match="API key"):
             configure_hil_llm("openai", "gpt-4", "")
 
-    @pytest.mark.skip(reason="HIL system refactored to use ModelForge - test needs update")
+    @pytest.mark.skip(
+        reason="HIL system refactored to use ModelForge - test needs update"
+    )
     @patch("browser_copilot.hil_detection.ask_human_tool.configure_hil_llm")
     def test_get_response_generator_creation(self, mock_configure):
         """Test response generator creation"""
@@ -280,7 +290,9 @@ class TestHILSystem:
                 assert response == "retry"
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires LangGraph context - needs integration test setup")
+    @pytest.mark.skip(
+        reason="Requires LangGraph context - needs integration test setup"
+    )
     async def test_hil_integration_with_interrupts(self):
         """Test HIL integration with LangGraph interrupts"""
         # This tests the conceptual integration - the actual interrupt
