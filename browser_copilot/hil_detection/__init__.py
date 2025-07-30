@@ -1,11 +1,10 @@
-"""Human-in-the-Loop detection and handling for Browser Copilot."""
+"""
+Human-in-the-Loop tools for Browser Copilot
 
-from .detector import HILDetector
-from .handler import SmartHILHandler
-from .hooks import create_hil_post_hook
+Provides tools that allow agents to explicitly ask for human input
+using LangGraph's interrupt mechanism.
+"""
 
-__all__ = [
-    "HILDetector",
-    "SmartHILHandler", 
-    "create_hil_post_hook",
-]
+from .ask_human_tool import ask_human, confirm_action
+
+__all__ = ["ask_human", "confirm_action"]

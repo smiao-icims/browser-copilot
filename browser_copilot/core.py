@@ -308,10 +308,8 @@ class BrowserPilot:
                         recursion_limit=100,
                         context_strategy=context_strategy,
                         context_config=context_config,
-                        hil_detection=not self.config.get('no_hil_detection', False),
-                        hil_detection_model=self.config.get('hil_detection_model', None),
-                        use_interrupt=self.config.get('hil_use_interrupt', False),
-                        verbose=self.verbose_logger is not None or self.config.get('hil_verbose', False)
+                        hil_enabled=self.config.get('hil', False),
+                        verbose=self.verbose_logger is not None
                     )
 
                     # Build execution prompt
@@ -333,19 +331,16 @@ class BrowserPilot:
                     steps = []
                     final_response = None
                     
-                    # Configure for interrupt mode if enabled
-                    use_interrupt = self.config.get('hil_use_interrupt', False)
-                    if self.verbose_logger:
-                        self.stream.write(f"[DEBUG] hil_use_interrupt from config: {use_interrupt}", "debug")
-                    
+                    # Configure for HIL mode if enabled
+                    hil_enabled = self.config.get('hil', False)
                     config = None
-                    if use_interrupt:
+                    if hil_enabled:
                         # Create config with thread ID for checkpointing
                         test_name = self.config.get('test_scenario', 'test').replace('/', '_').replace('.md', '')
                         thread_id = f"test_{test_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                         config = {"configurable": {"thread_id": thread_id}}
                         if self.verbose_logger:
-                            self.stream.write(f"Using interrupt mode with thread ID: {thread_id}", "debug")
+                            self.stream.write(f"HIL mode enabled with thread ID: {thread_id}", "debug")
                     
                     # Initial input
                     agent_input = {"messages": prompt}
