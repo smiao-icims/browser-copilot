@@ -56,7 +56,7 @@ class WizardFlow:
             SaveConfigurationStep(),
             CompletionStep()
         ]
-    
+
     async def run(self) -> WizardResult:
         """Execute the wizard flow"""
         for step in self.steps:
@@ -83,15 +83,15 @@ class WizardState:
     compression_level: str = "medium"
     viewport_width: int = 1920
     viewport_height: int = 1080
-    
+
     # Navigation state
     current_step: int = 0
     history: List[Dict[str, Any]] = field(default_factory=list)
-    
+
     # Validation results
     provider_validated: bool = False
     browser_validated: bool = False
-    
+
     def to_config(self) -> Dict[str, Any]:
         """Convert state to configuration format"""
         return {
@@ -131,7 +131,7 @@ class WizardStep(ABC):
     async def execute(self, state: WizardState) -> StepResult:
         """Execute this wizard step"""
         pass
-    
+
     @abstractmethod
     def can_skip(self, state: WizardState) -> bool:
         """Check if this step can be skipped"""
@@ -147,10 +147,10 @@ class ProviderSelectionStep(WizardStep):
         # Get available providers from ModelForge
         registry = ModelForgeRegistry()
         providers = await registry.get_providers()
-        
+
         # Sort with GitHub Copilot first
         sorted_providers = self._sort_providers(providers)
-        
+
         # Create choices for Questionary
         choices = []
         for provider in sorted_providers:
@@ -160,7 +160,7 @@ class ProviderSelectionStep(WizardStep):
             elif provider.requires_api_key:
                 label += " (Requires API key)"
             choices.append(Choice(title=label, value=provider.name))
-        
+
         # Show selection prompt
         selected = await questionary.select(
             "Select your LLM provider:",
@@ -168,7 +168,7 @@ class ProviderSelectionStep(WizardStep):
             use_shortcuts=True,
             use_arrow_keys=True
         ).unsafe_ask_async()
-        
+
         return StepResult(
             action=WizardAction.CONTINUE,
             data={"provider": selected}
@@ -183,17 +183,17 @@ class GitHubCopilotAuth:
     async def authenticate(self) -> AuthResult:
         # Initialize device flow
         device_code_response = await self._request_device_code()
-        
+
         # Display instructions
         print(f"\n🔐 GitHub Copilot requires authentication.\n")
         print(f"1. Go to: {device_code_response.verification_uri}")
         print(f"2. Enter code: {device_code_response.user_code}")
         print(f"3. Authorize the application\n")
-        
+
         # Poll for completion
         spinner = Spinner("Waiting for authorization")
         spinner.start()
-        
+
         try:
             token = await self._poll_for_token(
                 device_code_response.device_code,
@@ -217,22 +217,22 @@ sequenceDiagram
     participant Wizard
     participant ModelForge
     participant ConfigManager
-    
+
     User->>CLI: browser-copilot --setup-wizard
     CLI->>Wizard: Initialize wizard
     Wizard->>User: Show welcome screen
-    
+
     loop For each step
         Wizard->>User: Present choices
         User->>Wizard: Make selection
         Wizard->>Wizard: Update state
-        
+
         alt Validation required
             Wizard->>ModelForge: Validate selection
             ModelForge-->>Wizard: Validation result
         end
     end
-    
+
     Wizard->>ConfigManager: Save configuration
     ConfigManager-->>Wizard: Confirm saved
     Wizard->>User: Show completion message
@@ -266,12 +266,12 @@ class ErrorHandler:
                 "Choose different provider",
                 "Skip validation"
             ]
-        
+
         action = questionary.select(
             f"Error: {error}\n\nWhat would you like to do?",
             choices=choices
         ).ask()
-        
+
         return StepResult(
             action=WizardAction.RETRY if "Retry" in action else WizardAction.CONTINUE,
             data={"manual_mode": True}
@@ -342,7 +342,7 @@ from modelforge.registry import ModelForgeRegistry
 async def get_available_providers():
     registry = ModelForgeRegistry()
     providers = await registry.discover_providers()
-    
+
     # Filter and enhance
     return [
         {
@@ -363,16 +363,16 @@ Save to standard Browser Copilot configuration:
 class ConfigurationSaver:
     def save(self, config: Dict[str, Any], backup: bool = True):
         config_path = get_config_path()
-        
+
         # Backup existing config
         if backup and config_path.exists():
             backup_path = config_path.with_suffix('.backup')
             shutil.copy(config_path, backup_path)
-        
+
         # Save new config
         with open(config_path, 'w') as f:
             json.dump(config, f, indent=2)
-        
+
         # Set appropriate permissions
         os.chmod(config_path, 0o600)  # Read/write for owner only
 ```

@@ -29,7 +29,22 @@ async def run_test_command(args) -> int:
     # Initialize storage and config
     storage = StorageManager()
     config = ConfigManager(storage_manager=storage)
-    config.set_cli_args(vars(args))
+
+    # Convert no_hil to hil for backwards compatibility
+    cli_args = vars(args)
+    if "no_hil" in cli_args:
+        # HIL is enabled by default, so only set hil=False if --no-hil is specified
+        cli_args["hil"] = not cli_args.pop("no_hil")
+    else:
+        # HIL is enabled by default
+        cli_args["hil"] = True
+
+    # Handle hil_interactive flag
+    if "hil_interactive" in cli_args and cli_args["hil_interactive"]:
+        # Interactive mode requires HIL to be enabled
+        cli_args["hil"] = True
+
+    config.set_cli_args(cli_args)
 
     # Initialize stream handler
     stream = StreamHandler(verbose=args.verbose, quiet=args.quiet)
@@ -65,7 +80,6 @@ async def run_test_command(args) -> int:
 
     # Save configuration if requested
     if hasattr(args, "save_config") and args.save_config:
-        # TODO: Implement save_defaults method in ConfigManager
         stream.write("Configuration save requested (not yet implemented)", "info")
 
     # Build playwright kwargs

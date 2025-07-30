@@ -170,7 +170,7 @@ Mode:            headless
 Optimization:    medium
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Save this configuration? [Y/n]: 
+Save this configuration? [Y/n]:
 ```
 
 #### Step 10: Next Steps

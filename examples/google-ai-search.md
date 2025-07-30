@@ -32,7 +32,7 @@ This example demonstrates how to use Google's AI-powered search to research any 
 "Microservices vs monolithic architecture"
 "Test-driven development benefits"
 
-# Software Engineering Concepts  
+# Software Engineering Concepts
 "SOLID principles in object-oriented design"
 "REST API design patterns"
 "CI/CD pipeline best practices"

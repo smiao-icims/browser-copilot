@@ -48,7 +48,7 @@ class TestVerboseLogger:
         assert "Navigate to homepage" in caplog.text
 
         # Check file output
-        log_content = self.logger.log_file.read_text()
+        log_content = self.logger.log_file.read_text(encoding="utf-8")
         assert "Navigate to homepage" in log_content
         assert "NAVIGATION" in log_content  # Logger outputs uppercase step types
 
@@ -104,7 +104,7 @@ class TestVerboseLogger:
     def test_log_screenshot(self, caplog, temp_dir):
         """Test screenshot logging"""
         screenshot_path = temp_dir / "screenshot.png"
-        screenshot_path.write_text("fake image data")
+        screenshot_path.write_text("fake image data", encoding="utf-8")
 
         self.logger.log_screenshot(screenshot_path, "Login page screenshot")
 
@@ -166,7 +166,7 @@ class TestVerboseLogger:
             assert not has_console_handler
 
             # But file should contain the message
-            log_content = logger.log_file.read_text()
+            log_content = logger.log_file.read_text(encoding="utf-8")
             assert "Should not print to console" in log_content
         finally:
             logger.close()
@@ -209,7 +209,7 @@ class TestVerboseLogger:
         # Write summary (internal method)
         self.logger._write_execution_summary()
 
-        log_content = self.logger.log_file.read_text()
+        log_content = self.logger.log_file.read_text(encoding="utf-8")
         assert "EXECUTION SUMMARY" in log_content
         # The summary is in JSON format
         assert '"steps": 1' in log_content

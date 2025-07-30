@@ -218,9 +218,9 @@ class ModelSelectionStep(WizardStep):
                 models.append(
                     {
                         "name": name,
-                        "description": " - ".join(description_parts)
-                        if description_parts
-                        else "",
+                        "description": (
+                            " - ".join(description_parts) if description_parts else ""
+                        ),
                         "context": context_str,
                         "configured": is_configured,
                         "is_current": name == current_model_name,

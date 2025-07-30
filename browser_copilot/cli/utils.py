@@ -49,7 +49,7 @@ def read_system_prompt(prompt_file: str | None) -> str | None:
         return None
 
     try:
-        return Path(prompt_file).read_text().strip()
+        return Path(prompt_file).read_text(encoding="utf-8").strip()
     except Exception as e:
         raise OSError(f"Failed to read system prompt file: {e}")
 

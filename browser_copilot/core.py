@@ -6,6 +6,7 @@ AI-powered browser test automation.
 """
 
 import logging
+import uuid
 from datetime import UTC, datetime
 from typing import Any
 
@@ -16,9 +17,25 @@ from modelforge.registry import ModelForgeRegistry
 from modelforge.telemetry import TelemetryCallback
 
 from .agent import AgentFactory
+from .analysis import ReportParser
 from .config_manager import ConfigManager
+from .constants import (
+    DEFAULT_COMPRESSION_LEVEL,
+    DEFAULT_CONTEXT_WINDOW_SIZE,
+    DEFAULT_PRESERVE_FIRST_N,
+    DEFAULT_PRESERVE_LAST_N,
+    DEFAULT_RECURSION_LIMIT,
+    MODEL_CONTEXT_LIMITS,
+    SESSION_DIR_FORMAT,
+    TIMESTAMP_FORMAT,
+)
 from .io import StreamHandler
+from .models.execution import ExecutionMetadata, ExecutionStep, ExecutionTiming
+from .models.metrics import OptimizationSavings, TokenMetrics
+from .models.results import BrowserTestResult
+from .prompts import PromptBuilder
 from .token_optimizer import OptimizationLevel, TokenOptimizer
+from .utils import extract_test_name, normalize_test_name
 from .verbose_logger import LangChainVerboseCallback, VerboseLogger
 
 
@@ -112,8 +129,8 @@ class BrowserPilot:
         except (ProviderError, ModelNotFoundError, ConfigurationError) as e:
             raise RuntimeError(f"Failed to load LLM: {e}")
 
-        # Initialize agent factory
-        self.agent_factory = AgentFactory(self.llm)
+        # Initialize agent factory with provider and model info
+        self.agent_factory = AgentFactory(self.llm, self.provider, self.model)
 
     async def run_test_suite(
         self,
@@ -220,11 +237,13 @@ class BrowserPilot:
         if kwargs.get("save_trace") or kwargs.get("save_session"):
             # Create session-specific output directory
             test_name_normalized = self._normalize_test_name(test_name)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
             session_dir = (
                 self.config.storage.base_dir
                 / "sessions"
-                / f"{test_name_normalized}_{timestamp}"
+                / SESSION_DIR_FORMAT.format(
+                    test_name=test_name_normalized, timestamp=timestamp
+                )
             )
             session_dir.mkdir(parents=True, exist_ok=True)
             browser_args.extend(["--output-dir", str(session_dir)])
@@ -249,31 +268,82 @@ class BrowserPilot:
                 },
             )
 
+        # Create execution metadata
+        ExecutionMetadata(
+            test_name=test_name,
+            provider=self.provider,
+            model=self.model,
+            browser=browser,
+            headless=headless,
+            viewport_width=viewport_width,
+            viewport_height=viewport_height,
+            token_optimization_enabled=self.token_optimizer is not None,
+            compression_level=self.config.get("compression_level", "medium"),
+            verbose_enabled=self.verbose_logger is not None,
+            session_id=str(kwargs.get("_session_dir", uuid.uuid4())),
+        )
+
         # Track execution
         start_time = datetime.now(UTC)
-        result = {
-            "success": False,
-            "provider": self.provider,
-            "model": self.model,
-            "browser": browser,
-            "headless": headless,
-            "viewport_size": viewport_size,
-            "test_name": test_name,
-            "execution_time": {"start": start_time.isoformat(), "timezone": "UTC"},
-            "environment": {
-                "token_optimization": self.token_optimizer is not None,
-                "compression_level": self.config.get("compression_level", "medium"),
-            },
-        }
+
+        # Initialize result components
+        execution_steps: list[ExecutionStep] = []
+        report_content = ""
+        error_message: str | None = None
+        token_metrics: TokenMetrics | None = None
 
         try:
             async with stdio_client(server_params) as (read, write):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
 
-                    # Create browser automation agent using AgentFactory
+                    # Get context management configuration
+                    context_strategy = self.config.get(
+                        "context_strategy", "sliding-window"
+                    )
+
+                    # Build context config from CLI/config
+                    from .context_management.base import ContextConfig
+
+                    context_config = ContextConfig(
+                        window_size=self.config.get(
+                            "context_window_size", DEFAULT_CONTEXT_WINDOW_SIZE
+                        ),
+                        preserve_first_n=self.config.get(
+                            "context_preserve_first", DEFAULT_PRESERVE_FIRST_N
+                        ),
+                        preserve_last_n=self.config.get(
+                            "context_preserve_last", DEFAULT_PRESERVE_LAST_N
+                        ),
+                        compression_level=self.config.get(
+                            "compression_level", DEFAULT_COMPRESSION_LEVEL
+                        ),
+                        preserve_errors=True,
+                        preserve_screenshots=True,
+                    )
+
+                    # Log context configuration
+                    if self.verbose_logger:
+                        self.stream.write(
+                            f"Context management: {context_strategy}", "debug"
+                        )
+                        self.stream.write(
+                            f"Window size: {context_config.window_size} tokens", "debug"
+                        )
+                        self.stream.write(
+                            f"Preserve first: {context_config.preserve_first_n}, last: {context_config.preserve_last_n}",
+                            "debug",
+                        )
+
+                    # Create browser automation agent using AgentFactory with context management
+                    recursion_limit = DEFAULT_RECURSION_LIMIT
                     agent = await self.agent_factory.create_browser_agent(
-                        session=session, recursion_limit=100
+                        session=session,
+                        recursion_limit=recursion_limit,
+                        context_strategy=context_strategy,
+                        context_config=context_config,
+                        hil_enabled=self.config.get("hil", True),
+                        verbose=self.verbose_logger is not None,
                     )
 
                     # Build execution prompt
@@ -295,32 +365,314 @@ class BrowserPilot:
                     steps = []
                     final_response = None
 
-                    async for chunk in agent.astream({"messages": prompt}):
-                        steps.append(chunk)
+                    # Configure for HIL mode if enabled
+                    hil_enabled = self.config.get("hil", True)
+                    config = None
 
-                        # In verbose mode, show every step
+                    if self.verbose_logger:
+                        self.stream.write(
+                            f"[HIL] HIL enabled from config: {hil_enabled}", "debug"
+                        )
+                        self.stream.write(
+                            f"[HIL] Config hil value: {self.config.get('hil', 'NOT SET')}",
+                            "debug",
+                        )
+                        self.stream.write(
+                            f"[HIL] Config hil_interactive value: {self.config.get('hil_interactive', 'NOT SET')}",
+                            "debug",
+                        )
+
+                    if hil_enabled:
+                        # Create config with thread ID for checkpointing
+                        test_name = (
+                            self.config.get("test_scenario", "test")
+                            .replace("/", "_")
+                            .replace(".md", "")
+                        )
+                        thread_id = f"test_{test_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                        config = {"configurable": {"thread_id": thread_id}}
                         if self.verbose_logger:
                             self.stream.write(
-                                f"\n[STEP {len(steps)}] Processing...", "debug"
+                                f"[HIL] HIL mode enabled with thread ID: {thread_id}",
+                                "debug",
                             )
+
+                    # Initial input
+                    agent_input: dict[str, Any] | Any = {"messages": prompt}
+                    hil_interaction_count = 0
+                    max_hil_interactions = 50  # Safety limit
+
+                    if config:
+                        # Use invoke for interrupt mode (streaming with interrupts is complex)
+                        while True:
+                            try:
+                                result = await agent.ainvoke(agent_input, config)
+
+                                # Check for interrupt
+                                if "__interrupt__" in result:
+                                    interrupt_data = result["__interrupt__"]
+                                    hil_interaction_count += 1
+
+                                    # Check if we've hit the interaction limit
+                                    if hil_interaction_count >= max_hil_interactions:
+                                        self.stream.write(
+                                            f"\n⚠️ HIL interaction limit reached ({max_hil_interactions}). Terminating to prevent infinite loops.",
+                                            "warning",
+                                        )
+                                        raise RuntimeError(
+                                            f"HIL interaction limit ({max_hil_interactions}) exceeded"
+                                        )
+
+                                    if self.verbose_logger:
+                                        self.stream.write(
+                                            f"\n🔄 [HIL Interrupt #{hil_interaction_count}] Agent paused for human input",
+                                            "info",
+                                        )
+                                        if (
+                                            isinstance(interrupt_data, list)
+                                            and interrupt_data
+                                        ):
+                                            interrupt_info = interrupt_data[0]
+                                            if hasattr(interrupt_info, "value"):
+                                                hil_info = interrupt_info.value
+                                                self.stream.write(
+                                                    f"  Type: {hil_info.get('hil_type', 'unknown')}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"  Request: {hil_info.get('agent_request', '')}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"  Suggested: {hil_info.get('suggested_response', '')}",
+                                                    "debug",
+                                                )
+
+                                    # Extract interrupt information
+                                    suggested_response = "Continue"
+                                    question = ""
+                                    context = ""
+
+                                    # Debug: log raw interrupt data
+                                    if self.verbose_logger:
+                                        self.stream.write(
+                                            f"[HIL] Raw interrupt data: {interrupt_data}",
+                                            "debug",
+                                        )
+
+                                    if (
+                                        isinstance(interrupt_data, list)
+                                        and interrupt_data
+                                    ):
+                                        interrupt_info = interrupt_data[0]
+                                        if hasattr(
+                                            interrupt_info, "value"
+                                        ) and isinstance(interrupt_info.value, dict):
+                                            hil_data = interrupt_info.value
+                                            suggested_response = hil_data.get(
+                                                "suggested_response", "Continue"
+                                            )
+                                            question = str(
+                                                hil_data.get(
+                                                    "question",
+                                                    hil_data.get("action", ""),
+                                                )
+                                            )
+                                            context = str(
+                                                hil_data.get(
+                                                    "context",
+                                                    hil_data.get("details", ""),
+                                                )
+                                            )
+
+                                            if self.verbose_logger:
+                                                self.stream.write(
+                                                    f"[HIL] Extracted - Question: {question}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"[HIL] Extracted - Context: {context}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"[HIL] Extracted - Suggested: {suggested_response}",
+                                                    "debug",
+                                                )
+
+                                    # Check if interactive mode is enabled
+                                    if self.config.get("hil_interactive", False):
+                                        # Interactive mode - prompt for real human input
+                                        self.stream.write("\n" + "=" * 60, "info")
+                                        self.stream.write(
+                                            "🤔 HUMAN INPUT REQUIRED", "info"
+                                        )
+                                        self.stream.write("=" * 60, "info")
+
+                                        if question:
+                                            self.stream.write(
+                                                f"\nQuestion: {question}", "info"
+                                            )
+                                        if context:
+                                            self.stream.write(
+                                                f"Context: {context}", "info"
+                                            )
+
+                                        self.stream.write(
+                                            f"\nSuggested response: {suggested_response}",
+                                            "info",
+                                        )
+                                        self.stream.write(
+                                            "\nEnter your response (or press Enter to use suggested):",
+                                            "info",
+                                        )
+
+                                        try:
+                                            # Read from stdin with a prompt
+                                            import sys
+
+                                            user_input = sys.stdin.readline().strip()
+
+                                            # Check for exit commands
+                                            if user_input.lower() in [
+                                                "exit",
+                                                "quit",
+                                                "stop",
+                                                "abort",
+                                            ]:
+                                                self.stream.write(
+                                                    "\n⛔ User requested to exit. Terminating test execution.",
+                                                    "warning",
+                                                )
+                                                self.stream.write(
+                                                    "=" * 60 + "\n", "info"
+                                                )
+                                                # Raise a custom exception to exit gracefully
+                                                raise KeyboardInterrupt(
+                                                    "User requested exit during HIL interaction"
+                                                )
+
+                                            if user_input:
+                                                # Use user's input
+                                                actual_response = user_input
+                                                self.stream.write(
+                                                    f"  Using your response: {actual_response}",
+                                                    "info",
+                                                )
+                                            else:
+                                                # Use suggested response
+                                                actual_response = suggested_response
+                                                self.stream.write(
+                                                    f"  Using suggested response: {actual_response}",
+                                                    "info",
+                                                )
+                                        except KeyboardInterrupt:
+                                            # Re-raise keyboard interrupt to exit
+                                            raise
+                                        except Exception:
+                                            # Fallback to suggested response on any error
+                                            actual_response = suggested_response
+                                            self.stream.write(
+                                                f"  Error reading input, using suggested: {actual_response}",
+                                                "warning",
+                                            )
+
+                                        self.stream.write("=" * 60 + "\n", "info")
+                                    else:
+                                        # Automated mode - use suggested response
+                                        actual_response = suggested_response
+                                        if self.verbose_logger:
+                                            self.stream.write(
+                                                f"  Auto-resuming with: {actual_response}",
+                                                "info",
+                                            )
+
+                                    # Resume with Command
+                                    from langgraph.types import Command
+
+                                    agent_input = Command(resume=actual_response)
+
+                                    # Log the HIL event (don't create ExecutionStep as it has invalid type)
+                                    if self.verbose_logger:
+                                        self.stream.write(
+                                            "[HIL] Continuing execution after auto-response",
+                                            "debug",
+                                        )
+
+                                    continue
+
+                                # No interrupt, process result
+                                if "messages" in result:
+                                    for msg in result["messages"]:
+                                        if hasattr(msg, "content") and msg.content:
+                                            final_response = msg
+                                break
+
+                            except Exception as e:
+                                if "interrupt" in str(e).lower():
+                                    # This is expected for interrupt errors
+                                    if self.verbose_logger:
+                                        self.stream.write(
+                                            f"Interrupt exception (expected): {e}",
+                                            "debug",
+                                        )
+                                    continue
+                                elif (
+                                    "recursion limit" in str(e).lower()
+                                    or isinstance(e, RecursionError)
+                                    or "GraphRecursionError" in str(type(e))
+                                ):
+                                    # Handle recursion limit gracefully
+                                    self.stream.write(
+                                        f"\n⚠️ Recursion limit reached. The agent has exceeded the maximum number of steps ({recursion_limit}).",
+                                        "warning",
+                                    )
+                                    self.stream.write(
+                                        "This usually indicates the test is too complex or stuck in a loop.",
+                                        "warning",
+                                    )
+                                    raise RuntimeError(
+                                        f"Agent recursion limit ({recursion_limit}) exceeded"
+                                    ) from e
+                                else:
+                                    raise
+                    else:
+                        # Non-interrupt mode - use streaming
+                        async for chunk in agent.astream({"messages": prompt}):
+                            steps.append(chunk)
+
+                            # In verbose mode, show every step
+                            if self.verbose_logger:
+                                self.stream.write(
+                                    f"\n[STEP {len(steps)}] Processing...", "debug"
+                                )
 
                             # Extract and display tool calls
                             if "tools" in chunk:
                                 for tool_msg in chunk.get("tools", {}).get(
                                     "messages", []
                                 ):
-                                    if hasattr(tool_msg, "name"):
+                                    if hasattr(tool_msg, "name") and hasattr(
+                                        tool_msg, "content"
+                                    ):
+                                        # Create ExecutionStep for tool call
+                                        step = ExecutionStep(
+                                            type="tool_call",
+                                            name=tool_msg.name,
+                                            content=str(tool_msg.content),
+                                            timestamp=datetime.now(UTC),
+                                        )
+                                        execution_steps.append(step)
+
                                         self.stream.write(
                                             f"  Tool: {tool_msg.name}", "info"
                                         )
-                                        if hasattr(tool_msg, "content"):
-                                            # Show first 200 chars of tool response
-                                            content = str(tool_msg.content)[:200]
-                                            if len(str(tool_msg.content)) > 200:
-                                                content += "..."
-                                            self.stream.write(
-                                                f"  Response: {content}", "debug"
-                                            )
+                                        # Show first 200 chars of tool response
+                                        content = str(tool_msg.content)[:200]
+                                        if len(str(tool_msg.content)) > 200:
+                                            content += "..."
+                                        self.stream.write(
+                                            f"  Response: {content}", "debug"
+                                        )
 
                             # Extract and display agent messages
                             if "agent" in chunk:
@@ -331,147 +683,325 @@ class BrowserPilot:
                                         hasattr(agent_msg, "content")
                                         and agent_msg.content
                                     ):
+                                        content = str(agent_msg.content)
+                                        if (
+                                            len(content) > 50
+                                        ):  # Only include substantial messages
+                                            step = ExecutionStep(
+                                                type="agent_message",
+                                                name=None,
+                                                content=content,
+                                                timestamp=datetime.now(UTC),
+                                            )
+                                            execution_steps.append(step)
+
                                         self.stream.write(
-                                            f"  Agent thinking: {str(agent_msg.content)[:200]}...",
+                                            f"  Agent thinking: {content[:200]}...",
                                             "debug",
                                         )
 
-                        elif len(steps) % 5 == 0:
-                            self.stream.write(
-                                f"Progress: {len(steps)} steps...", "debug"
-                            )
+                            elif len(steps) % 5 == 0:
+                                self.stream.write(
+                                    f"Progress: {len(steps)} steps...", "debug"
+                                )
 
-                        # Extract final response from agent
-                        if "agent" in chunk and "messages" in chunk["agent"]:
-                            for msg in chunk["agent"]["messages"]:
-                                if hasattr(msg, "content") and msg.content:
-                                    final_response = msg
+                            # Extract final response from agent
+                            if "agent" in chunk and "messages" in chunk["agent"]:
+                                for msg in chunk["agent"]["messages"]:
+                                    if hasattr(msg, "content") and msg.content:
+                                        final_response = msg
 
                     # Process execution results
                     duration = (datetime.now(UTC) - start_time).total_seconds()
+                    end_time = datetime.now(UTC)
 
-                    report_content = ""
                     if final_response and hasattr(final_response, "content"):
                         report_content = str(final_response.content)
 
                     # Extract token usage from telemetry
-                    token_usage = self._get_token_usage()
+                    token_metrics = self._get_token_usage()
 
-                    end_time = datetime.now(UTC)
-                    result.update(
-                        {
-                            "success": self._check_success(report_content),
-                            "duration": duration,
-                            "duration_seconds": duration,  # Backward compatibility
-                            "steps_executed": len(steps),
-                            "steps": self._extract_steps(steps),
-                            "report": report_content,
-                            "execution_time": {
-                                "start": start_time.isoformat(),
-                                "end": end_time.isoformat(),
-                                "duration_seconds": duration,
-                                "timezone": "UTC",
-                            },
-                            "token_usage": token_usage,
-                            "metrics": {
-                                "total_steps": len(steps),
-                                "execution_time_ms": duration * 1000,
-                                "avg_step_time_ms": (duration * 1000) / len(steps)
-                                if steps
-                                else 0,
-                            },
-                        }
+                    # Get context management metrics if available
+                    context_metrics = None
+                    if hasattr(agent, "_context_manager"):
+                        context_metrics = agent._context_manager.get_metrics()
+                        # Log context management summary
+                        if self.verbose_logger:
+                            self.stream.write(
+                                "\n" + agent._context_manager.get_summary(), "debug"
+                            )
+
+                    # Determine success
+                    success = self._check_success(report_content)
+
+                    # Create timing information
+                    timing = ExecutionTiming(
+                        start=start_time,
+                        end=end_time,
+                        duration_seconds=duration,
+                        timezone="UTC",
                     )
 
-                    # Log test completion if verbose
+                    # Build verbose log if enabled
+                    verbose_log = None
                     if self.verbose_logger:
                         self.verbose_logger.log_test_complete(
-                            bool(result["success"]),
+                            success,
                             duration,
                             f"{len(steps)} steps executed",
                         )
-
-                        # Add verbose log info to result
-                        result["verbose_log"] = {
+                        verbose_log = {
                             "log_file": str(self.verbose_logger.get_log_file_path()),
                             "summary": self.verbose_logger.get_execution_summary(),
                         }
 
-        except Exception as e:
-            result.update(
-                {
-                    "error": str(e),
-                    "duration_seconds": (
-                        datetime.now(UTC) - start_time
-                    ).total_seconds(),
-                }
+                    # Create the result model
+                    result = BrowserTestResult(
+                        success=success,
+                        test_name=test_name,
+                        duration=duration,
+                        report=report_content if success else "",
+                        error=error_message if not success else None,
+                        steps=execution_steps,
+                        execution_time=timing,
+                        metrics={
+                            "total_steps": len(steps),
+                            "execution_time_ms": duration * 1000,
+                            "avg_step_time_ms": (
+                                (duration * 1000) / len(steps) if steps else 0
+                            ),
+                        },
+                        token_usage=token_metrics,
+                        environment={
+                            "token_optimization": self.token_optimizer is not None,
+                            "compression_level": self.config.get(
+                                "compression_level", "medium"
+                            ),
+                            "context_strategy": context_strategy,
+                            "context_metrics": context_metrics,
+                        },
+                        verbose_log=verbose_log,
+                        # Browser-specific fields
+                        provider=self.provider,
+                        model=self.model,
+                        browser=browser,
+                        headless=headless,
+                        viewport_size=viewport_size,
+                        steps_executed=len(steps),
+                    )
+
+                    # Return the result as dict for backward compatibility
+                    return result.to_dict()
+
+        except TimeoutError:
+            # Handle timeout specifically
+            timeout_step = ExecutionStep(
+                type="agent_message",
+                name="timeout_error",
+                content=f"Test execution timed out after {timeout} seconds",
+                timestamp=datetime.now(UTC),
             )
+            execution_steps.append(timeout_step)
+
+            duration = (datetime.now(UTC) - start_time).total_seconds()
+            timing = ExecutionTiming(
+                start=start_time,
+                end=datetime.now(UTC),
+                duration_seconds=duration,
+                timezone="UTC",
+            )
+
+            result = BrowserTestResult(
+                success=False,
+                test_name=test_name,
+                duration=duration,
+                report="",
+                error=f"Test execution timed out after {timeout} seconds",
+                steps=execution_steps,
+                execution_time=timing,
+                metrics={
+                    "total_steps": len(execution_steps),
+                    "execution_time_ms": duration * 1000,
+                    "avg_step_time_ms": (
+                        (duration * 1000) / len(execution_steps)
+                        if execution_steps
+                        else 0
+                    ),
+                },
+                token_usage=self._get_token_usage(),
+                environment={
+                    "token_optimization": self.token_optimizer is not None,
+                    "compression_level": self.config.get("compression_level", "medium"),
+                    "context_strategy": self.config.get(
+                        "context_strategy", "sliding-window"
+                    ),
+                    "context_metrics": None,
+                },
+                verbose_log=None,
+                provider=self.provider,
+                model=self.model,
+                browser=browser,
+                headless=headless,
+                viewport_size=viewport_size,
+                steps_executed=len(execution_steps),
+            )
+
+            if self.verbose_logger:
+                self.verbose_logger.log_test_complete(
+                    False,
+                    duration,
+                    f"Timeout after {timeout} seconds",
+                )
+
+            return result.to_dict()
+
+        except BaseExceptionGroup as eg:
+            # Handle ExceptionGroup (Python 3.11+)
+            duration = (datetime.now(UTC) - start_time).total_seconds()
+            timing = ExecutionTiming(
+                start=start_time,
+                end=datetime.now(UTC),
+                duration_seconds=duration,
+                timezone="UTC",
+            )
+
+            # Extract first meaningful exception
+            first_exception: BaseException | None = None
+            for exc in eg.exceptions:
+                if isinstance(exc, TimeoutError):
+                    first_exception = exc
+                    break
+                elif not isinstance(exc, KeyboardInterrupt | SystemExit):
+                    first_exception = exc
+                    break
+
+            error_msg = str(first_exception) if first_exception else str(eg)
+
+            result = BrowserTestResult(
+                success=False,
+                test_name=test_name,
+                duration=duration,
+                report="",
+                error=error_msg,
+                steps=execution_steps,
+                execution_time=timing,
+                metrics={
+                    "total_steps": len(execution_steps),
+                    "execution_time_ms": duration * 1000,
+                    "avg_step_time_ms": (
+                        (duration * 1000) / len(execution_steps)
+                        if execution_steps
+                        else 0
+                    ),
+                },
+                token_usage=self._get_token_usage(),
+                environment={
+                    "token_optimization": self.token_optimizer is not None,
+                    "compression_level": self.config.get("compression_level", "medium"),
+                    "context_strategy": self.config.get(
+                        "context_strategy", "sliding-window"
+                    ),
+                    "context_metrics": None,
+                },
+                verbose_log=None,
+                provider=self.provider,
+                model=self.model,
+                browser=browser,
+                headless=headless,
+                viewport_size=viewport_size,
+                steps_executed=len(execution_steps),
+            )
+
+            if self.verbose_logger:
+                self.verbose_logger.log_test_complete(
+                    False,
+                    duration,
+                    f"Error: {error_msg}",
+                )
+
             if verbose:
                 import traceback
 
                 traceback.print_exc()
 
-        return result
+            return result.to_dict()
+
+        except Exception as e:
+            # Handle other exceptions
+            duration = (datetime.now(UTC) - start_time).total_seconds()
+            timing = ExecutionTiming(
+                start=start_time,
+                end=datetime.now(UTC),
+                duration_seconds=duration,
+                timezone="UTC",
+            )
+
+            result = BrowserTestResult(
+                success=False,
+                test_name=test_name,
+                duration=duration,
+                report="",
+                error=str(e),
+                steps=execution_steps,
+                execution_time=timing,
+                metrics={
+                    "total_steps": len(execution_steps),
+                    "execution_time_ms": duration * 1000,
+                    "avg_step_time_ms": (
+                        (duration * 1000) / len(execution_steps)
+                        if execution_steps
+                        else 0
+                    ),
+                },
+                token_usage=self._get_token_usage(),
+                environment={
+                    "token_optimization": self.token_optimizer is not None,
+                    "compression_level": self.config.get("compression_level", "medium"),
+                    "context_strategy": self.config.get(
+                        "context_strategy", "sliding-window"
+                    ),
+                    "context_metrics": None,
+                },
+                verbose_log=None,
+                provider=self.provider,
+                model=self.model,
+                browser=browser,
+                headless=headless,
+                viewport_size=viewport_size,
+                steps_executed=len(execution_steps),
+            )
+
+            if self.verbose_logger:
+                self.verbose_logger.log_test_complete(
+                    False,
+                    duration,
+                    f"Error: {str(e)}",
+                )
+
+            if verbose:
+                import traceback
+
+                traceback.print_exc()
+
+        # Return the result as dict for backward compatibility
+        return result.to_dict()
 
     def _build_prompt(self, test_suite_content: str) -> str:
         """Build the test execution prompt with instructions"""
-        # Use custom system prompt if provided
-        if self.system_prompt:
-            base_prompt = self.system_prompt
-        else:
-            base_prompt = ""
+        # Create prompt builder
+        prompt_builder = PromptBuilder(
+            system_prompt=self.system_prompt,
+            token_optimizer=self.token_optimizer,
+        )
 
-        # Combine prompts
-        full_prompt = f"""{base_prompt}{test_suite_content.strip()}
+        # Build the prompt
+        prompt = prompt_builder.build_test_prompt(
+            test_suite_content=test_suite_content,
+            browser=self.browser if hasattr(self, "browser") else "Unknown",
+        )
 
-IMPORTANT INSTRUCTIONS:
-1. Execute each test step methodically using the browser automation tools
-2. Use browser_snapshot before interacting with elements
-3. Take screenshots at key points using browser_take_screenshot
-4. Handle errors gracefully and continue if possible
-5. Wait for page loads after navigation
-6. For form fields - IMPORTANT:
-   - Process each field completely before moving to the next
-   - Click a field and immediately type in it (don't click multiple fields then type)
-   - For each field: click it, then type the value right away
-   - Never click all fields first and then go back to type
-   - If a field doesn't accept input, click it again
-7. Be especially careful with the first field in a form - complete it fully before moving on
-
-At the end, generate a comprehensive test report in markdown format:
-
-# Test Execution Report
-
-## Summary
-- Overall Status: PASSED or FAILED
-- Duration: X seconds
-- Browser: {self.browser if hasattr(self, "browser") else "Unknown"}
-
-## Test Results
-
-### [Test Name]
-**Status:** PASSED/FAILED
-
-**Steps Executed:**
-1. ✅ [Step description] - [What happened]
-2. ❌ [Step description] - Error: [What went wrong]
-
-**Screenshots Taken:**
-- [List of screenshots with descriptions]
-
-## Issues Encountered
-[Any errors or unexpected behaviors]
-
-## Recommendations
-[Suggestions for improvement]
-
-Execute the test now."""
-
-        # Apply token optimization if enabled
+        # Log optimization if it occurred
         if self.token_optimizer:
-            optimized_prompt = self.token_optimizer.optimize_prompt(full_prompt)
-
-            # Log optimization metrics
             metrics = self.token_optimizer.get_metrics()
             if metrics["reduction_percentage"] > 0:
                 self.stream.write(
@@ -479,9 +1009,7 @@ Execute the test now."""
                     "debug",
                 )
 
-            return optimized_prompt
-
-        return full_prompt
+        return prompt
 
     def _check_success(self, report_content: str) -> bool:
         """
@@ -490,86 +1018,51 @@ Execute the test now."""
         Uses simple heuristics to check for success indicators
         in the generated report.
         """
-        if not report_content:
-            return False
+        return ReportParser.check_success(report_content)
 
-        lower_content = report_content.lower()
-
-        # Check various success patterns
-        success_patterns = [
-            "overall status:** passed",
-            "overall status: passed",
-            "status:** passed",
-            "status: passed",
-            "all tests passed",
-            "test passed successfully",
-        ]
-
-        # Must have test execution report
-        has_report = "test execution report" in lower_content
-
-        # Check for any success pattern
-        has_success = any(pattern in lower_content for pattern in success_patterns)
-
-        # Check for explicit failure
-        has_failure = any(
-            fail in lower_content
-            for fail in [
-                "overall status:** failed",
-                "overall status: failed",
-                "test failed",
-            ]
-        )
-
-        return has_report and has_success and not has_failure
-
-    def _get_token_usage(self) -> dict[str, Any]:
+    def _get_token_usage(self) -> TokenMetrics | None:
         """Extract token usage metrics from telemetry"""
         if not self.telemetry:
-            return {}
+            return None
 
         try:
             # Try to get metrics from telemetry
             if hasattr(self.telemetry, "metrics") and self.telemetry.metrics:
                 metrics = self.telemetry.metrics
-                usage = {}
+                total_tokens = 0
+                prompt_tokens = 0
+                completion_tokens = 0
+                estimated_cost = None
 
                 # Extract token usage if available
                 if hasattr(metrics, "token_usage"):
                     token_usage = metrics.token_usage
-                    usage.update(
-                        {
-                            "total_tokens": getattr(token_usage, "total_tokens", 0),
-                            "prompt_tokens": getattr(token_usage, "prompt_tokens", 0),
-                            "completion_tokens": getattr(
-                                token_usage, "completion_tokens", 0
-                            ),
-                        }
-                    )
+                    total_tokens = getattr(token_usage, "total_tokens", 0)
+                    prompt_tokens = getattr(token_usage, "prompt_tokens", 0)
+                    completion_tokens = getattr(token_usage, "completion_tokens", 0)
 
                 # Extract cost if available
                 if hasattr(metrics, "estimated_cost"):
-                    usage["estimated_cost"] = metrics.estimated_cost
+                    estimated_cost = metrics.estimated_cost
                 # Enhanced LLM cost estimation (if available and no cost from telemetry)
                 elif (
                     hasattr(self.llm, "estimate_cost")
-                    and usage.get("prompt_tokens")
-                    and usage.get("completion_tokens")
+                    and prompt_tokens > 0
+                    and completion_tokens > 0
                 ):
                     try:
-                        enhanced_cost = self.llm.estimate_cost(
-                            usage["prompt_tokens"], usage["completion_tokens"]
+                        estimated_cost = self.llm.estimate_cost(
+                            prompt_tokens, completion_tokens
                         )
-                        usage["estimated_cost"] = enhanced_cost
-                        usage["cost_source"] = "enhanced_llm"
                     except Exception:
                         pass  # Fall back to telemetry cost if enhanced estimation fails
 
                 # Add context length information if we have prompt tokens
-                if usage.get("prompt_tokens", 0) > 0:
-                    context_length = usage["prompt_tokens"]
-                    usage["context_length"] = context_length
+                context_length = prompt_tokens if prompt_tokens > 0 else None
+                max_context_length = None
+                context_usage_percentage = None
 
+                if context_length:
                     # Get context limit from enhanced model-forge LLM (v2.2.1+)
                     max_context = None
 
@@ -610,76 +1103,59 @@ Execute the test now."""
 
                     # Set the context usage info if we found a limit
                     if max_context:
-                        usage["max_context_length"] = max_context
-                        usage["context_usage_percentage"] = round(
+                        max_context_length = max_context
+                        context_usage_percentage = round(
                             (context_length / max_context) * 100, 1
                         )
 
                 # Add optimization savings if available
+                optimization_savings = None
                 if self.token_optimizer:
                     opt_metrics = self.token_optimizer.get_metrics()
                     if opt_metrics["original_tokens"] > 0:
-                        usage["optimization"] = {
-                            "original_tokens": opt_metrics["original_tokens"],
-                            "optimized_tokens": opt_metrics["optimized_tokens"],
-                            "reduction_percentage": opt_metrics["reduction_percentage"],
-                            "strategies_applied": opt_metrics["strategies_applied"],
-                        }
-
                         # Estimate cost savings
-                        if usage.get("estimated_cost"):
-                            cost_per_token = (
-                                usage["estimated_cost"] / usage["total_tokens"]
-                            )
+                        estimated_savings = None
+                        if estimated_cost and total_tokens > 0:
+                            cost_per_token = estimated_cost / total_tokens
                             tokens_saved = (
                                 opt_metrics["original_tokens"]
                                 - opt_metrics["optimized_tokens"]
                             )
-                            optimization_dict = usage.get("optimization")
-                            if isinstance(optimization_dict, dict):
-                                optimization_dict["estimated_savings"] = (
-                                    tokens_saved * cost_per_token
-                                )
+                            estimated_savings = tokens_saved * cost_per_token
 
-                return usage
+                        optimization_savings = OptimizationSavings(
+                            original_tokens=opt_metrics["original_tokens"],
+                            optimized_tokens=opt_metrics["optimized_tokens"],
+                            reduction_percentage=opt_metrics["reduction_percentage"],
+                            strategies_applied=opt_metrics["strategies_applied"],
+                            estimated_savings=estimated_savings,
+                        )
 
-            return {}
+                # Return TokenMetrics even if counts are zero
+                return TokenMetrics(
+                    total_tokens=total_tokens,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    estimated_cost=estimated_cost,
+                    context_length=context_length,
+                    max_context_length=max_context_length,
+                    context_usage_percentage=context_usage_percentage,
+                    optimization_savings=optimization_savings,
+                )
+
+            return None
 
         except Exception:
-            # If anything goes wrong, return empty metrics
-            return {}
+            # If anything goes wrong, return None
+            return None
 
-    def _extract_steps(self, steps: list) -> list:
-        """Extract human-readable steps from agent execution"""
-        extracted_steps = []
+    def _extract_steps(self, steps: list) -> list[ExecutionStep]:
+        """Extract execution steps from agent execution
 
-        for step in steps:
-            if isinstance(step, dict):
-                # Extract tool calls
-                if "tools" in step:
-                    for tool_msg in step.get("tools", {}).get("messages", []):
-                        if hasattr(tool_msg, "name") and hasattr(tool_msg, "content"):
-                            content = str(tool_msg.content)
-                            # Keep full content for reports - truncation will be handled by formatter
-                            extracted_steps.append(
-                                {
-                                    "type": "tool_call",
-                                    "name": tool_msg.name,
-                                    "content": content,
-                                }
-                            )
-
-                # Extract agent messages
-                if "agent" in step:
-                    for agent_msg in step.get("agent", {}).get("messages", []):
-                        if hasattr(agent_msg, "content") and agent_msg.content:
-                            content = str(agent_msg.content)
-                            if len(content) > 50:  # Only include substantial messages
-                                extracted_steps.append(
-                                    {"type": "agent_message", "content": content}
-                                )
-
-        return extracted_steps
+        This method is kept for backward compatibility but could be removed
+        since we now create ExecutionStep objects directly in the main loop.
+        """
+        return ReportParser.extract_steps(steps)
 
     def _get_optimization_level(self) -> OptimizationLevel:
         """
@@ -719,23 +1195,7 @@ Execute the test now."""
         Returns:
             Test name
         """
-        lines = test_content.strip().split("\n")
-
-        # Look for markdown heading
-        for line in lines:
-            if line.startswith("#"):
-                return line.strip("# ").strip()
-
-        # Use first non-empty line
-        for line in lines:
-            if line.strip():
-                # Truncate if too long
-                name = line.strip()
-                if len(name) > 50:
-                    name = name[:47] + "..."
-                return name
-
-        return "Browser Test"
+        return extract_test_name(test_content)
 
     def _get_model_context_limits(self) -> dict[str, int]:
         """
@@ -748,13 +1208,7 @@ Execute the test now."""
             Dictionary mapping model identifiers to their context limits
         """
         # Fallback context limits (only used when model-forge metadata is unavailable)
-        return {
-            # Common fallback limits - model-forge should provide accurate data
-            "github_copilot_gpt_4o": 128000,
-            "openai_gpt_4o": 128000,
-            "anthropic_claude_3_5_sonnet": 200000,
-            "google_gemini_1_5_pro": 2000000,
-        }
+        return MODEL_CONTEXT_LIMITS
 
     def _normalize_test_name(self, test_name: str) -> str:
         """
@@ -766,23 +1220,7 @@ Execute the test now."""
         Returns:
             Normalized test name safe for file paths
         """
-        import re
-
-        # Convert to lowercase and replace spaces with hyphens
-        normalized = test_name.lower().replace(" ", "-")
-        # Remove special characters, keep only alphanumeric and hyphens
-        normalized = re.sub(r"[^a-z0-9-]", "", normalized)
-        # Remove multiple consecutive hyphens
-        normalized = re.sub(r"-+", "-", normalized)
-        # Remove leading/trailing hyphens
-        normalized = normalized.strip("-")
-        # Ensure it's not empty
-        if not normalized:
-            normalized = "browser-test"
-        # Limit length
-        if len(normalized) > 50:
-            normalized = normalized[:50].rstrip("-")
-        return normalized
+        return normalize_test_name(test_name)
 
     def close(self) -> None:
         """Clean up resources, particularly closing the verbose logger"""

@@ -66,7 +66,9 @@ class TestAgentFactory:
 
         # Verify calls
         mock_load_tools.assert_called_once_with(mock_session)
-        mock_create_agent.assert_called_once_with(agent_factory.llm, mock_tools)
+        mock_create_agent.assert_called_once_with(
+            model=agent_factory.llm, tools=mock_tools, version="v2"
+        )
         mock_agent.with_config.assert_called_once_with(recursion_limit=100)
 
         assert result is mock_configured_agent
@@ -94,7 +96,9 @@ class TestAgentFactory:
 
         # Verify calls
         mock_load_tools.assert_called_once_with(mock_session)
-        mock_create_agent.assert_called_once_with(agent_factory.llm, mock_tools)
+        mock_create_agent.assert_called_once_with(
+            model=agent_factory.llm, tools=mock_tools, version="v2"
+        )
         mock_agent.with_config.assert_called_once_with(recursion_limit=50)
 
         assert result is mock_configured_agent
@@ -133,7 +137,9 @@ class TestAgentFactory:
 
         # Verify it still works with empty tools
         mock_load_tools.assert_called_once_with(mock_session)
-        mock_create_agent.assert_called_once_with(agent_factory.llm, mock_tools)
+        mock_create_agent.assert_called_once_with(
+            model=agent_factory.llm, tools=mock_tools, version="v2"
+        )
         mock_agent.with_config.assert_called_once_with(recursion_limit=100)
 
         assert result is mock_configured_agent

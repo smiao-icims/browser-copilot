@@ -204,7 +204,7 @@ class TestOutputHandler:
         OutputHandler.write_output(content, output_file)
 
         assert output_file.exists()
-        assert output_file.read_text() == content
+        assert output_file.read_text(encoding="utf-8") == content
 
     def test_write_to_file_append(self, temp_dir):
         """Test appending output to file"""
@@ -213,7 +213,7 @@ class TestOutputHandler:
         OutputHandler.write_output("First line", output_file)
         OutputHandler.write_output("Second line", output_file, append=True)
 
-        content = output_file.read_text()
+        content = output_file.read_text(encoding="utf-8")
         assert "First line" in content
         assert "Second line" in content
         assert content.count("\n") == 1  # One newline added

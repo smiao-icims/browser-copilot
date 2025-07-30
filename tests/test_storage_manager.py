@@ -140,8 +140,8 @@ class TestStorageManager:
         recent_file = logs_dir / "recent.log"
 
         # Create files
-        old_file.write_text("old log")
-        recent_file.write_text("recent log")
+        old_file.write_text("old log", encoding="utf-8")
+        recent_file.write_text("recent log", encoding="utf-8")
 
         # Modify timestamps
         old_time = (datetime.now() - timedelta(days=10)).timestamp()
@@ -169,7 +169,7 @@ class TestStorageManager:
         recent_png = screenshots_dir / "recent.png"
 
         for f in [old_png, old_jpg, recent_png]:
-            f.write_text("test")
+            f.write_text("test", encoding="utf-8")
 
         # Set old timestamps
         old_time = (datetime.now() - timedelta(days=10)).timestamp()
@@ -192,9 +192,9 @@ class TestStorageManager:
         logs_dir = storage.get_logs_dir()
         reports_dir = storage.get_reports_dir()
 
-        (logs_dir / "test1.log").write_text("A" * 1000)
-        (logs_dir / "test2.log").write_text("B" * 2000)
-        (reports_dir / "report.md").write_text("C" * 1500)
+        (logs_dir / "test1.log").write_text("A" * 1000, encoding="utf-8")
+        (logs_dir / "test2.log").write_text("B" * 2000, encoding="utf-8")
+        (reports_dir / "report.md").write_text("C" * 1500, encoding="utf-8")
 
         info = storage.get_storage_info()
 
@@ -227,11 +227,11 @@ class TestStorageManager:
         cache_dir = storage.get_cache_dir()
 
         # Create test files and directories
-        (cache_dir / "file1.tmp").write_text("test")
-        (cache_dir / "file2.tmp").write_text("test")
+        (cache_dir / "file1.tmp").write_text("test", encoding="utf-8")
+        (cache_dir / "file2.tmp").write_text("test", encoding="utf-8")
         subdir = cache_dir / "subdir"
         subdir.mkdir()
-        (subdir / "file3.tmp").write_text("test")
+        (subdir / "file3.tmp").write_text("test", encoding="utf-8")
 
         # Clear cache
         deleted = storage.clear_cache()
@@ -304,7 +304,7 @@ class TestStorageManager:
         settings_path = storage.get_settings_file("corrupted")
 
         # Write invalid JSON
-        settings_path.write_text("{ invalid json ]")
+        settings_path.write_text("{ invalid json ]", encoding="utf-8")
 
         # Should return default value, not raise
         value = storage.get_setting("key", "default", "corrupted")

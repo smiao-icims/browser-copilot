@@ -45,7 +45,7 @@ class TestCLIUtils:
         # Test with valid file
         prompt_file = temp_dir / "prompt.txt"
         prompt_content = "This is a test prompt\nWith multiple lines"
-        prompt_file.write_text(prompt_content)
+        prompt_file.write_text(prompt_content, encoding="utf-8")
         assert read_system_prompt(str(prompt_file)) == prompt_content
 
         # Test with non-existent file

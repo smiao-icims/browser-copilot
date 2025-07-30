@@ -52,7 +52,7 @@ graph TD
     E --> F[ReportHandler]
     F --> G[OutputFormatter]
     G --> H[Output]
-    
+
     I[ConfigManager] --> D
     J[ErrorHandler] --> D
 ```
@@ -75,13 +75,13 @@ from ..reporters import ReportHandler
 @dataclass
 class TestHandler:
     """Orchestrates test execution workflow."""
-    
+
     args: Namespace
     validator: InputValidator
     loader: TestLoader
     executor: TestExecutor
     reporter: ReportHandler
-    
+
     @classmethod
     def from_args(cls, args: Namespace) -> "TestHandler":
         """Factory method to create handler from CLI args."""
@@ -92,7 +92,7 @@ class TestHandler:
             executor=TestExecutor.from_args(args),
             reporter=ReportHandler.from_args(args)
         )
-    
+
     async def run(self) -> int:
         """Execute test workflow and return exit code."""
         try:
@@ -101,24 +101,24 @@ class TestHandler:
             if not validation_result.is_valid:
                 self._handle_validation_error(validation_result)
                 return 1
-            
+
             # Step 2: Load test content
             test_content = await self.loader.load(
                 source=self.args.test_scenario,
                 encoding=self.args.encoding
             )
-            
+
             # Step 3: Create execution context
             context = self._create_context(validation_result)
-            
+
             # Step 4: Execute test
             results = await self.executor.execute(test_content, context)
-            
+
             # Step 5: Generate output
             await self.reporter.report(results, context)
-            
+
             return 0 if results.success else 1
-            
+
         except BrowserPilotError as e:
             self._handle_error(e)
             return 1
@@ -147,13 +147,13 @@ class ValidationResult:
 
 class InputValidator:
     """Validates CLI inputs and arguments."""
-    
+
     def validate_all(self, args: Namespace) -> ValidationResult:
         """Validate all CLI arguments."""
         errors = []
         warnings = []
         validated = {}
-        
+
         # Validate test source
         if args.test_scenario != "-":
             path_result = self._validate_path(args.test_scenario)
@@ -161,21 +161,21 @@ class InputValidator:
                 errors.append(path_result.error)
             else:
                 validated["test_path"] = path_result.value
-        
+
         # Validate output format
         format_result = self._validate_output_format(args.output_format)
         if format_result.error:
             errors.append(format_result.error)
         else:
             validated["output_format"] = format_result.value
-            
+
         # Validate browser
         browser_result = self._validate_browser(args.browser)
         if browser_result.error:
             errors.append(browser_result.error)
         else:
             validated["browser"] = browser_result.value
-            
+
         # Validate viewport dimensions
         viewport_result = self._validate_viewport(
             args.viewport_width,
@@ -185,36 +185,36 @@ class InputValidator:
             errors.append(viewport_result.error)
         else:
             validated.update(viewport_result.value)
-            
+
         return ValidationResult(
             is_valid=len(errors) == 0,
             errors=errors,
             warnings=warnings,
             validated_data=validated
         )
-    
+
     def _validate_path(self, path: str) -> ValidationItem:
         """Validate file path exists and is readable."""
         test_path = Path(path)
-        
+
         if not test_path.exists():
             return ValidationItem(
                 error=f"Test file not found: {path}",
                 suggestion="Check the file path or use absolute path"
             )
-            
+
         if not test_path.is_file():
             return ValidationItem(
                 error=f"Path is not a file: {path}",
                 suggestion="Provide a path to a test file, not a directory"
             )
-            
+
         if not os.access(test_path, os.R_OK):
             return ValidationItem(
                 error=f"Cannot read file: {path}",
                 suggestion="Check file permissions"
             )
-            
+
         return ValidationItem(value=test_path)
 ```
 
@@ -230,7 +230,7 @@ import sys
 
 class TestLoader:
     """Loads test content from various sources."""
-    
+
     async def load(
         self,
         source: str,
@@ -243,7 +243,7 @@ class TestLoader:
             return await self._load_from_url(source)
         else:
             return await self._load_from_file(Path(source), encoding)
-    
+
     async def _load_from_file(
         self,
         path: Path,
@@ -253,33 +253,33 @@ class TestLoader:
         try:
             async with aiofiles.open(path, "r", encoding=encoding) as f:
                 content = await f.read()
-                
+
             if not content.strip():
                 raise TestParsingError(
                     "Test file is empty",
                     context={"path": str(path)},
                     suggestion="Add test steps to the file"
                 )
-                
+
             return content
-            
+
         except UnicodeDecodeError as e:
             raise TestParsingError(
                 "Failed to decode file content",
                 context={"path": str(path), "encoding": encoding},
                 suggestion=f"Try a different encoding (current: {encoding})"
             ) from e
-            
+
     async def _load_from_stdin(self) -> str:
         """Load test content from stdin."""
         content = sys.stdin.read()
-        
+
         if not content.strip():
             raise TestParsingError(
                 "No test content provided on stdin",
                 suggestion="Pipe test content to the command"
             )
-            
+
         return content
 ```
 
@@ -293,12 +293,12 @@ from ..models import ExecutionContext, TestResults
 
 class TestExecutor:
     """Manages test execution with the browser pilot."""
-    
+
     def __init__(self, config: ExecutorConfig):
         self.config = config
         self.token_tracker = TokenTracker()
         self.telemetry = TelemetryManager()
-        
+
     async def execute(
         self,
         test_content: str,
@@ -307,11 +307,11 @@ class TestExecutor:
         """Execute test and return results."""
         pilot = None
         start_time = time.time()
-        
+
         try:
             # Create browser pilot
             pilot = await self._create_pilot(context)
-            
+
             # Execute with retries
             for attempt in range(context.retry_count):
                 try:
@@ -320,20 +320,20 @@ class TestExecutor:
                         test_content,
                         context
                     )
-                    
+
                     if result.success or attempt == context.retry_count - 1:
                         return result
-                        
+
                     await asyncio.sleep(2 ** attempt)  # Exponential backoff
-                    
+
                 except TimeoutError as e:
                     if attempt == context.retry_count - 1:
                         raise
-                        
+
         finally:
             if pilot:
                 pilot.close()
-                
+
     async def _execute_once(
         self,
         pilot: BrowserPilot,
@@ -342,7 +342,7 @@ class TestExecutor:
     ) -> TestResults:
         """Single execution attempt."""
         result = await pilot.run_test_suite(test_content)
-        
+
         return TestResults(
             success=result["success"],
             duration=result["duration"],
@@ -368,11 +368,11 @@ from ..models import TestResults, ExecutionContext
 
 class ReportHandler:
     """Handles report generation and output."""
-    
+
     def __init__(self, config: ReporterConfig):
         self.config = config
         self.formatter_factory = FormatterFactory()
-        
+
     async def report(
         self,
         results: TestResults,
@@ -383,16 +383,16 @@ class ReportHandler:
         formatter = self.formatter_factory.get_formatter(
             context.output_format
         )
-        
+
         # Format results
         formatted = formatter.format(results)
-        
+
         # Output to file or stdout
         if context.output_file:
             await self._write_to_file(formatted, context.output_file)
         else:
             self._write_to_stdout(formatted)
-            
+
         # Save additional artifacts if requested
         if not context.no_artifacts:
             await self._save_artifacts(results, context)
@@ -403,7 +403,7 @@ class ReportHandler:
 ```python
 class CLIErrorHandler:
     """Centralized error handling for CLI."""
-    
+
     def handle_error(self, error: Exception) -> int:
         """Handle error and return exit code."""
         if isinstance(error, ValidationError):
@@ -451,10 +451,10 @@ async def test_cli_workflow():
         test_scenario="test.md",
         output_format="json"
     )
-    
+
     handler = TestHandler.from_args(args)
     exit_code = await handler.run()
-    
+
     assert exit_code == 0
 ```
 

@@ -144,9 +144,9 @@ class TestSuiteValidator:
             "errors": [],
             "warnings": [],
             "stats": {
-                "lines": len(test_suite_content.split("\n"))
-                if test_suite_content
-                else 0,
+                "lines": (
+                    len(test_suite_content.split("\n")) if test_suite_content else 0
+                ),
                 "steps": 0,
                 "assertions": 0,
             },

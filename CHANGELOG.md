@@ -5,7 +5,45 @@ All notable changes to Browser Copilot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.0] - 2025-01-26
+## [1.1.0] - 2025-01-30
+
+### Added
+
+#### Human-in-the-Loop (HIL) Features
+- **LLM-Powered HIL** - Intelligent responses using LangGraph's interrupt mechanism
+- **Interactive HIL Mode** (`--hil-interactive`) - Real human input for test development
+- **HIL Safety Features** - Exit commands (exit/quit/stop/abort) and 50-interaction limit
+- **Dynamic HIL Configuration** - Uses main agent's LLM settings
+- **HIL Enabled by Default** - Use `--no-hil` to disable
+- **Multi-turn Conversations** - Seamless continuation after interrupts
+
+#### Core Improvements
+- **Component Architecture** - Modular design with LLMManager, BrowserConfigBuilder, PromptBuilder, TestExecutor
+- **Windows Compatibility** - Fixed encoding issues for cross-platform support
+- **Resource Management** - Proper cleanup with VerboseLogger.close()
+- **Enhanced Error Handling** - Better error messages and recovery
+- **Context Management** - Smart context trimming strategies with 40-70% token reduction
+- **Comprehensive Test Coverage** - Added tests for HIL (97%), context management (85-100%)
+
+### Changed
+- HIL is now enabled by default (was opt-in)
+- All file operations now specify UTF-8 encoding
+- Improved prompt templates for better test execution
+
+### Fixed
+- Windows file encoding issues (cp1252 vs UTF-8)
+- Resource cleanup on test completion
+- VerboseLogger file handle management
+- Test file encoding in all test suites
+- Browser tools validation and alias mapping
+
+### Documentation
+- Consolidated and updated user-facing documentation
+- Removed outdated getting_started.md
+- Organized internal specs under docs/specs/
+- Updated README with clearer quick start instructions
+
+## [1.0.1] - 2025-01-26
 
 ### Added
 
@@ -53,11 +91,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-platform path handling in storage manager
 - Import compatibility issues with standalone modules
 
-## [2.0.0] - 2025-01-20
+## [1.0.0] - 2025-01-20
 
 ### Added
 - Single agent architecture for improved efficiency
-- ModelForge integration for LLM provider management  
+- ModelForge integration for LLM provider management
 - Markdown-based test format
 - Basic token usage tracking
 - Multi-browser support (Chromium, Firefox, WebKit)
@@ -72,7 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - YAML-based test definitions
 - Legacy provider integrations
 
-## [1.0.0] - 2024-12-15
+## [0.1.0] - 2024-12-15
 
 ### Added
 - Initial release with multi-agent architecture

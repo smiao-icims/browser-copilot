@@ -150,3 +150,6 @@ examples/icims*.md
 # Claude Code specific files
 CLAUDE.md
 .claude
+
+# Code review files
+browser-copilot-code-review.md

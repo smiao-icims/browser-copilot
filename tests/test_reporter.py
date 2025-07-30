@@ -3,15 +3,16 @@ Tests for Reporter
 """
 
 import json
-import sys
-from pathlib import Path
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
 
-# Add parent directory to path to import modules directly
-sys.path.insert(0, str(Path(__file__).parent.parent / "browser_copilot"))
-import reporter
+# Import from the package properly
+from browser_copilot import reporter
+from browser_copilot.models.execution import ExecutionStep, ExecutionTiming
+from browser_copilot.models.metrics import TokenMetrics
+from browser_copilot.models.results import BrowserTestResult
 
 
 @pytest.mark.unit
@@ -121,7 +122,7 @@ class TestReporter:
 
         # Check that report file is created
         assert "report" in saved_files
-        report_content = saved_files["report"].read_text()
+        report_content = saved_files["report"].read_text(encoding="utf-8")
 
         # Check metadata in comments
         assert "Browser Copilot Test Report" in report_content
@@ -136,7 +137,7 @@ class TestReporter:
 
         # Check that report file is created
         assert "report" in saved_files
-        report_content = saved_files["report"].read_text()
+        report_content = saved_files["report"].read_text(encoding="utf-8")
 
         # Check metadata in comments for failed test
         assert "Status: FAILED" in report_content
@@ -154,7 +155,7 @@ class TestReporter:
         assert filepath.suffix == ".md"
         assert "report_" in filepath.name
 
-        content = filepath.read_text()
+        content = filepath.read_text(encoding="utf-8")
         assert "Browser Copilot Test Report" in content
 
     def test_save_report_json(self, temp_dir, sample_result):
@@ -165,7 +166,7 @@ class TestReporter:
         assert filepath.exists()
         assert filepath.suffix == ".json"
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         assert data["success"] is True
         assert data["duration_seconds"] == 25.5
@@ -182,10 +183,10 @@ class TestReporter:
         assert results_path.suffix == ".json"
 
         # Verify content
-        report_content = report_path.read_text()
+        report_content = report_path.read_text(encoding="utf-8")
         assert "Browser Copilot Test Report" in report_content
 
-        with open(results_path) as f:
+        with open(results_path, encoding="utf-8") as f:
             results_data = json.load(f)
         assert results_data["success"] is True
 
@@ -288,7 +289,7 @@ class TestReporter:
         # Console display should work
         reporter.print_results(minimal_result)  # Should not raise
 
-    @patch("reporter.datetime")
+    @patch("browser_copilot.reporter.datetime")
     def test_timestamp_generation(self, mock_datetime, temp_dir, sample_result):
         """Test timestamp in filename generation"""
         # Mock datetime to return consistent value
@@ -298,3 +299,74 @@ class TestReporter:
         filepath = saved_files["report"]
 
         assert "20250126_120000" in filepath.name
+
+    def test_model_compatibility(self, temp_dir):
+        """Test that reporter works with BrowserTestResult model"""
+        # Create test model
+        timing = ExecutionTiming(
+            start=datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
+            end=datetime(2024, 1, 1, 10, 0, 30, tzinfo=UTC),
+            duration_seconds=30.0,
+        )
+
+        token_metrics = TokenMetrics(
+            total_tokens=1000,
+            prompt_tokens=800,
+            completion_tokens=200,
+            estimated_cost=0.05,
+        )
+
+        steps = [
+            ExecutionStep(
+                type="tool_call",
+                name="browser_navigate",
+                content="Navigating to example.com",
+                timestamp=datetime.now(UTC),
+            ),
+            ExecutionStep(
+                type="agent_message",
+                name=None,
+                content="Test completed successfully",
+                timestamp=datetime.now(UTC),
+            ),
+        ]
+
+        result = BrowserTestResult(
+            success=True,
+            test_name="Model Compatibility Test",
+            duration=30.0,
+            steps_executed=2,
+            report="# Test Report\n\nAll steps completed successfully.",
+            provider="openai",
+            model="gpt-4",
+            browser="chromium",
+            headless=True,
+            viewport_size="1920,1080",
+            execution_time=timing,
+            token_usage=token_metrics,
+            steps=steps,
+        )
+
+        # Test print_results with model
+        reporter.print_results(result)  # Should not raise
+
+        # Test save_results with model
+        saved_files = reporter.save_results(result, str(temp_dir))
+        assert saved_files["report"].exists()
+        assert saved_files["results"].exists()
+
+        # Test generate_summary with model
+        summary = reporter.generate_summary(result)
+        assert "PASSED" in summary
+        assert "chromium" in summary  # Browser is included in summary
+
+        # Test generate_markdown_report with model
+        markdown = reporter.generate_markdown_report(result)
+        assert "✅ **PASSED**" in markdown
+        assert "gpt-4" in markdown  # Model is included in markdown report
+
+        # Test create_html_report with model
+        html_path = reporter.create_html_report(result, temp_dir)
+        assert html_path.exists()
+        html_content = html_path.read_text(encoding="utf-8")
+        assert "✅ PASSED" in html_content

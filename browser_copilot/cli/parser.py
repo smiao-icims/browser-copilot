@@ -168,6 +168,44 @@ Examples:
         choices=["none", "low", "medium", "high"],
         help="Token compression level (default: medium)",
     )
+    optimization_group.add_argument(
+        "--context-strategy",
+        choices=["no-op", "sliding-window", "smart-trim"],
+        default="sliding-window",
+        help="Context management strategy: "
+        "no-op (no trimming, baseline for comparison), "
+        "sliding-window (preserves first N Human/System messages, fills rest with recent), "
+        "smart-trim (importance-based intelligent trimming) "
+        "(default: sliding-window)",
+    )
+    optimization_group.add_argument(
+        "--context-window-size",
+        type=int,
+        help="Target window size in tokens for sliding-window strategy (default: 50000)",
+    )
+    optimization_group.add_argument(
+        "--context-preserve-first",
+        type=int,
+        help="Number of first messages to always preserve (for sliding-window: first N Human/System messages ONLY) (default: 2)",
+    )
+    optimization_group.add_argument(
+        "--context-preserve-last",
+        type=int,
+        help="Number of last messages to always preserve (default: 10)",
+    )
+
+    # Human-in-the-Loop
+    hil_group = parser.add_argument_group("Human-in-the-Loop")
+    hil_group.add_argument(
+        "--no-hil",
+        action="store_true",
+        help="Disable Human-in-the-Loop mode (HIL is enabled by default)",
+    )
+    hil_group.add_argument(
+        "--hil-interactive",
+        action="store_true",
+        help="Enable interactive mode for HIL - prompts for real human input instead of LLM responses",
+    )
 
     # Configuration management
     config_group = parser.add_argument_group("Configuration Management")

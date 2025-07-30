@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .models.results import BrowserTestResult
+
 
 def print_header() -> None:
     """Print the Browser Copilot ASCII header"""
@@ -18,14 +20,19 @@ def print_header() -> None:
     print("╚═══════════════════════════════════════════╝")
 
 
-def print_results(result: dict[str, Any], no_color: bool = False) -> None:
+def print_results(
+    result: dict[str, Any] | BrowserTestResult, no_color: bool = False
+) -> None:
     """
     Print test execution results to console
 
     Args:
-        result: Test execution results dictionary
+        result: Test execution results (dictionary or BrowserTestResult model)
         no_color: Disable colored output
     """
+    # Convert model to dict if needed
+    if isinstance(result, BrowserTestResult):
+        result = result.to_dict()
     print("\n" + "-" * 50)
 
     # Status
@@ -70,18 +77,21 @@ def print_results(result: dict[str, Any], no_color: bool = False) -> None:
 
 
 def save_results(
-    result: dict[str, Any], output_dir: str = "reports"
+    result: dict[str, Any] | BrowserTestResult, output_dir: str = "reports"
 ) -> dict[str, Path]:
     """
     Save test results to disk in multiple formats
 
     Args:
-        result: Test execution results
+        result: Test execution results (dictionary or BrowserTestResult model)
         output_dir: Directory to save results
 
     Returns:
         Dictionary mapping file types to their paths
     """
+    # Convert model to dict if needed
+    if isinstance(result, BrowserTestResult):
+        result = result.to_dict()
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True)
 
@@ -123,16 +133,19 @@ Token Usage: {result.get("token_usage", {}).get("total_tokens", 0):,}
     return {"report": report_path, "results": json_path}
 
 
-def generate_summary(result: dict[str, Any]) -> str:
+def generate_summary(result: dict[str, Any] | BrowserTestResult) -> str:
     """
     Generate a brief summary of test execution
 
     Args:
-        result: Test execution results
+        result: Test execution results (dictionary or BrowserTestResult model)
 
     Returns:
         Summary text
     """
+    # Convert model to dict if needed
+    if isinstance(result, BrowserTestResult):
+        result = result.to_dict()
     summary_lines = [
         "Browser Copilot Test Summary",
         "=" * 50,
@@ -175,16 +188,19 @@ def generate_summary(result: dict[str, Any]) -> str:
     return "\n".join(summary_lines)
 
 
-def generate_markdown_report(result: dict[str, Any]) -> str:
+def generate_markdown_report(result: dict[str, Any] | BrowserTestResult) -> str:
     """
     Generate a markdown report from test results
 
     Args:
-        result: Test execution results
+        result: Test execution results (dictionary or BrowserTestResult model)
 
     Returns:
         Markdown formatted report
     """
+    # Convert model to dict if needed
+    if isinstance(result, BrowserTestResult):
+        result = result.to_dict()
     lines = ["# Browser Copilot Test Report", ""]
 
     # Status
@@ -283,17 +299,22 @@ def format_duration(seconds: float) -> str:
     return f"{hours}h {remaining_minutes}m"
 
 
-def create_html_report(result: dict[str, Any], output_path: Path) -> Path:
+def create_html_report(
+    result: dict[str, Any] | BrowserTestResult, output_path: Path
+) -> Path:
     """
     Create an HTML version of the test report
 
     Args:
-        result: Test execution results
+        result: Test execution results (dictionary or BrowserTestResult model)
         output_path: Directory to save the report
 
     Returns:
         Path to the created HTML file
     """
+    # Convert model to dict if needed
+    if isinstance(result, BrowserTestResult):
+        result = result.to_dict()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     html_path = output_path / f"report_{timestamp}.html"
 
@@ -355,7 +376,7 @@ def create_html_report(result: dict[str, Any], output_path: Path) -> Path:
         <h1>Browser Copilot Test Report</h1>
         <p>Generated: {result.get("timestamp", datetime.now().isoformat())}</p>
     </div>
-    
+
     <div class="metrics">
         <div class="metric-card">
             <h3>Status</h3>
@@ -384,7 +405,7 @@ def create_html_report(result: dict[str, Any], output_path: Path) -> Path:
             <p>${result.get("token_usage", {}).get("estimated_cost", 0):.4f}</p>
         </div>
     </div>
-    
+
     <div class="report-content">
         <h2>Test Report</h2>
         <pre>{report_content}</pre>

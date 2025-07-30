@@ -56,7 +56,7 @@ pytest tests/ --cov=browser_copilot --cov-report=html
 # Unit tests only
 pytest tests/ -m unit
 
-# Integration tests only  
+# Integration tests only
 pytest tests/ -m integration
 ```
 
@@ -77,7 +77,7 @@ Common fixtures are defined in `conftest.py`:
 As of the last run:
 - **39 tests passing**
 - **Coverage**: ~85-90% for tested modules (storage_manager, config_manager, token_optimizer)
-- **Known Issues**: 
+- **Known Issues**:
   - Some tests require mocking due to modelforge/jinja2 dependency conflicts
   - LangChain message optimization test needs fixing
 

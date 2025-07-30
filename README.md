@@ -55,11 +55,13 @@ That's it! You've just automated your first browser test. 🎉
 - 🔧 **Flexible**: Supports multiple LLM providers via [ModelForge](https://github.com/smiao-icims/model-forge) ([PyPI](https://pypi.org/project/model-forge-llm/))
 - 📊 **Insightful**: Enhanced reports with timing, token usage, and cost analysis
 - 🌐 **Cross-Browser**: Supports Chromium, Chrome, Firefox, Safari, Edge, and WebKit
+- 🤝 **Human-in-the-Loop**: Intelligent AI assistance with optional interactive mode for clarifications
 - 🔍 **Verbose Mode**: Step-by-step debugging with dual console/file logging
 - 💰 **Cost Optimization**: Built-in token optimization to reduce API costs
 - 📝 **Multiple Formats**: Export results as JSON, YAML, XML, JUnit, HTML, or Markdown
 - 🎛️ **Customizable**: System prompts, browser settings, and optimization levels
 - 🧙 **Setup Wizard**: Interactive configuration with arrow-key navigation
+- 🌍 **Cross-Platform**: Windows, macOS, and Linux support with proper UTF-8 encoding
 
 ## 🚀 Quick Start - Get Testing in 3 Minutes!
 
@@ -187,7 +189,7 @@ bp failing-test.md --verbose --save-trace
 ```
 
 
-👉 **[See More Examples](docs/COMMON_USE_CASES.md)** | 📘 **[Full Quick Start Guide](docs/QUICK_START.md)** | 🎯 **[Best Practices](docs/BEST_PRACTICES.md)**
+👉 **[See More Examples](docs/common-use-cases.md)** | 📘 **[Full Quick Start Guide](docs/quick-start.md)**
 
 ## 📝 Writing Tests
 
@@ -199,7 +201,7 @@ Tests are written in simple markdown format with numbered steps:
 1. Navigate to https://example.com/login
 2. Click on the email input field
 3. Type "user@example.com"
-4. Click on the password field  
+4. Click on the password field
 5. Type "securepassword123"
 6. Click the "Login" button
 7. Verify that the dashboard page is displayed
@@ -246,7 +248,43 @@ Steps: 15
    - results: results_20250726_173422.json
 ```
 
-## 🆕 New Features in v1.0
+## 🆕 New Features in v1.1.0
+
+### 🤝 Human-in-the-Loop (HIL) Mode
+
+Browser Copilot now includes intelligent Human-in-the-Loop capabilities that allow the AI to ask for clarification when needed:
+
+```bash
+# HIL is enabled by default - the AI will make smart decisions
+browser-copilot test.md
+
+# Disable HIL for fully autonomous execution
+browser-copilot test.md --no-hil
+
+# Enable interactive mode for real human input during testing
+browser-copilot test.md --hil-interactive
+```
+
+**Key HIL Features:**
+- 🤖 **Smart Defaults**: AI provides intelligent responses when clarification is needed
+- 🔄 **Multi-turn Conversations**: Seamlessly continues after interruptions
+- 💬 **Interactive Mode**: Get prompted for real input during test development
+- 🛡️ **Safety Features**: Exit commands (exit/quit/stop) and 50-interaction limit
+- 🎯 **Context-Aware**: Uses the same LLM as your main agent for consistency
+
+**Example HIL Interaction:**
+```
+🤔 HUMAN INPUT REQUIRED
+============================================================
+Question: Should I click "Accept All Cookies" or "Reject All"?
+Context: Testing privacy compliance on the website
+
+💡 AI Response: I'll click "Reject All" to test the website's behavior
+with minimal cookies, which is important for privacy compliance testing.
+============================================================
+```
+
+## 🆕 Additional Features
 
 ### 🔍 Enhanced Verbose Mode
 ```bash
@@ -287,7 +325,7 @@ browser-copilot test.md --system-prompt custom-prompt.txt
 
 # Example prompt file:
 cat > prompt.txt << EOF
-You are a meticulous QA engineer. 
+You are a meticulous QA engineer.
 Always take screenshots before and after actions.
 Wait 2 seconds after each navigation.
 EOF
@@ -306,6 +344,26 @@ export BROWSER_PILOT_PROVIDER=anthropic
 export BROWSER_PILOT_MODEL=claude-3-opus
 export BROWSER_PILOT_BROWSER=firefox
 ```
+
+### 🎯 Context Management
+
+Browser Copilot includes intelligent context management to optimize token usage:
+
+```bash
+# Use different context strategies
+browser-copilot test.md --context-strategy sliding-window  # Default
+browser-copilot test.md --context-strategy langchain-trim  # Most efficient
+browser-copilot test.md --context-strategy no-op          # No trimming
+
+# Configure window size (tokens)
+browser-copilot test.md --context-window-size 10000
+
+# See token reduction in action
+browser-copilot test.md --verbose
+# Output: [Sliding Window Hook] Token reduction: 48.9%
+```
+
+Context management can reduce token usage by 40-70% on longer tests. [Learn more →](docs/context-management.md)
 
 ## 🔧 Configuration
 
@@ -341,6 +399,13 @@ options:
   --no-token-optimization  Disable token optimization
   --config FILE        Path to configuration file
   --save-config        Save current settings as defaults
+
+  context management:
+  --context-strategy   Strategy: no-op, sliding-window, langchain-trim
+  --context-window-size SIZE  Max tokens for context window
+  --context-preserve-window N  Messages to always preserve
+  --context-preserve-first N   Keep first N messages
+  --context-preserve-last N    Keep last N messages
 ```
 
 ### Setting up ModelForge
@@ -395,15 +460,17 @@ Storage structure:
 ├── screenshots/  # Captured screenshots
 ├── cache/        # Temporary files
 └── memory/       # Future: persistent memory
+```
 
 ## 🎓 Learn More
 
-- 📘 **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 5 minutes
-- 🧙 **[Configuration Wizard Guide](docs/WIZARD_GUIDE.md)** - Interactive setup walkthrough
-- 🎯 **[Common Use Cases](docs/COMMON_USE_CASES.md)** - Real-world testing examples
-- 🔍 **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Solve common issues
-- 🛠️ **[Configuration Guide](docs/CONFIGURATION.md)** - Advanced configuration
-- 📊 **[Performance Guide](docs/PERFORMANCE.md)** - Optimization tips
+- 📘 **[Quick Start Guide](docs/quick-start.md)** - Get running in 5 minutes
+- 🧙 **[Configuration Wizard Guide](docs/wizard-guide.md)** - Interactive setup walkthrough
+- 🎯 **[Common Use Cases](docs/common-use-cases.md)** - Real-world testing examples
+- 🔍 **[Troubleshooting Guide](docs/troubleshooting.md)** - Solve common issues
+- 🛠️ **[Configuration Guide](docs/configuration.md)** - Advanced configuration
+- 📊 **[Context Management Guide](docs/context-management.md)** - Token optimization strategies
+- ✍️ **[Test Writing Guide](docs/test-writing-guide.md)** - Best practices for writing tests
 
 ## 🌟 Example Test Suites
 
