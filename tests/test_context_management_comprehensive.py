@@ -438,3 +438,87 @@ class TestContextManagementIntegration:
 
         # NoOp returns empty dict (no modifications)
         assert result == {}
+
+
+class TestSlidingWindowIntegrity:
+    """Test sliding window message integrity preservation"""
+
+    def test_sliding_window_tool_message_pair_integrity(self):
+        """Test that sliding window preserves tool message pairs - reproduces actual error"""
+        config = ContextConfig(
+            window_size=60,  # Small window to force trimming
+            preserve_first_n=1,
+            preserve_last_n=2,  # Last 2 messages
+        )
+        strategy = SlidingWindowStrategy(config=config, verbose=True)
+        hook = strategy.create_hook()
+
+        # Create test messages that reproduce the actual error:
+        # An AIMessage with tool_calls is in last N, but its ToolMessage is NOT
+        long_text = "x" * 100
+        messages = [
+            SystemMessage(content="System prompt"),  # Index 0 - preserved (first)
+            HumanMessage(
+                content="Search for X " + long_text
+            ),  # Index 1 - will be dropped
+            AIMessage(  # Index 2 - will be dropped
+                content="I'll search " + long_text,
+                tool_calls=[{"id": "call_abc", "name": "search", "args": {}}],
+            ),
+            ToolMessage(  # Index 3 - will be dropped!
+                content="Search results " + long_text, tool_call_id="call_abc"
+            ),
+            HumanMessage(content="Now check Y"),  # Index 4 - in last 2
+            AIMessage(  # Index 5 - in last 2 - ERROR!
+                content="Checking Y",
+                tool_calls=[{"id": "call_123", "name": "browser_snapshot", "args": {}}],
+            ),
+            ToolMessage(  # Index 6 - NOT in last 2!
+                content="Snapshot of Y " + long_text, tool_call_id="call_123"
+            ),
+            HumanMessage(content="Thanks"),  # Index 7 - in last 2
+        ]
+
+        state = {"messages": messages}
+        result = hook(state)
+
+        trimmed = result["llm_input_messages"]
+
+        # Find which messages were kept
+        kept_info = []
+        for i, msg in enumerate(trimmed):
+            info = type(msg).__name__
+            if hasattr(msg, "tool_calls"):
+                info += f" tool_calls={msg.tool_calls}"
+            if hasattr(msg, "tool_call_id"):
+                info += f" tool_call_id={msg.tool_call_id}"
+            kept_info.append(info)
+        print(f"Kept messages: {kept_info}")
+
+        # Check for the specific error: AIMessage with tool_calls but no ToolMessage
+        ai_with_tools = None
+        tool_msg = None
+
+        for msg in trimmed:
+            if (
+                isinstance(msg, AIMessage)
+                and hasattr(msg, "tool_calls")
+                and msg.tool_calls
+            ):
+                for tc in msg.tool_calls:
+                    if tc["id"] == "call_123":
+                        ai_with_tools = msg
+            elif isinstance(msg, ToolMessage) and msg.tool_call_id == "call_123":
+                tool_msg = msg
+
+        # This is the actual error condition from the user's report
+        if ai_with_tools and not tool_msg:
+            assert False, (
+                "ERROR: Found AIMessage with tool_calls but no corresponding ToolMessage (reproduces user's error)"
+            )
+
+        # Both should be present for integrity
+        assert ai_with_tools is not None, "AIMessage with tool_calls should be kept"
+        assert tool_msg is not None, (
+            "Corresponding ToolMessage MUST be kept for integrity"
+        )

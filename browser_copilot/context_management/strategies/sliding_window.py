@@ -99,6 +99,10 @@ class SlidingWindowStrategy(ContextStrategy):
                                     if j not in reverse_dependencies:
                                         reverse_dependencies[j] = set()
                                     reverse_dependencies[j].add(i)
+                                    if self.verbose:
+                                        print(
+                                            f"[Sliding Window] Found tool pair: AIMessage[{i}] -> ToolMessage[{j}]"
+                                        )
                                     break
 
             # Step 2: First, preserve the first N Human/System messages
@@ -126,36 +130,95 @@ class SlidingWindowStrategy(ContextStrategy):
                 preserve_count, len(messages) - self.config.preserve_last_n
             )
 
+            if self.verbose:
+                print(f"[Sliding Window] Last M messages start at index {last_m_start}")
+
             # Add last M messages
             for i in range(last_m_start, len(messages)):
                 if i not in selected_indices:
                     selected_indices.add(i)
                     current_tokens += self.count_tokens(messages[i])
 
-            # Ensure integrity: if any message in last M is a ToolMessage, include its AIMessage
-            # if any message in last M is an AIMessage with tools, include its ToolMessages
-            # This may cause us to exceed our budget, but message integrity is critical
-            integrity_additions = set()
-            for i in range(last_m_start, len(messages)):
-                # If it's a ToolMessage, we need its AIMessage
-                if i in reverse_dependencies:
-                    for dep_idx in reverse_dependencies[i]:
-                        if dep_idx not in selected_indices:
-                            integrity_additions.add(dep_idx)
-                # If it's an AIMessage, we need its ToolMessages
-                if i in tool_dependencies:
-                    for dep_idx in tool_dependencies[i]:
-                        if dep_idx not in selected_indices:
-                            integrity_additions.add(dep_idx)
+            # Ensure integrity: We need to check for orphaned tool messages
+            # If we have one part of a tool pair but not the other, we must include both
+            # This is CRITICAL - we check ALL messages, not just selected ones
 
-            # Add integrity dependencies (even if it exceeds budget)
-            for idx in integrity_additions:
-                selected_indices.add(idx)
-                current_tokens += self.count_tokens(messages[idx])
-                if self.verbose:
-                    print(
-                        f"[Sliding Window] Added message {idx} for integrity (soft budget)"
-                    )
+            # First, find any broken pairs where we have one part but not the other
+            broken_pairs = set()
+
+            # Check every AIMessage with tool calls
+            for ai_idx in tool_dependencies:
+                ai_selected = ai_idx in selected_indices
+                # Check if any of its tool messages are selected
+                for tool_idx in tool_dependencies[ai_idx]:
+                    tool_selected = tool_idx in selected_indices
+                    # If we have one but not the other, it's broken
+                    if ai_selected != tool_selected:
+                        broken_pairs.add(ai_idx)
+                        broken_pairs.update(tool_dependencies[ai_idx])
+                        if self.verbose:
+                            print(
+                                f"[Sliding Window] Found broken pair: AIMessage[{ai_idx}] <-> ToolMessage[{tool_idx}]"
+                            )
+
+            # Add all broken pairs to maintain integrity
+            for idx in broken_pairs:
+                if idx not in selected_indices:
+                    selected_indices.add(idx)
+                    current_tokens += self.count_tokens(messages[idx])
+                    if self.verbose:
+                        print(
+                            f"[Sliding Window] Added message {idx} to fix broken tool pair"
+                        )
+
+            # Now do the iterative integrity check for selected messages
+            integrity_iterations = 0
+            max_iterations = 10  # Prevent infinite loops
+
+            while integrity_iterations < max_iterations:
+                integrity_additions = set()
+                current_selected = set(selected_indices)  # Make a copy
+
+                # Check ALL selected messages for missing dependencies
+                for i in current_selected:
+                    # If it's a ToolMessage, we need its AIMessage
+                    if i in reverse_dependencies:
+                        for dep_idx in reverse_dependencies[i]:
+                            if dep_idx not in selected_indices:
+                                integrity_additions.add(dep_idx)
+                                if self.verbose:
+                                    print(
+                                        f"[Sliding Window] Need to add AIMessage[{dep_idx}] for ToolMessage[{i}]"
+                                    )
+                    # If it's an AIMessage, we need its ToolMessages
+                    if i in tool_dependencies:
+                        for dep_idx in tool_dependencies[i]:
+                            if dep_idx not in selected_indices:
+                                integrity_additions.add(dep_idx)
+                                if self.verbose:
+                                    print(
+                                        f"[Sliding Window] Need to add ToolMessage[{dep_idx}] for AIMessage[{i}]"
+                                    )
+
+                # If no new additions, we're done
+                if not integrity_additions:
+                    break
+
+                # Add integrity dependencies (even if it exceeds budget)
+                for idx in integrity_additions:
+                    selected_indices.add(idx)
+                    current_tokens += self.count_tokens(messages[idx])
+                    if self.verbose:
+                        print(
+                            f"[Sliding Window] Added message {idx} for integrity (iteration {integrity_iterations + 1})"
+                        )
+
+                integrity_iterations += 1
+
+            if self.verbose and integrity_iterations >= max_iterations:
+                print(
+                    f"[Sliding Window] WARNING: Reached max integrity iterations ({max_iterations})"
+                )
 
             last_m_count = len([i for i in selected_indices if i >= last_m_start])
             if self.verbose and last_m_count > 0:
