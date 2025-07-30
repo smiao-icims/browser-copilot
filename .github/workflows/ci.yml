@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -31,9 +32,26 @@ jobs:
         node-version: '20'
 
     - name: Install dependencies
-      run: |
-        uv sync --extra dev
-        npx playwright install --with-deps chromium
+      run: uv sync --extra dev
+
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(npx playwright --version)" >> $GITHUB_OUTPUT
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Caches/ms-playwright
+          ~/.cache/ms-playwright
+          ~/AppData/Local/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+
+    - name: Install Playwright
+      timeout-minutes: 10
+      run: npx playwright install --with-deps chromium
 
     - name: Run linting
       run: |
@@ -56,6 +74,7 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
     - uses: actions/checkout@v4
 
