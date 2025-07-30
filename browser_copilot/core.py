@@ -17,6 +17,7 @@ from modelforge.registry import ModelForgeRegistry
 from modelforge.telemetry import TelemetryCallback
 
 from .agent import AgentFactory
+from .analysis import ReportParser
 from .config_manager import ConfigManager
 from .constants import (
     DEFAULT_RECURSION_LIMIT,
@@ -34,6 +35,7 @@ from .models.metrics import TokenMetrics, OptimizationSavings
 from .models.results import BrowserTestResult
 from .prompts import PromptBuilder
 from .token_optimizer import OptimizationLevel, TokenOptimizer
+from .utils import extract_test_name, normalize_test_name
 from .validation import InputValidator, ValidationError
 from .verbose_logger import LangChainVerboseCallback, VerboseLogger
 
@@ -837,47 +839,7 @@ class BrowserPilot:
         Uses simple heuristics to check for success indicators
         in the generated report.
         """
-        if not report_content:
-            return False
-
-        lower_content = report_content.lower()
-
-        # Check various success patterns
-        success_patterns = [
-            "overall status:** passed",
-            "overall status: passed",
-            "status:** passed",
-            "status: passed",
-            "all tests passed",
-            "test passed successfully",
-        ]
-
-        # Must have test execution report or summary
-        has_report = any(
-            header in lower_content 
-            for header in [
-                "test execution report",
-                "test execution summary", 
-                "test report",
-                "execution report",
-                "test results"
-            ]
-        )
-
-        # Check for any success pattern
-        has_success = any(pattern in lower_content for pattern in success_patterns)
-
-        # Check for explicit failure
-        has_failure = any(
-            fail in lower_content
-            for fail in [
-                "overall status:** failed",
-                "overall status: failed",
-                "test failed",
-            ]
-        )
-
-        return has_report and has_success and not has_failure
+        return ReportParser.check_success(report_content)
 
     def _get_token_usage(self) -> TokenMetrics | None:
         """Extract token usage metrics from telemetry"""
@@ -1014,40 +976,7 @@ class BrowserPilot:
         This method is kept for backward compatibility but could be removed
         since we now create ExecutionStep objects directly in the main loop.
         """
-        extracted_steps = []
-
-        for step in steps:
-            if isinstance(step, dict):
-                # Extract tool calls
-                if "tools" in step:
-                    for tool_msg in step.get("tools", {}).get("messages", []):
-                        if hasattr(tool_msg, "name") and hasattr(tool_msg, "content"):
-                            content = str(tool_msg.content)
-                            extracted_steps.append(
-                                ExecutionStep(
-                                    type="tool_call",
-                                    name=tool_msg.name,
-                                    content=content,
-                                    timestamp=datetime.now(UTC)
-                                )
-                            )
-
-                # Extract agent messages
-                if "agent" in step:
-                    for agent_msg in step.get("agent", {}).get("messages", []):
-                        if hasattr(agent_msg, "content") and agent_msg.content:
-                            content = str(agent_msg.content)
-                            if len(content) > 50:  # Only include substantial messages
-                                extracted_steps.append(
-                                    ExecutionStep(
-                                        type="agent_message",
-                                        name=None,
-                                        content=content,
-                                        timestamp=datetime.now(UTC)
-                                    )
-                                )
-
-        return extracted_steps
+        return ReportParser.extract_steps(steps)
 
     def _get_optimization_level(self) -> OptimizationLevel:
         """
@@ -1087,23 +1016,7 @@ class BrowserPilot:
         Returns:
             Test name
         """
-        lines = test_content.strip().split("\n")
-
-        # Look for markdown heading
-        for line in lines:
-            if line.startswith("#"):
-                return line.strip("# ").strip()
-
-        # Use first non-empty line
-        for line in lines:
-            if line.strip():
-                # Truncate if too long
-                name = line.strip()
-                if len(name) > 50:
-                    name = name[:47] + "..."
-                return name
-
-        return "Browser Test"
+        return extract_test_name(test_content)
 
     def _get_model_context_limits(self) -> dict[str, int]:
         """
@@ -1128,23 +1041,7 @@ class BrowserPilot:
         Returns:
             Normalized test name safe for file paths
         """
-        import re
-
-        # Convert to lowercase and replace spaces with hyphens
-        normalized = test_name.lower().replace(" ", "-")
-        # Remove special characters, keep only alphanumeric and hyphens
-        normalized = re.sub(r"[^a-z0-9-]", "", normalized)
-        # Remove multiple consecutive hyphens
-        normalized = re.sub(r"-+", "-", normalized)
-        # Remove leading/trailing hyphens
-        normalized = normalized.strip("-")
-        # Ensure it's not empty
-        if not normalized:
-            normalized = "browser-test"
-        # Limit length
-        if len(normalized) > 50:
-            normalized = normalized[:50].rstrip("-")
-        return normalized
+        return normalize_test_name(test_name)
 
     def close(self) -> None:
         """Clean up resources, particularly closing the verbose logger"""

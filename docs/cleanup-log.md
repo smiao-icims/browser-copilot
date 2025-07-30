@@ -201,3 +201,37 @@ NameError: name 'recursion_limit' is not defined
 - core.py reduced from 1,191 to 1,152 lines (39 lines saved)
 - Created 422 lines in new organized modules
 - Better separation of concerns achieved
+
+### Task 2.7: Extract Report Analysis Logic ✅
+
+**Files created:**
+- `browser_copilot/analysis/report_parser.py` (257 lines)
+- `browser_copilot/analysis/__init__.py` (4 lines)
+  - Report success/failure detection
+  - Execution step extraction
+  - Error message parsing
+  - Screenshot extraction
+  - Test result parsing
+
+### Task 2.8: Extract Utility Methods ✅
+
+**Files created:**
+- `browser_copilot/utils/text.py` (153 lines)
+- `browser_copilot/utils/__init__.py` (17 lines)
+  - Test name extraction and normalization
+  - Text truncation and indentation
+  - Markdown cleaning utilities
+
+### Task 2.5: Update Core.py (Completed)
+
+**Final changes:**
+- Replaced method implementations with calls to new modules
+- Removed _check_success implementation (now uses ReportParser)
+- Removed _extract_steps implementation (now uses ReportParser)
+- Removed _extract_test_name implementation (now uses utils)
+- Removed _normalize_test_name implementation (now uses utils)
+
+**Final progress:**
+- core.py reduced from 1,191 to 1,049 lines (142 lines saved)
+- Created 857 lines in well-organized modules
+- Much better separation of concerns
