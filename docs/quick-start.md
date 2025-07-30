@@ -257,16 +257,16 @@ bp my-test.md --verbose
 
 ```bash
 # HTML report for sharing
-bp test.md --output-format html --output-file report.html
+bp examples/saucedemo-shopping.md --output-format html --output-file report.html
 
 # JSON for CI/CD integration
-bp test.md --output-format json --output-file results.json
+bp examples/google-ai-search.md --output-format json --output-file results.json
 
 # JUnit for test frameworks
-bp test.md --output-format junit --output-file junit.xml
+bp examples/weather-forecast.md --output-format junit --output-file junit.xml
 
 # YAML for configuration management
-bp test.md --output-format yaml --output-file results.yaml
+bp examples/hil-ask-human-test.md --output-format yaml --output-file results.yaml
 ```
 
 ### 5. Debug Failed Tests
@@ -278,8 +278,10 @@ bp failed-test.md --verbose --no-token-optimization
 # Save browser session for debugging
 bp failed-test.md --save-trace --save-session
 
-# Check logs
+# Check logs (macOS)
 cat ~/Library/Application\ Support/browser_copilot/logs/browser_copilot_*.log
+# Or (Linux):
+cat ~/.browser_copilot/logs/browser_copilot_*.log
 ```
 
 ### 6. CI/CD Integration
@@ -306,8 +308,8 @@ done
 
 1. **Explore Examples**: Check out the `examples/` directory for more test scenarios
 2. **Read the Full Documentation**: See [README.md](../README.md) for all features
-3. **Custom Configurations**: Learn about persistent settings in [Configuration Guide](./CONFIGURATION.md)
-4. **Troubleshooting**: See [Troubleshooting Guide](./TROUBLESHOOTING.md) for common issues
+3. **Custom Configurations**: Learn about persistent settings in [Configuration Guide](./configuration.md)
+4. **Troubleshooting**: See [Troubleshooting Guide](./troubleshooting.md) for common issues
 
 ## Getting Help
 

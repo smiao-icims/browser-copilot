@@ -191,3 +191,57 @@ With `--context-window-size 25000 --context-preserve-first 2 --context-preserve-
 ### Bad Request errors
 - This usually means tool pairs were broken (shouldn't happen with current strategies)
 - Report as a bug if you encounter this
+
+## Quick Reference
+
+### 🚀 Quick Start
+
+```bash
+# Just use the defaults (sliding window, 50k tokens)
+browser-copilot examples/context-heavy-test.md
+
+# Maximum token savings
+browser-copilot examples/context-heavy-test.md --context-strategy smart-trim --context-window-size 10000
+
+# Debug what's happening
+browser-copilot examples/context-heavy-test.md --verbose
+```
+
+### 📊 Strategy Comparison
+
+| Strategy | Command | Token Savings | Best For |
+|----------|---------|---------------|----------|
+| No-Op | `--context-strategy no-op` | 0% | Debugging |
+| Sliding Window | `--context-strategy sliding-window` | 40-60% | Default, balanced |
+| Smart Trim | `--context-strategy smart-trim` | 50-70% | Maximum savings |
+
+### 🎯 Common Scenarios
+
+**Long Shopping Flow (30+ steps)**
+```bash
+browser-copilot shopping-test.md \
+  --context-strategy smart-trim \
+  --context-window-size 15000
+```
+
+**Complex Form Filling**
+```bash
+browser-copilot form-test.md \
+  --context-strategy sliding-window \
+  --context-preserve-window 20
+```
+
+**Quick Navigation Test**
+```bash
+# No need for context management
+browser-copilot quick-test.md --context-strategy no-op
+```
+
+### 📏 Window Size Guidelines
+
+| Test Length | Recommended Window | Strategy |
+|-------------|-------------------|----------|
+| < 10 steps | 50000 (default) | Any |
+| 10-30 steps | 15000-25000 | sliding-window |
+| 30+ steps | 10000-15000 | smart-trim |
+| Very long | 5000-10000 | smart-trim |

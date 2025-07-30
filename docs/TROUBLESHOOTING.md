@@ -158,14 +158,14 @@ npm --version
 **Solution**:
 ```bash
 # Run with debugging
-browser-copilot test.md --save-trace --verbose
+browser-copilot examples/google-ai-search.md --save-trace --verbose
 
 # Try different browser
-browser-copilot test.md --browser firefox
+browser-copilot examples/saucedemo-shopping.md --browser firefox
 
 # Disable GPU acceleration (Linux)
 export DISPLAY=:0
-browser-copilot test.md --browser chromium
+browser-copilot examples/weather-forecast.md --browser chromium
 ```
 
 ### Headless Mode Issues
@@ -175,10 +175,10 @@ browser-copilot test.md --browser chromium
 **Solution**:
 ```bash
 # Increase viewport size
-browser-copilot test.md --headless --viewport-width 1920 --viewport-height 1080
+browser-copilot examples/saucedemo-shopping.md --headless --viewport-width 1920 --viewport-height 1080
 
 # Disable web security (testing only)
-browser-copilot test.md --headless --ignore-https-errors
+browser-copilot examples/google-ai-search.md --headless --ignore-https-errors
 
 # Add wait time for dynamic content
 # In your test file, add explicit waits:
@@ -218,10 +218,10 @@ browser-copilot test.md --headless --ignore-https-errors
 **Solution**:
 ```bash
 # Set explicit timeout
-browser-copilot test.md --timeout 60  # 60 seconds
+browser-copilot examples/context-heavy-test.md --timeout 60  # 60 seconds
 
 # Run with verbose to see where it hangs
-browser-copilot test.md --verbose
+browser-copilot examples/saucedemo-shopping.md --verbose
 
 # Check for infinite loops in test
 # Avoid: "Keep clicking until X appears"
@@ -245,7 +245,7 @@ Always follow these rules for reliable test execution:
 6. Scroll elements into view before clicking
 ```
 
-Use: `browser-copilot test.md --system-prompt reliable.txt`
+Use: `browser-copilot examples/saucedemo-shopping.md --system-prompt reliable.txt`
 
 ## Token & Cost Issues
 
@@ -452,14 +452,16 @@ python -m browser_copilot.cli test.md
 ### "MCP server failed to start"
 
 ```bash
-# Install Playwright MCP server
-npm install -g @playwright/mcp
-
-# Verify installation
-npx @playwright/mcp --version
-
-# Check Node.js version
+# The Playwright MCP server is bundled with Browser Copilot
+# Check Node.js version first
 node --version  # Must be 18+
+
+# If Node.js is missing, install it
+# Then reinstall dependencies
+uv sync
+
+# Check if the MCP server file exists
+ls node_modules/@modelcontextprotocol/server-playwright/dist/index.js
 ```
 
 ### "ValueError: model_max_prompt_tokens_exceeded"

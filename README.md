@@ -189,7 +189,7 @@ bp failing-test.md --verbose --save-trace
 ```
 
 
-👉 **[See More Examples](docs/COMMON_USE_CASES.md)** | 📘 **[Full Quick Start Guide](docs/QUICK_START.md)** | 🎯 **[Best Practices](docs/BEST_PRACTICES.md)**
+👉 **[See More Examples](docs/common-use-cases.md)** | 📘 **[Full Quick Start Guide](docs/quick-start.md)**
 
 ## 📝 Writing Tests
 
@@ -248,7 +248,7 @@ Steps: 15
    - results: results_20250726_173422.json
 ```
 
-## 🆕 New Features in v1.1
+## 🆕 New Features in v1.1.0
 
 ### 🤝 Human-in-the-Loop (HIL) Mode
 
@@ -460,15 +460,17 @@ Storage structure:
 ├── screenshots/  # Captured screenshots
 ├── cache/        # Temporary files
 └── memory/       # Future: persistent memory
+```
 
 ## 🎓 Learn More
 
-- 📘 **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 5 minutes
-- 🧙 **[Configuration Wizard Guide](docs/WIZARD_GUIDE.md)** - Interactive setup walkthrough
-- 🎯 **[Common Use Cases](docs/COMMON_USE_CASES.md)** - Real-world testing examples
-- 🔍 **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Solve common issues
-- 🛠️ **[Configuration Guide](docs/CONFIGURATION.md)** - Advanced configuration
-- 📊 **[Performance Guide](docs/PERFORMANCE.md)** - Optimization tips
+- 📘 **[Quick Start Guide](docs/quick-start.md)** - Get running in 5 minutes
+- 🧙 **[Configuration Wizard Guide](docs/wizard-guide.md)** - Interactive setup walkthrough
+- 🎯 **[Common Use Cases](docs/common-use-cases.md)** - Real-world testing examples
+- 🔍 **[Troubleshooting Guide](docs/troubleshooting.md)** - Solve common issues
+- 🛠️ **[Configuration Guide](docs/configuration.md)** - Advanced configuration
+- 📊 **[Context Management Guide](docs/context-management.md)** - Token optimization strategies
+- ✍️ **[Test Writing Guide](docs/test-writing-guide.md)** - Best practices for writing tests
 
 ## 🌟 Example Test Suites
 

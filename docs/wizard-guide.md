@@ -226,14 +226,14 @@ Save this configuration? [Y/n]: y
 
 You're ready to start testing. Try:
 
-1. Quick test:
-   browser-copilot --quick-test
-
-2. Run an example:
+1. Run an example:
    browser-copilot examples/google-ai-search.md
 
-3. Create your own test:
+2. Create your own test:
    echo "Navigate to example.com and verify the title" | browser-copilot -
+
+3. Check your configuration:
+   uv run modelforge config show
 
 Need help? Run: browser-copilot --help
 ```

@@ -7,14 +7,14 @@ Browser Copilot supports human-in-the-loop interactions, allowing AI agents to a
 HIL is **enabled by default**. To run in fully automated mode without HIL, use the `--no-hil` flag:
 
 ```bash
-# Default behavior - HIL enabled with LLM responses
-browser-copilot test.md
+# HIL is enabled by default - the AI will make smart decisions
+browser-copilot examples/hil-ask-human-test.md
 
-# Interactive mode - prompts for real human input
-browser-copilot test.md --hil-interactive
+# Disable HIL for fully autonomous execution
+browser-copilot examples/google-ai-search.md --no-hil
 
-# Disable HIL for full automation
-browser-copilot test.md --no-hil
+# Enable interactive mode for real human input during testing
+browser-copilot examples/hil-interactive-demo.md --hil-interactive
 ```
 
 ### HIL Modes

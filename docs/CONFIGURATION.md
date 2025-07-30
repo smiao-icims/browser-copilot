@@ -47,6 +47,8 @@ Browser Copilot uses a hierarchical configuration system (highest priority first
   },
   "timeout": 300,
   "compression_level": "medium",
+  "context_strategy": "sliding-window",
+  "hil_enabled": true,
   "enable_screenshots": true,
   "output_format": "markdown",
   "storage": {
@@ -63,7 +65,7 @@ Browser Copilot uses a hierarchical configuration system (highest priority first
 
 ```bash
 # Create with current options
-browser-copilot test.md --provider openai --model gpt-4 --headless --save-config
+browser-copilot examples/google-ai-search.md --provider openai --model gpt-4 --headless --save-config
 
 # Edit directly
 mkdir -p ~/.browser_copilot/settings
@@ -102,23 +104,18 @@ export BROWSER_PILOT_LOGS_RETENTION_DAYS="14"
 
 ### Using .env File
 
-Create `.env` in your project:
+Note: .env file support is not built into Browser Copilot. Use environment variables directly:
 
 ```bash
-# .env file
-BROWSER_PILOT_PROVIDER=anthropic
-BROWSER_PILOT_MODEL=claude-3-opus
-BROWSER_PILOT_HEADLESS=true
-BROWSER_PILOT_COMPRESSION_LEVEL=high
-```
+# Set environment variables
+export BROWSER_PILOT_PROVIDER=anthropic
+export BROWSER_PILOT_MODEL=claude-3-opus
+export BROWSER_PILOT_HEADLESS=true
+export BROWSER_PILOT_COMPRESSION_LEVEL=high
 
-Load automatically:
-```bash
-# Install python-dotenv
-uv sync --extra dotenv
-
-# Run with .env
-browser-copilot test.md  # Automatically loads .env
+# Or source from a file
+source .env
+browser-copilot examples/saucedemo-shopping.md
 ```
 
 ## Command Line Options
@@ -134,8 +131,6 @@ Positional Arguments:
 Model Configuration:
   --provider PROVIDER   LLM provider (github_copilot, openai, anthropic)
   --model MODEL         Model name (gpt-4o, gpt-4, claude-3-opus)
-  --temperature FLOAT   Model temperature 0.0-1.0 (default: 0.7)
-  --max-tokens INT      Max response tokens (default: model-specific)
 
 Browser Options:
   --browser BROWSER     Browser: chromium, firefox, webkit, safari, edge
@@ -167,17 +162,26 @@ Optimization:
   --no-token-optimization Disable token optimization
   --compression-level   Token optimization: none, low, medium, high
 
-Advanced:
+Testing Options:
   --system-prompt FILE  Custom system prompt file
-  --timeout SECONDS     Test timeout (default: 300)
-  --retry COUNT         Retry failed tests
-  --parallel COUNT      Run tests in parallel
+  --timeout SECONDS     Test execution timeout in seconds
+  --enhance-test        Use AI to enhance test scenario before execution
+
+Configuration:
   --config FILE         Load config from file
   --save-config         Save current options as default
 
-Maintenance:
-  --cleanup             Remove old test outputs
-  --cleanup-days DAYS   Remove outputs older than N days
+Context Management:
+  --context-strategy    Strategy: no-op, sliding-window, smart-trim
+  --context-window-size SIZE  Max tokens for context window
+  --context-preserve-window N  Messages to always preserve
+  --context-preserve-first N   Keep first N messages
+  --context-preserve-last N    Keep last N messages
+
+Human-in-the-Loop:
+  --hil                 Enable HIL mode (enabled by default)
+  --no-hil              Disable HIL for fully autonomous execution
+  --hil-interactive     Enable interactive HIL mode
 ```
 
 ## Model Configuration
@@ -223,16 +227,16 @@ uv run modelforge config add --provider anthropic --model claude-3-opus
 
 ```bash
 # For simple tests (fast, cheap)
-browser-copilot simple-test.md --provider openai --model gpt-3.5-turbo
+browser-copilot examples/google-ai-search.md --provider openai --model gpt-3.5-turbo
 
 # For complex tests (reliable, smart)
-browser-copilot complex-test.md --provider anthropic --model claude-3-opus
+browser-copilot examples/saucedemo-shopping.md --provider anthropic --model claude-3-opus
 
 # For long tests (large context)
-browser-copilot long-test.md --provider anthropic --model claude-3-opus
+browser-copilot examples/context-heavy-test.md --provider anthropic --model claude-3-opus
 
 # For cost-sensitive (with optimization)
-browser-copilot test.md --provider openai --model gpt-3.5-turbo --compression-level high
+browser-copilot examples/weather-forecast.md --provider openai --model gpt-3.5-turbo --compression-level high
 ```
 
 ## Browser Configuration
@@ -242,44 +246,44 @@ browser-copilot test.md --provider openai --model gpt-3.5-turbo --compression-le
 #### Chromium/Chrome
 ```bash
 # Best compatibility
-browser-copilot test.md --browser chromium
+browser-copilot examples/google-ai-search.md --browser chromium
 
 # With extensions support
-browser-copilot test.md --browser chrome --no-isolated
+browser-copilot examples/saucedemo-shopping.md --browser chrome --no-isolated
 ```
 
 #### Firefox
 ```bash
 # Better privacy
-browser-copilot test.md --browser firefox
+browser-copilot examples/google-ai-search.md --browser firefox
 
 # With specific profile
-FFIREFOX_PROFILE_PATH=/path/to/profile browser-copilot test.md --browser firefox
+FFIREFOX_PROFILE_PATH=/path/to/profile browser-copilot examples/weather-forecast.md --browser firefox
 ```
 
 #### Safari/WebKit
 ```bash
 # macOS testing
-browser-copilot test.md --browser safari  # or webkit
+browser-copilot examples/google-ai-search.md --browser safari  # or webkit
 
 # Mobile Safari emulation
-browser-copilot test.md --browser webkit --device "iPhone 12"
+browser-copilot examples/weather-forecast.md --browser webkit --device "iPhone 12"
 ```
 
 ### Mobile Device Emulation
 
 ```bash
 # iPhone testing
-browser-copilot test.md --device "iPhone 12 Pro"
-browser-copilot test.md --device "iPhone 13 Pro Max"
+browser-copilot examples/google-ai-search.md --device "iPhone 12 Pro"
+browser-copilot examples/weather-forecast.md --device "iPhone 13 Pro Max"
 
 # Android testing
-browser-copilot test.md --device "Pixel 5"
-browser-copilot test.md --device "Galaxy S21"
+browser-copilot examples/saucedemo-shopping.md --device "Pixel 5"
+browser-copilot examples/google-ai-search.md --device "Galaxy S21"
 
 # Tablet testing
-browser-copilot test.md --device "iPad Pro"
-browser-copilot test.md --device "Galaxy Tab S7"
+browser-copilot examples/saucedemo-shopping.md --device "iPad Pro"
+browser-copilot examples/weather-forecast.md --device "Galaxy Tab S7"
 
 # List all devices
 npx playwright devices
@@ -289,17 +293,17 @@ npx playwright devices
 
 ```bash
 # Desktop sizes
-browser-copilot test.md --viewport-width 1920 --viewport-height 1080  # Full HD
-browser-copilot test.md --viewport-width 2560 --viewport-height 1440  # 2K
-browser-copilot test.md --viewport-width 3840 --viewport-height 2160  # 4K
+browser-copilot examples/saucedemo-shopping.md --viewport-width 1920 --viewport-height 1080  # Full HD
+browser-copilot examples/google-ai-search.md --viewport-width 2560 --viewport-height 1440  # 2K
+browser-copilot examples/weather-forecast.md --viewport-width 3840 --viewport-height 2160  # 4K
 
 # Mobile sizes
-browser-copilot test.md --viewport-width 375 --viewport-height 667   # iPhone 6/7/8
-browser-copilot test.md --viewport-width 414 --viewport-height 896   # iPhone XR/11
+browser-copilot examples/google-ai-search.md --viewport-width 375 --viewport-height 667   # iPhone 6/7/8
+browser-copilot examples/weather-forecast.md --viewport-width 414 --viewport-height 896   # iPhone XR/11
 
 # Tablet sizes
-browser-copilot test.md --viewport-width 768 --viewport-height 1024  # iPad
-browser-copilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
+browser-copilot examples/saucedemo-shopping.md --viewport-width 768 --viewport-height 1024  # iPad
+browser-copilot examples/icims-ats-job-search.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
 ```
 
 ## Storage Configuration
@@ -309,22 +313,20 @@ browser-copilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
 ```
 ~/.browser_copilot/
 ├── sessions/
-│   ├── test-name_20250126_143022/
-│   │   ├── reports/
-│   │   │   ├── test_report.md
-│   │   │   └── test_report.json
-│   │   ├── screenshots/
-│   │   │   ├── step_001.png
-│   │   │   └── step_002.png
-│   │   └── logs/
-│   │       └── execution.log
+│   └── test-name_20250126_143022/
+│       ├── logs/
+│       │   └── verbose_log.txt
+│       ├── reports/
+│       │   ├── report_20250126_143022.md
+│       │   └── results_20250126_143022.json
+│       └── screenshots/
+│           └── screenshot_20250126_143022.png
 ├── logs/
 │   └── browser_copilot_20250126_143022.log
 ├── settings/
 │   └── config.json
 ├── cache/
 └── memory/
-    └── patterns.json
 ```
 
 ### Retention Settings
@@ -344,15 +346,15 @@ browser-copilot test.md --viewport-width 1024 --viewport-height 1366 # iPad Pro
 ### Manual Cleanup
 
 ```bash
-# Clean all old files
-browser-copilot --cleanup --cleanup-days 7
-
 # Clean specific types
 rm -rf ~/.browser_copilot/sessions/*/screenshots/
 rm -rf ~/.browser_copilot/logs/*.log
 
 # Keep only recent sessions
 find ~/.browser_copilot/sessions -type d -mtime +30 -exec rm -rf {} +
+
+# Clean by size
+du -sh ~/.browser_copilot/* | sort -rh | head -20
 ```
 
 ## Performance Tuning
@@ -361,7 +363,7 @@ find ~/.browser_copilot/sessions -type d -mtime +30 -exec rm -rf {} +
 
 ```bash
 # Maximum performance (may reduce reliability)
-browser-copilot test.md \
+browser-copilot examples/weather-forecast.md \
   --compression-level high \
   --no-screenshots \
   --headless \
@@ -369,14 +371,14 @@ browser-copilot test.md \
   --model gpt-3.5-turbo
 
 # Balanced performance
-browser-copilot test.md \
+browser-copilot examples/google-ai-search.md \
   --compression-level medium \
   --headless \
   --viewport-width 1280 \
   --viewport-height 720
 
 # Maximum reliability (higher cost)
-browser-copilot test.md \
+browser-copilot examples/saucedemo-shopping.md \
   --no-token-optimization \
   --verbose \
   --provider anthropic \
@@ -399,17 +401,20 @@ export BROWSER_PILOT_TIMEOUT=1800  # 30 minutes
 export BROWSER_PILOT_TIMEOUT=0
 ```
 
-### Parallel Execution
+### Running Multiple Tests
 
 ```bash
-# Run 3 tests in parallel
-for test in test1.md test2.md test3.md; do
-  browser-copilot "$test" --headless &
+# Run tests sequentially
+for test in tests/*.md; do
+  echo "Running $test..."
+  browser-copilot "$test" --headless
 done
-wait
 
-# Using GNU parallel
-parallel -j 4 browser-copilot {} --headless ::: tests/*.md
+# Or use a shell script
+#!/bin/bash
+for test in "$@"; do
+  browser-copilot "$test" --headless --output-file "results/${test%.md}.json"
+done
 ```
 
 ## Custom System Prompts
@@ -468,14 +473,14 @@ Domain knowledge:
 
 ```bash
 # Single test
-browser-copilot test.md --system-prompt reliable-testing.txt
+browser-copilot examples/saucedemo-shopping.md --system-prompt reliable-testing.txt
 
 # Set as default
 export BROWSER_PILOT_SYSTEM_PROMPT="/path/to/reliable-testing.txt"
 
 # Combine prompts
 cat general-rules.txt domain-specific.txt > combined-prompt.txt
-browser-copilot test.md --system-prompt combined-prompt.txt
+browser-copilot examples/google-ai-search.md --system-prompt combined-prompt.txt
 ```
 
 ## CI/CD Configuration
@@ -495,32 +500,32 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-    
+
     - name: Install uv
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    
+
     - name: Install dependencies
       run: uv sync
-    
+
     - name: Install Playwright browsers
       run: npx playwright install chromium
-    
+
     - name: Configure ModelForge
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
         uv run modelforge config add --provider openai --model gpt-3.5-turbo
-    
+
     - name: Run tests
       run: |
         uv run browser-copilot tests/smoke-test.md \
@@ -528,7 +533,7 @@ jobs:
           --output-format junit \
           --output-file test-results.xml \
           --compression-level high
-    
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v3
@@ -546,14 +551,14 @@ jobs:
 ```groovy
 pipeline {
     agent any
-    
+
     environment {
         BROWSER_PILOT_PROVIDER = 'openai'
         BROWSER_PILOT_MODEL = 'gpt-3.5-turbo'
         BROWSER_PILOT_HEADLESS = 'true'
         BROWSER_PILOT_COMPRESSION_LEVEL = 'high'
     }
-    
+
     stages {
         stage('Setup') {
             steps {
@@ -562,7 +567,7 @@ pipeline {
                 sh 'npx playwright install chromium'
             }
         }
-        
+
         stage('Test') {
             steps {
                 sh '''
@@ -573,7 +578,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
             junit 'results.xml'
@@ -645,19 +650,18 @@ CMD ["uv", "run", "browser-copilot", "test.md", "--headless"]
   "headless": true,
   "verbose": false,
   "compression_level": "high",
-  "timeout": 300,
-  "retry": 2
+  "timeout": 300
 }
 ```
 
 Usage:
 ```bash
 # Development
-browser-copilot test.md --config config.dev.json
+browser-copilot examples/google-ai-search.md --config config.dev.json
 
 # Staging
-browser-copilot test.md --config config.staging.json
+browser-copilot examples/saucedemo-shopping.md --config config.staging.json
 
 # Production
-browser-copilot test.md --config config.prod.json
+browser-copilot examples/icims-ats-job-search.md --config config.prod.json
 ```
