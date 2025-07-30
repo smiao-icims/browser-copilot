@@ -44,11 +44,21 @@ $ browser-copilot examples/hil-ask-human-test.md --hil
 
 ## Automatic Responses
 
-In automated testing, common questions receive default responses:
-- Color questions → "blue"
-- Search queries → "artificial intelligence"
-- Names → "John Doe"
-- Confirmations → "yes"
+HIL uses LLM-powered response generation with few-shot examples for intelligent decisions:
+
+### Common Responses:
+- Color preferences → "blue", "red", or "green"
+- Search queries → "artificial intelligence", "machine learning"
+- Names → "John Doe", "Jane Smith", "Test User"
+- Email addresses → "test@example.com" format
+
+### Test Flow Decisions:
+- **Retry on transient errors**: Network timeouts, 500 errors → "retry"
+- **Continue on validation errors**: Missing fields, auth failures → "proceed"
+- **Resume from last checkpoint**: Partial failures → "start over from [last step]"
+- **Skip on permanent errors**: 404 not found → "skip to next test"
+
+The LLM analyzes context to make appropriate decisions for test automation scenarios.
 
 ## Implementation Details
 
