@@ -10,9 +10,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from browser_copilot.config_manager import ConfigManager
 from browser_copilot.core import BrowserPilot
 from browser_copilot.models.results import BrowserTestResult
-from browser_copilot.config_manager import ConfigManager
 
 
 def create_browser_pilot_with_mocks(provider="openai", model="gpt-4", config=None):

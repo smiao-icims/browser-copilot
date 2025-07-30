@@ -113,7 +113,7 @@ class TestBrowserPilotUnit:
                 mock_registry.return_value = mock_registry_instance
                 
                 # Create engine
-                engine = BrowserPilot(provider="openai", model="gpt-4")
+                BrowserPilot(provider="openai", model="gpt-4")
                 
                 # Verify AgentFactory was created with correct params
                 mock_factory_class.assert_called_once_with(
@@ -142,15 +142,14 @@ class TestBrowserPilotUnit:
     def test_stream_handler_initialization(self):
         """Test StreamHandler initialization"""
         with patch("browser_copilot.core.ModelForgeRegistry") as mock_registry:
-            with patch("browser_copilot.core.StreamHandler") as mock_stream_class:
-                # Mock the registry
-                mock_llm = MagicMock()
-                mock_registry_instance = MagicMock()
-                mock_registry_instance.get_llm.return_value = mock_llm
-                mock_registry.return_value = mock_registry_instance
-                
-                # Create engine
-                engine = BrowserPilot(provider="openai", model="gpt-4")
-                
-                # Verify StreamHandler was created if not provided
-                assert hasattr(engine, "stream")
+            # Mock the registry
+            mock_llm = MagicMock()
+            mock_registry_instance = MagicMock()
+            mock_registry_instance.get_llm.return_value = mock_llm
+            mock_registry.return_value = mock_registry_instance
+            
+            # Create engine
+            engine = BrowserPilot(provider="openai", model="gpt-4")
+            
+            # Verify StreamHandler was created if not provided
+            assert hasattr(engine, "stream")
