@@ -55,11 +55,13 @@ That's it! You've just automated your first browser test. 🎉
 - 🔧 **Flexible**: Supports multiple LLM providers via [ModelForge](https://github.com/smiao-icims/model-forge) ([PyPI](https://pypi.org/project/model-forge-llm/))
 - 📊 **Insightful**: Enhanced reports with timing, token usage, and cost analysis
 - 🌐 **Cross-Browser**: Supports Chromium, Chrome, Firefox, Safari, Edge, and WebKit
+- 🤝 **Human-in-the-Loop**: Intelligent AI assistance with optional interactive mode for clarifications
 - 🔍 **Verbose Mode**: Step-by-step debugging with dual console/file logging
 - 💰 **Cost Optimization**: Built-in token optimization to reduce API costs
 - 📝 **Multiple Formats**: Export results as JSON, YAML, XML, JUnit, HTML, or Markdown
 - 🎛️ **Customizable**: System prompts, browser settings, and optimization levels
 - 🧙 **Setup Wizard**: Interactive configuration with arrow-key navigation
+- 🌍 **Cross-Platform**: Windows, macOS, and Linux support with proper UTF-8 encoding
 
 ## 🚀 Quick Start - Get Testing in 3 Minutes!
 
@@ -246,7 +248,43 @@ Steps: 15
    - results: results_20250726_173422.json
 ```
 
-## 🆕 New Features in v1.0
+## 🆕 New Features in v1.1
+
+### 🤝 Human-in-the-Loop (HIL) Mode
+
+Browser Copilot now includes intelligent Human-in-the-Loop capabilities that allow the AI to ask for clarification when needed:
+
+```bash
+# HIL is enabled by default - the AI will make smart decisions
+browser-copilot test.md
+
+# Disable HIL for fully autonomous execution
+browser-copilot test.md --no-hil
+
+# Enable interactive mode for real human input during testing
+browser-copilot test.md --hil-interactive
+```
+
+**Key HIL Features:**
+- 🤖 **Smart Defaults**: AI provides intelligent responses when clarification is needed
+- 🔄 **Multi-turn Conversations**: Seamlessly continues after interruptions
+- 💬 **Interactive Mode**: Get prompted for real input during test development
+- 🛡️ **Safety Features**: Exit commands (exit/quit/stop) and 50-interaction limit
+- 🎯 **Context-Aware**: Uses the same LLM as your main agent for consistency
+
+**Example HIL Interaction:**
+```
+🤔 HUMAN INPUT REQUIRED
+============================================================
+Question: Should I click "Accept All Cookies" or "Reject All"?
+Context: Testing privacy compliance on the website
+
+💡 AI Response: I'll click "Reject All" to test the website's behavior 
+with minimal cookies, which is important for privacy compliance testing.
+============================================================
+```
+
+## 🆕 Additional Features
 
 ### 🔍 Enhanced Verbose Mode
 ```bash
