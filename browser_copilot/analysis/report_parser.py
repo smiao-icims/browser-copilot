@@ -30,10 +30,10 @@ class ReportParser:
         
         content_lower = report_content.lower()
         
-        # Look for explicit status indicators
-        if "overall status: passed" in content_lower:
+        # Look for explicit status indicators (handle markdown formatting)
+        if re.search(r'overall status:\*?\*?\s*passed', content_lower):
             return True
-        if "overall status: failed" in content_lower:
+        if re.search(r'overall status:\*?\*?\s*failed', content_lower):
             return False
         
         # Look for summary indicators
