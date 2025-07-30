@@ -97,8 +97,8 @@ class SaveConfigurationStep(WizardStep):
         config = state.to_config()
 
         # Write configuration
-        with open(config_path, "w") as f:
-            json.dump(config, f, indent=2)
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
 
         # Set appropriate permissions (read/write for owner only)
         os.chmod(config_path, 0o600)
