@@ -65,10 +65,6 @@ async def generate_suggested_response(question: str, context: Optional[str] = No
     Returns:
         A suggested response appropriate for automated testing
     """
-    # Debug logging
-    print(f"[HIL] generate_suggested_response called with:")
-    print(f"[HIL]   Question: {question}")
-    print(f"[HIL]   Context: {context}")
     
     llm = get_response_generator()
     
@@ -81,37 +77,50 @@ Question: {question}
 Here are examples of appropriate responses for test automation:
 
 Example 1:
-Q: "What is your favorite color?"
-A: "blue"
+Question: "What is your favorite color?"
+Response: "blue"
 
 Example 2:
-Q: "Should I retry the login process or proceed with a different test scenario?"
+Question: "Should I retry the login process or proceed with a different test scenario?"
 Context: Login failed with incorrect credentials error
-A: "retry"
+Response: "retry"
 
 Example 3:
-Q: "The checkout process failed. Should I start over from the shopping cart or skip to the next test?"
+Question: "The checkout process failed. Should I start over from the shopping cart or skip to the next test?"
 Context: Payment gateway timeout after adding items to cart successfully
-A: "start over from shopping cart"
+Response: "start over from shopping cart"
 
 Example 4:
-Q: "What search term should I use?"
-A: "artificial intelligence"
+Question: "What search term should I use?"
+Response: "artificial intelligence"
 
 Example 5:
-Q: "Enter your name for the registration form"
-A: "John Doe"
+Question: "Enter your name for the registration form"
+Response: "John Doe"
 
 Example 6:
-Q: "The page is loading slowly. Should I wait longer or continue with a timeout?"
+Question: "The page is loading slowly. Should I wait longer or continue with a timeout?"
 Context: Page has been loading for 15 seconds
-A: "continue with timeout"
+Response: "continue with timeout"
+
+Example 7:
+Question: "The login attempt seems to have failed. Should I try again or investigate further?"
+Context: Login failed with an error message
+Response: "try again"
+
+Example 8:
+Question: "Should I proceed with debugging or attempt another approach?"
+Context: Form submission failed
+Response: "attempt another approach"
 
 Guidelines for your response:
-- For retry/continue decisions: favor retry if the error is transient (timeout, network), continue if it's a validation error
+- When asked "Should I try again or investigate further?" - ALWAYS choose "try again" or "retry" for login/form errors
+- For retry/continue decisions: favor retry if the error is transient (timeout, network, form submission)
 - For test flow decisions: prefer continuing from the last successful step rather than starting completely over
-- Keep responses concise and action-oriented
-- Default to proceeding with the test unless there's a critical blocker
+- Keep responses concise and action-oriented (e.g., "retry", "continue", "skip")
+- Avoid responses like "investigate further" or "debug" - tests should take action, not investigate
+- Default to retrying failed actions in automated tests
+- Return ONLY the direct answer, not the question or any formatting
 
 Response:"""
     
