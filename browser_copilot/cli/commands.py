@@ -29,7 +29,17 @@ async def run_test_command(args) -> int:
     # Initialize storage and config
     storage = StorageManager()
     config = ConfigManager(storage_manager=storage)
-    config.set_cli_args(vars(args))
+    
+    # Convert no_hil to hil for backwards compatibility
+    cli_args = vars(args)
+    if 'no_hil' in cli_args:
+        # HIL is enabled by default, so only set hil=False if --no-hil is specified
+        cli_args['hil'] = not cli_args.pop('no_hil')
+    else:
+        # HIL is enabled by default
+        cli_args['hil'] = True
+    
+    config.set_cli_args(cli_args)
 
     # Initialize stream handler
     stream = StreamHandler(verbose=args.verbose, quiet=args.quiet)

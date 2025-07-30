@@ -4,10 +4,14 @@ Browser Copilot supports human-in-the-loop interactions, allowing AI agents to a
 
 ## Quick Start
 
-Enable HIL mode with the `--hil` flag:
+HIL is **enabled by default**. To run in fully automated mode without HIL, use the `--no-hil` flag:
 
 ```bash
-browser-copilot test.md --hil
+# Default behavior - HIL enabled
+browser-copilot test.md
+
+# Disable HIL for full automation
+browser-copilot test.md --no-hil
 ```
 
 ## How It Works
@@ -33,13 +37,18 @@ Use the `ask_human` tool in your test steps:
 ## Example
 
 ```bash
-$ browser-copilot examples/hil-ask-human-test.md --hil
+$ browser-copilot examples/hil-ask-human-test.md
 
 [INFO] Starting test: HIL Test with AskHuman Tool
 [Agent] Added ask_human and confirm_action tools for HIL
 [INFO] 🔄 [HIL Interrupt] Agent paused for human input
 [INFO] Auto-resuming with: blue
 [INFO] Test PASSED in 12.89 seconds
+```
+
+To run without HIL:
+```bash
+$ browser-copilot examples/google-ai-search.md --no-hil
 ```
 
 ## Automatic Responses
@@ -65,4 +74,4 @@ The LLM analyzes context to make appropriate decisions for test automation scena
 - Uses LangGraph's checkpointing for state persistence
 - Each test session gets a unique thread ID
 - Interrupts are handled via `Command(resume=response)`
-- Tools are only added when `--hil` flag is used
+- Tools are added by default (use `--no-hil` to disable)

@@ -197,9 +197,9 @@ Examples:
     # Human-in-the-Loop
     hil_group = parser.add_argument_group("Human-in-the-Loop")
     hil_group.add_argument(
-        "--hil",
+        "--no-hil",
         action="store_true",
-        help="Enable Human-in-the-Loop mode with ask_human tool",
+        help="Disable Human-in-the-Loop mode (HIL is enabled by default)",
     )
 
     # Configuration management
