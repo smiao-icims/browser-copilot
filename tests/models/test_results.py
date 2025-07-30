@@ -2,9 +2,7 @@
 Tests for test result data models
 """
 
-import re
 from datetime import UTC, datetime
-from typing import Any
 
 import pytest
 
@@ -23,9 +21,9 @@ class TestTestResult:
             test_name="Login Test",
             duration=15.5,
             steps_executed=10,
-            report="Test completed successfully"
+            report="Test completed successfully",
         )
-        
+
         assert result.success is True
         assert result.test_name == "Login Test"
         assert result.duration == 15.5
@@ -41,9 +39,9 @@ class TestTestResult:
             duration=5.0,
             steps_executed=3,
             report="Test failed",
-            error="Element not found"
+            error="Element not found",
         )
-        
+
         assert result.success is False
         assert result.error == "Element not found"
 
@@ -51,30 +49,15 @@ class TestTestResult:
         """Test TestResult validation"""
         # Negative duration
         with pytest.raises(ValueError, match="Duration cannot be negative"):
-            TestResult(
-                success=True,
-                test_name="Test",
-                duration=-1.0,
-                steps_executed=5
-            )
-        
+            TestResult(success=True, test_name="Test", duration=-1.0, steps_executed=5)
+
         # Negative steps
         with pytest.raises(ValueError, match="Steps executed cannot be negative"):
-            TestResult(
-                success=True,
-                test_name="Test",
-                duration=10.0,
-                steps_executed=-1
-            )
-        
+            TestResult(success=True, test_name="Test", duration=10.0, steps_executed=-1)
+
         # Empty test name
         with pytest.raises(ValueError, match="Test name cannot be empty"):
-            TestResult(
-                success=True,
-                test_name="",
-                duration=10.0,
-                steps_executed=5
-            )
+            TestResult(success=True, test_name="", duration=10.0, steps_executed=5)
 
     def test_to_dict(self):
         """Test TestResult serialization"""
@@ -84,9 +67,9 @@ class TestTestResult:
             duration=20.0,
             steps_executed=15,
             report="All assertions passed",
-            error=None
+            error=None,
         )
-        
+
         data = result.to_dict()
         assert data == {
             "success": True,
@@ -107,7 +90,7 @@ class TestTestResult:
             "report": "Test failed at step 15",
             "error": "Timeout waiting for element",
         }
-        
+
         result = TestResult.from_dict(data)
         assert result.success is False
         assert result.test_name == "Regression Test"
@@ -122,12 +105,9 @@ class TestBrowserTestResult:
     def test_construction_minimal(self):
         """Test minimal BrowserTestResult construction"""
         result = BrowserTestResult(
-            success=True,
-            test_name="Simple Test",
-            duration=10.0,
-            steps_executed=5
+            success=True, test_name="Simple Test", duration=10.0, steps_executed=5
         )
-        
+
         assert result.success is True
         assert result.test_name == "Simple Test"
         assert result.duration == 10.0
@@ -144,16 +124,16 @@ class TestBrowserTestResult:
         timing = ExecutionTiming(
             start=datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC),
             end=datetime(2024, 1, 15, 10, 0, 30, tzinfo=UTC),
-            duration_seconds=30.0
+            duration_seconds=30.0,
         )
-        
+
         token_metrics = TokenMetrics(
             total_tokens=1000,
             prompt_tokens=800,
             completion_tokens=200,
-            estimated_cost=0.05
+            estimated_cost=0.05,
         )
-        
+
         result = BrowserTestResult(
             success=True,
             test_name="Full Test",
@@ -174,9 +154,9 @@ class TestBrowserTestResult:
                 {"type": "navigate", "url": "https://example.com"},
                 {"type": "click", "element": "button"},
             ],
-            verbose_log={"entries": ["log1", "log2"]}
+            verbose_log={"entries": ["log1", "log2"]},
         )
-        
+
         assert result.provider == "openai"
         assert result.model == "gpt-4"
         assert result.browser == "chrome"
@@ -189,12 +169,9 @@ class TestBrowserTestResult:
     def test_backward_compatibility_property(self):
         """Test backward compatibility duration_seconds property"""
         result = BrowserTestResult(
-            success=True,
-            test_name="Test",
-            duration=25.5,
-            steps_executed=10
+            success=True, test_name="Test", duration=25.5, steps_executed=10
         )
-        
+
         # Should have both duration and duration_seconds
         assert result.duration == 25.5
         assert result.duration_seconds == 25.5
@@ -207,10 +184,10 @@ class TestBrowserTestResult:
             test_name="Test",
             duration=10.0,
             steps_executed=5,
-            viewport_size="1920,1080"
+            viewport_size="1920,1080",
         )
         assert result.viewport_size == "1920,1080"
-        
+
         # Invalid format - missing comma
         with pytest.raises(ValueError, match="Invalid viewport size format"):
             BrowserTestResult(
@@ -218,9 +195,9 @@ class TestBrowserTestResult:
                 test_name="Test",
                 duration=10.0,
                 steps_executed=5,
-                viewport_size="1920x1080"
+                viewport_size="1920x1080",
             )
-        
+
         # Invalid format - non-numeric
         with pytest.raises(ValueError, match="Invalid viewport size format"):
             BrowserTestResult(
@@ -228,7 +205,7 @@ class TestBrowserTestResult:
                 test_name="Test",
                 duration=10.0,
                 steps_executed=5,
-                viewport_size="full,screen"
+                viewport_size="full,screen",
             )
 
     def test_to_dict_minimal(self):
@@ -238,11 +215,11 @@ class TestBrowserTestResult:
             test_name="Quick Test",
             duration=5.0,
             steps_executed=3,
-            error="Test failed"
+            error="Test failed",
         )
-        
+
         data = result.to_dict()
-        
+
         # Check required fields
         assert data["success"] is False
         assert data["test_name"] == "Quick Test"
@@ -250,7 +227,7 @@ class TestBrowserTestResult:
         assert data["duration_seconds"] == 5.0  # Backward compat
         assert data["steps_executed"] == 3
         assert data["error"] == "Test failed"
-        
+
         # Check defaults
         assert data["headless"] is False
         assert data["viewport_size"] == "1920,1080"
@@ -263,17 +240,17 @@ class TestBrowserTestResult:
         timing = ExecutionTiming(
             start=datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC),
             end=datetime(2024, 1, 15, 10, 1, 0, tzinfo=UTC),
-            duration_seconds=60.0
+            duration_seconds=60.0,
         )
-        
+
         token_metrics = TokenMetrics(
             total_tokens=2000,
             prompt_tokens=1500,
             completion_tokens=500,
             estimated_cost=0.10,
-            context_usage_percentage=75.0
+            context_usage_percentage=75.0,
         )
-        
+
         result = BrowserTestResult(
             success=True,
             test_name="Complete Test",
@@ -290,11 +267,11 @@ class TestBrowserTestResult:
             token_usage=token_metrics,
             metrics={"performance": 95.5},
             steps=[{"action": "test"}],
-            verbose_log={"debug": True}
+            verbose_log={"debug": True},
         )
-        
+
         data = result.to_dict()
-        
+
         # Check all fields
         assert data["provider"] == "anthropic"
         assert data["model"] == "claude-3"
@@ -316,9 +293,9 @@ class TestBrowserTestResult:
             "test_name": "Basic Test",
             "duration": 12.5,
             "steps_executed": 8,
-            "report": "Test passed"
+            "report": "Test passed",
         }
-        
+
         result = BrowserTestResult.from_dict(data)
         assert result.success is True
         assert result.test_name == "Basic Test"
@@ -344,7 +321,7 @@ class TestBrowserTestResult:
                 "start": "2024-01-15T14:00:00+00:00",
                 "end": "2024-01-15T14:00:45+00:00",
                 "duration_seconds": 45.0,
-                "timezone": "UTC"
+                "timezone": "UTC",
             },
             "environment": {"test": "integration"},
             "token_usage": {
@@ -352,14 +329,14 @@ class TestBrowserTestResult:
                 "prompt_tokens": 2000,
                 "completion_tokens": 1000,
                 "estimated_cost": 0.15,
-                "cost_source": "api"
+                "cost_source": "api",
             },
             "metrics": {"coverage": 85.0},
             "steps": [{"step": 1}, {"step": 2}],
             "verbose_log": {"level": "debug"},
-            "error": None
+            "error": None,
         }
-        
+
         result = BrowserTestResult.from_dict(data)
         assert result.success is True
         assert result.provider == "openai"
@@ -367,7 +344,9 @@ class TestBrowserTestResult:
         assert result.browser == "edge"
         assert result.headless is True
         assert result.execution_time is not None
-        assert result.execution_time.start == datetime(2024, 1, 15, 14, 0, 0, tzinfo=UTC)
+        assert result.execution_time.start == datetime(
+            2024, 1, 15, 14, 0, 0, tzinfo=UTC
+        )
         assert result.token_usage is not None
         assert result.token_usage.total_tokens == 3000
         assert result.metrics["coverage"] == 85.0
@@ -381,9 +360,9 @@ class TestBrowserTestResult:
             "test_name": "Legacy Test",
             "duration_seconds": 20.0,  # Old field name
             "steps_executed": 10,
-            "report": "Legacy format test"
+            "report": "Legacy format test",
         }
-        
+
         result = BrowserTestResult.from_dict(data)
         assert result.duration == 20.0  # Should map to duration
         assert result.duration_seconds == 20.0  # Property should work
@@ -393,8 +372,5 @@ class TestBrowserTestResult:
         # Should inherit validation from TestResult
         with pytest.raises(ValueError, match="Duration cannot be negative"):
             BrowserTestResult(
-                success=True,
-                test_name="Test",
-                duration=-5.0,
-                steps_executed=10
+                success=True, test_name="Test", duration=-5.0, steps_executed=10
             )

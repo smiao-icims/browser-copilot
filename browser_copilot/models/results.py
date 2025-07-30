@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .base import ValidatedModel
-from .execution import ExecutionTiming, ExecutionStep
+from .execution import ExecutionStep, ExecutionTiming
 from .metrics import TokenMetrics
 
 
@@ -111,7 +111,10 @@ class BrowserTestResult(TestResult):
             "viewport_size": self.viewport_size,
             "environment": self.environment,
             "metrics": self.metrics,
-            "steps": [step.to_dict() for step in self.steps],
+            "steps": [
+                step.to_dict() if hasattr(step, "to_dict") else step
+                for step in self.steps
+            ],
         }
 
         # Add optional fields if present
@@ -144,8 +147,11 @@ class BrowserTestResult(TestResult):
         # Parse steps
         steps = []
         for step_data in data.get("steps", []):
-            if isinstance(step_data, dict):
+            if isinstance(step_data, dict) and "type" in step_data:
                 steps.append(ExecutionStep.from_dict(step_data))
+            else:
+                # For backward compatibility, keep raw dict steps
+                steps.append(step_data)
 
         return cls(
             success=data["success"],

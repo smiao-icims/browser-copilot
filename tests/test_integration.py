@@ -6,18 +6,17 @@ These tests verify that different components work together correctly.
 
 import json
 import os
-from pathlib import Path
+from datetime import UTC, datetime
 
 import pytest
-from datetime import datetime, UTC
 
 # Import from the package properly
 from browser_copilot import reporter
 from browser_copilot.config_manager import ConfigManager
+from browser_copilot.io import InputHandler, OutputHandler
 from browser_copilot.storage_manager import StorageManager
 from browser_copilot.token_optimizer import OptimizationLevel, TokenOptimizer
 from browser_copilot.verbose_logger import VerboseLogger
-from browser_copilot.io import InputHandler, OutputHandler
 
 
 @pytest.mark.integration
@@ -309,29 +308,29 @@ class TestIntegration:
 
     def test_model_migration_integration(self, temp_dir):
         """Test that the new model system integrates properly with existing components"""
+        from browser_copilot.models.execution import ExecutionStep, ExecutionTiming
+        from browser_copilot.models.metrics import OptimizationSavings, TokenMetrics
         from browser_copilot.models.results import BrowserTestResult
-        from browser_copilot.models.execution import ExecutionTiming, ExecutionStep
-        from browser_copilot.models.metrics import TokenMetrics, OptimizationSavings
-        
+
         # Create storage and config
         storage = StorageManager(base_dir=temp_dir)
-        config = ConfigManager(storage_manager=storage)
-        
+        ConfigManager(storage_manager=storage)
+
         # Create model instances
         timing = ExecutionTiming(
             start=datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
             end=datetime(2024, 1, 1, 10, 1, 30, tzinfo=UTC),
-            duration_seconds=90.0
+            duration_seconds=90.0,
         )
-        
+
         optimization = OptimizationSavings(
             original_tokens=5000,
             optimized_tokens=3000,
             reduction_percentage=40.0,
             strategies_applied=["whitespace_removal", "comment_removal"],
-            estimated_savings=0.02
+            estimated_savings=0.02,
         )
-        
+
         token_metrics = TokenMetrics(
             total_tokens=3000,
             prompt_tokens=2500,
@@ -340,24 +339,24 @@ class TestIntegration:
             context_length=2500,
             max_context_length=128000,
             context_usage_percentage=2.0,
-            optimization_savings=optimization
+            optimization_savings=optimization,
         )
-        
+
         steps = [
             ExecutionStep(
                 type="tool_call",
                 name="browser_navigate",
                 content="Navigating to https://example.com",
-                timestamp=datetime(2024, 1, 1, 10, 0, 5, tzinfo=UTC)
+                timestamp=datetime(2024, 1, 1, 10, 0, 5, tzinfo=UTC),
             ),
             ExecutionStep(
                 type="agent_message",
                 name=None,
                 content="Successfully loaded the page",
-                timestamp=datetime(2024, 1, 1, 10, 0, 10, tzinfo=UTC)
-            )
+                timestamp=datetime(2024, 1, 1, 10, 0, 10, tzinfo=UTC),
+            ),
         ]
-        
+
         # Create complete test result
         result = BrowserTestResult(
             success=True,
@@ -374,18 +373,22 @@ class TestIntegration:
             token_usage=token_metrics,
             steps=steps,
             environment={"token_optimization": True, "compression_level": "medium"},
-            metrics={"total_steps": 2, "execution_time_ms": 90000.0, "avg_step_time_ms": 45000.0}
+            metrics={
+                "total_steps": 2,
+                "execution_time_ms": 90000.0,
+                "avg_step_time_ms": 45000.0,
+            },
         )
-        
+
         # Test with reporter (accepts both dict and model)
         reporter.print_results(result)
         saved_files = reporter.save_results(result, str(storage.get_reports_dir()))
-        
+
         # Verify files created
         assert saved_files["report"].exists()
         assert saved_files["results"].exists()
         assert saved_files["summary"].exists()  # Only created for successful tests
-        
+
         # Verify JSON serialization
         json_content = json.loads(saved_files["results"].read_text(encoding="utf-8"))
         assert json_content["success"] is True
@@ -393,53 +396,58 @@ class TestIntegration:
         assert json_content["duration"] == 90.0
         assert json_content["duration_seconds"] == 90.0  # Backward compatibility
         assert json_content["token_usage"]["total_tokens"] == 3000
-        assert json_content["token_usage"]["optimization"]["reduction_percentage"] == 40.0
-        
+        assert (
+            json_content["token_usage"]["optimization"]["reduction_percentage"] == 40.0
+        )
+
         # Test with token optimizer
         optimizer = TokenOptimizer(OptimizationLevel.MEDIUM)
         test_prompt = "Test prompt " * 100
-        optimized = optimizer.optimize_prompt(test_prompt)
+        optimizer.optimize_prompt(test_prompt)
         metrics = optimizer.get_metrics()
-        
+
         # Verify optimization metrics
         assert metrics["original_tokens"] > 0
         assert metrics["optimized_tokens"] > 0
         assert metrics["reduction_percentage"] >= 0
-        
+
         # Test with verbose logger
         logger = VerboseLogger(storage_manager=storage)
         try:
-            logger.log_test_start("Integration Test", {
-                "provider": result.provider,
-                "model": result.model,
-                "browser": result.browser
-            })
-            
+            logger.log_test_start(
+                "Integration Test",
+                {
+                    "provider": result.provider,
+                    "model": result.model,
+                    "browser": result.browser,
+                },
+            )
+
             # Log the execution steps
             for step in result.steps:
                 if step.type == "tool_call":
                     logger.log_tool_call(
-                        step.name, 
+                        step.name,
                         {"content": step.content[:100]},
-                        result="Success"  # Mock result for test
+                        result="Success",  # Mock result for test
                     )
-            
+
             logger.log_test_complete(
                 result.success,
                 result.duration,
-                f"{result.steps_executed} steps executed"
+                f"{result.steps_executed} steps executed",
             )
-            
+
             # Verify log file created
             log_files = list(storage.get_logs_dir().glob("*.log"))
             assert len(log_files) > 0
         finally:
             logger.close()
-    
+
     def test_dict_to_model_compatibility(self, temp_dir):
         """Test that dictionary results can be converted to models and back"""
         from browser_copilot.models.results import BrowserTestResult
-        
+
         # Create a dictionary result (old format)
         dict_result = {
             "success": True,
@@ -457,7 +465,7 @@ class TestIntegration:
                 "start": "2024-01-01T10:00:00+00:00",
                 "end": "2024-01-01T10:00:45+00:00",
                 "duration_seconds": 45.0,
-                "timezone": "UTC"
+                "timezone": "UTC",
             },
             "token_usage": {
                 "total_tokens": 2000,
@@ -469,20 +477,30 @@ class TestIntegration:
                     "optimized_tokens": 2000,
                     "reduction_percentage": 33.3,
                     "strategies_applied": ["whitespace_removal"],
-                    "estimated_savings": 0.01
-                }
+                    "estimated_savings": 0.01,
+                },
             },
             "steps": [
-                {"type": "tool_call", "name": "browser_navigate", "content": "Navigate to site", "timestamp": "2024-01-01T10:00:00+00:00"},
-                {"type": "agent_message", "name": None, "content": "Page loaded", "timestamp": "2024-01-01T10:00:10+00:00"}
+                {
+                    "type": "tool_call",
+                    "name": "browser_navigate",
+                    "content": "Navigate to site",
+                    "timestamp": "2024-01-01T10:00:00+00:00",
+                },
+                {
+                    "type": "agent_message",
+                    "name": None,
+                    "content": "Page loaded",
+                    "timestamp": "2024-01-01T10:00:10+00:00",
+                },
             ],
             "environment": {"token_optimization": True},
-            "metrics": {"total_steps": 3}
+            "metrics": {"total_steps": 3},
         }
-        
+
         # Convert dict to model
         model_result = BrowserTestResult.from_dict(dict_result)
-        
+
         # Verify model fields
         assert model_result.success is True
         assert model_result.test_name == "Dict Compatibility Test"
@@ -490,32 +508,37 @@ class TestIntegration:
         assert model_result.provider == "github_copilot"
         assert len(model_result.steps) == 2
         assert model_result.token_usage.total_tokens == 2000
-        assert model_result.token_usage.optimization_savings.reduction_percentage == 33.3
-        
+        assert (
+            model_result.token_usage.optimization_savings.reduction_percentage == 33.3
+        )
+
         # Convert back to dict
         new_dict = model_result.to_dict()
-        
+
         # Verify backward compatibility fields
         assert new_dict["duration_seconds"] == 45.0  # Backward compatibility field
         assert new_dict["success"] == dict_result["success"]
-        assert new_dict["token_usage"]["total_tokens"] == dict_result["token_usage"]["total_tokens"]
-        
+        assert (
+            new_dict["token_usage"]["total_tokens"]
+            == dict_result["token_usage"]["total_tokens"]
+        )
+
         # Test with reporter - should handle both formats
         reporter.print_results(dict_result)  # Dict format
         reporter.print_results(model_result)  # Model format
-        
+
         # Save both formats
         dict_files = reporter.save_results(dict_result, str(temp_dir / "dict"))
         model_files = reporter.save_results(model_result, str(temp_dir / "model"))
-        
+
         # Both should create similar files
         assert dict_files["report"].exists()
         assert model_files["report"].exists()
-        
+
         # JSON content should be similar
         dict_json = json.loads(dict_files["results"].read_text(encoding="utf-8"))
         model_json = json.loads(model_files["results"].read_text(encoding="utf-8"))
-        
+
         assert dict_json["success"] == model_json["success"]
         assert dict_json["test_name"] == model_json["test_name"]
         assert dict_json["duration"] == model_json["duration"]

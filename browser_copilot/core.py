@@ -6,9 +6,9 @@ AI-powered browser test automation.
 """
 
 import logging
-from datetime import UTC, datetime
-from typing import Any, Optional
 import uuid
+from datetime import UTC, datetime
+from typing import Any
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -20,23 +20,22 @@ from .agent import AgentFactory
 from .analysis import ReportParser
 from .config_manager import ConfigManager
 from .constants import (
-    DEFAULT_RECURSION_LIMIT,
+    DEFAULT_COMPRESSION_LEVEL,
     DEFAULT_CONTEXT_WINDOW_SIZE,
     DEFAULT_PRESERVE_FIRST_N,
     DEFAULT_PRESERVE_LAST_N,
-    DEFAULT_COMPRESSION_LEVEL,
+    DEFAULT_RECURSION_LIMIT,
     MODEL_CONTEXT_LIMITS,
     SESSION_DIR_FORMAT,
     TIMESTAMP_FORMAT,
 )
 from .io import StreamHandler
-from .models.execution import ExecutionStep, ExecutionMetadata, ExecutionTiming
-from .models.metrics import TokenMetrics, OptimizationSavings
+from .models.execution import ExecutionMetadata, ExecutionStep, ExecutionTiming
+from .models.metrics import OptimizationSavings, TokenMetrics
 from .models.results import BrowserTestResult
 from .prompts import PromptBuilder
 from .token_optimizer import OptimizationLevel, TokenOptimizer
 from .utils import extract_test_name, normalize_test_name
-from .validation import InputValidator, ValidationError
 from .verbose_logger import LangChainVerboseCallback, VerboseLogger
 
 
@@ -242,7 +241,9 @@ class BrowserPilot:
             session_dir = (
                 self.config.storage.base_dir
                 / "sessions"
-                / SESSION_DIR_FORMAT.format(test_name=test_name_normalized, timestamp=timestamp)
+                / SESSION_DIR_FORMAT.format(
+                    test_name=test_name_normalized, timestamp=timestamp
+                )
             )
             session_dir.mkdir(parents=True, exist_ok=True)
             browser_args.extend(["--output-dir", str(session_dir)])
@@ -268,7 +269,7 @@ class BrowserPilot:
             )
 
         # Create execution metadata
-        metadata = ExecutionMetadata(
+        ExecutionMetadata(
             test_name=test_name,
             provider=self.provider,
             model=self.model,
@@ -279,17 +280,17 @@ class BrowserPilot:
             token_optimization_enabled=self.token_optimizer is not None,
             compression_level=self.config.get("compression_level", "medium"),
             verbose_enabled=self.verbose_logger is not None,
-            session_id=str(kwargs.get("_session_dir", uuid.uuid4()))
+            session_id=str(kwargs.get("_session_dir", uuid.uuid4())),
         )
-        
+
         # Track execution
         start_time = datetime.now(UTC)
-        
+
         # Initialize result components
         execution_steps: list[ExecutionStep] = []
         report_content = ""
-        error_message: Optional[str] = None
-        token_metrics: Optional[TokenMetrics] = None
+        error_message: str | None = None
+        token_metrics: TokenMetrics | None = None
 
         try:
             async with stdio_client(server_params) as (read, write):
@@ -297,34 +298,52 @@ class BrowserPilot:
                     await session.initialize()
 
                     # Get context management configuration
-                    context_strategy = self.config.get("context_strategy", "sliding-window")
-                    
+                    context_strategy = self.config.get(
+                        "context_strategy", "sliding-window"
+                    )
+
                     # Build context config from CLI/config
                     from .context_management.base import ContextConfig
+
                     context_config = ContextConfig(
-                        window_size=self.config.get("context_window_size", DEFAULT_CONTEXT_WINDOW_SIZE),
-                        preserve_first_n=self.config.get("context_preserve_first", DEFAULT_PRESERVE_FIRST_N),
-                        preserve_last_n=self.config.get("context_preserve_last", DEFAULT_PRESERVE_LAST_N),
-                        compression_level=self.config.get("compression_level", DEFAULT_COMPRESSION_LEVEL),
+                        window_size=self.config.get(
+                            "context_window_size", DEFAULT_CONTEXT_WINDOW_SIZE
+                        ),
+                        preserve_first_n=self.config.get(
+                            "context_preserve_first", DEFAULT_PRESERVE_FIRST_N
+                        ),
+                        preserve_last_n=self.config.get(
+                            "context_preserve_last", DEFAULT_PRESERVE_LAST_N
+                        ),
+                        compression_level=self.config.get(
+                            "compression_level", DEFAULT_COMPRESSION_LEVEL
+                        ),
                         preserve_errors=True,
                         preserve_screenshots=True,
                     )
-                    
+
                     # Log context configuration
                     if self.verbose_logger:
-                        self.stream.write(f"Context management: {context_strategy}", "debug")
-                        self.stream.write(f"Window size: {context_config.window_size} tokens", "debug")
-                        self.stream.write(f"Preserve first: {context_config.preserve_first_n}, last: {context_config.preserve_last_n}", "debug")
-                    
+                        self.stream.write(
+                            f"Context management: {context_strategy}", "debug"
+                        )
+                        self.stream.write(
+                            f"Window size: {context_config.window_size} tokens", "debug"
+                        )
+                        self.stream.write(
+                            f"Preserve first: {context_config.preserve_first_n}, last: {context_config.preserve_last_n}",
+                            "debug",
+                        )
+
                     # Create browser automation agent using AgentFactory with context management
                     recursion_limit = DEFAULT_RECURSION_LIMIT
                     agent = await self.agent_factory.create_browser_agent(
-                        session=session, 
+                        session=session,
                         recursion_limit=recursion_limit,
                         context_strategy=context_strategy,
                         context_config=context_config,
-                        hil_enabled=self.config.get('hil', True),
-                        verbose=self.verbose_logger is not None
+                        hil_enabled=self.config.get("hil", True),
+                        verbose=self.verbose_logger is not None,
                     )
 
                     # Build execution prompt
@@ -345,161 +364,275 @@ class BrowserPilot:
                     # Execute test suite
                     steps = []
                     final_response = None
-                    
+
                     # Configure for HIL mode if enabled
-                    hil_enabled = self.config.get('hil', True)
+                    hil_enabled = self.config.get("hil", True)
                     config = None
-                    
+
                     if self.verbose_logger:
-                        self.stream.write(f"[HIL] HIL enabled from config: {hil_enabled}", "debug")
-                        self.stream.write(f"[HIL] Config hil value: {self.config.get('hil', 'NOT SET')}", "debug")
-                        self.stream.write(f"[HIL] Config hil_interactive value: {self.config.get('hil_interactive', 'NOT SET')}", "debug")
-                    
+                        self.stream.write(
+                            f"[HIL] HIL enabled from config: {hil_enabled}", "debug"
+                        )
+                        self.stream.write(
+                            f"[HIL] Config hil value: {self.config.get('hil', 'NOT SET')}",
+                            "debug",
+                        )
+                        self.stream.write(
+                            f"[HIL] Config hil_interactive value: {self.config.get('hil_interactive', 'NOT SET')}",
+                            "debug",
+                        )
+
                     if hil_enabled:
                         # Create config with thread ID for checkpointing
-                        test_name = self.config.get('test_scenario', 'test').replace('/', '_').replace('.md', '')
+                        test_name = (
+                            self.config.get("test_scenario", "test")
+                            .replace("/", "_")
+                            .replace(".md", "")
+                        )
                         thread_id = f"test_{test_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                         config = {"configurable": {"thread_id": thread_id}}
                         if self.verbose_logger:
-                            self.stream.write(f"[HIL] HIL mode enabled with thread ID: {thread_id}", "debug")
-                    
+                            self.stream.write(
+                                f"[HIL] HIL mode enabled with thread ID: {thread_id}",
+                                "debug",
+                            )
+
                     # Initial input
-                    agent_input = {"messages": prompt}
+                    agent_input: dict[str, Any] | Any = {"messages": prompt}
                     hil_interaction_count = 0
                     max_hil_interactions = 50  # Safety limit
-                    
+
                     if config:
                         # Use invoke for interrupt mode (streaming with interrupts is complex)
                         while True:
                             try:
                                 result = await agent.ainvoke(agent_input, config)
-                                
+
                                 # Check for interrupt
                                 if "__interrupt__" in result:
                                     interrupt_data = result["__interrupt__"]
                                     hil_interaction_count += 1
-                                    
+
                                     # Check if we've hit the interaction limit
                                     if hil_interaction_count >= max_hil_interactions:
                                         self.stream.write(
                                             f"\n⚠️ HIL interaction limit reached ({max_hil_interactions}). Terminating to prevent infinite loops.",
-                                            "warning"
+                                            "warning",
                                         )
-                                        raise RuntimeError(f"HIL interaction limit ({max_hil_interactions}) exceeded")
-                                    
+                                        raise RuntimeError(
+                                            f"HIL interaction limit ({max_hil_interactions}) exceeded"
+                                        )
+
                                     if self.verbose_logger:
-                                        self.stream.write(f"\n🔄 [HIL Interrupt #{hil_interaction_count}] Agent paused for human input", "info")
-                                        if isinstance(interrupt_data, list) and interrupt_data:
+                                        self.stream.write(
+                                            f"\n🔄 [HIL Interrupt #{hil_interaction_count}] Agent paused for human input",
+                                            "info",
+                                        )
+                                        if (
+                                            isinstance(interrupt_data, list)
+                                            and interrupt_data
+                                        ):
                                             interrupt_info = interrupt_data[0]
-                                            if hasattr(interrupt_info, 'value'):
+                                            if hasattr(interrupt_info, "value"):
                                                 hil_info = interrupt_info.value
-                                                self.stream.write(f"  Type: {hil_info.get('hil_type', 'unknown')}", "debug")
-                                                self.stream.write(f"  Request: {hil_info.get('agent_request', '')}", "debug")
-                                                self.stream.write(f"  Suggested: {hil_info.get('suggested_response', '')}", "debug")
-                                    
+                                                self.stream.write(
+                                                    f"  Type: {hil_info.get('hil_type', 'unknown')}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"  Request: {hil_info.get('agent_request', '')}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"  Suggested: {hil_info.get('suggested_response', '')}",
+                                                    "debug",
+                                                )
+
                                     # Extract interrupt information
                                     suggested_response = "Continue"
                                     question = ""
                                     context = ""
-                                    
+
                                     # Debug: log raw interrupt data
                                     if self.verbose_logger:
-                                        self.stream.write(f"[HIL] Raw interrupt data: {interrupt_data}", "debug")
-                                    
-                                    if isinstance(interrupt_data, list) and interrupt_data:
+                                        self.stream.write(
+                                            f"[HIL] Raw interrupt data: {interrupt_data}",
+                                            "debug",
+                                        )
+
+                                    if (
+                                        isinstance(interrupt_data, list)
+                                        and interrupt_data
+                                    ):
                                         interrupt_info = interrupt_data[0]
-                                        if hasattr(interrupt_info, 'value') and isinstance(interrupt_info.value, dict):
+                                        if hasattr(
+                                            interrupt_info, "value"
+                                        ) and isinstance(interrupt_info.value, dict):
                                             hil_data = interrupt_info.value
-                                            suggested_response = hil_data.get('suggested_response', 'Continue')
-                                            question = hil_data.get('question', hil_data.get('action', ''))
-                                            context = hil_data.get('context', hil_data.get('details', ''))
-                                            
+                                            suggested_response = hil_data.get(
+                                                "suggested_response", "Continue"
+                                            )
+                                            question = str(
+                                                hil_data.get(
+                                                    "question",
+                                                    hil_data.get("action", ""),
+                                                )
+                                            )
+                                            context = str(
+                                                hil_data.get(
+                                                    "context",
+                                                    hil_data.get("details", ""),
+                                                )
+                                            )
+
                                             if self.verbose_logger:
-                                                self.stream.write(f"[HIL] Extracted - Question: {question}", "debug")
-                                                self.stream.write(f"[HIL] Extracted - Context: {context}", "debug")
-                                                self.stream.write(f"[HIL] Extracted - Suggested: {suggested_response}", "debug")
-                                    
+                                                self.stream.write(
+                                                    f"[HIL] Extracted - Question: {question}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"[HIL] Extracted - Context: {context}",
+                                                    "debug",
+                                                )
+                                                self.stream.write(
+                                                    f"[HIL] Extracted - Suggested: {suggested_response}",
+                                                    "debug",
+                                                )
+
                                     # Check if interactive mode is enabled
-                                    if self.config.get('hil_interactive', False):
+                                    if self.config.get("hil_interactive", False):
                                         # Interactive mode - prompt for real human input
-                                        self.stream.write("\n" + "="*60, "info")
-                                        self.stream.write("🤔 HUMAN INPUT REQUIRED", "info")
-                                        self.stream.write("="*60, "info")
-                                        
+                                        self.stream.write("\n" + "=" * 60, "info")
+                                        self.stream.write(
+                                            "🤔 HUMAN INPUT REQUIRED", "info"
+                                        )
+                                        self.stream.write("=" * 60, "info")
+
                                         if question:
-                                            self.stream.write(f"\nQuestion: {question}", "info")
+                                            self.stream.write(
+                                                f"\nQuestion: {question}", "info"
+                                            )
                                         if context:
-                                            self.stream.write(f"Context: {context}", "info")
-                                        
-                                        self.stream.write(f"\nSuggested response: {suggested_response}", "info")
-                                        self.stream.write("\nEnter your response (or press Enter to use suggested):", "info")
-                                        
+                                            self.stream.write(
+                                                f"Context: {context}", "info"
+                                            )
+
+                                        self.stream.write(
+                                            f"\nSuggested response: {suggested_response}",
+                                            "info",
+                                        )
+                                        self.stream.write(
+                                            "\nEnter your response (or press Enter to use suggested):",
+                                            "info",
+                                        )
+
                                         try:
                                             # Read from stdin with a prompt
                                             import sys
+
                                             user_input = sys.stdin.readline().strip()
-                                            
+
                                             # Check for exit commands
-                                            if user_input.lower() in ['exit', 'quit', 'stop', 'abort']:
-                                                self.stream.write("\n⛔ User requested to exit. Terminating test execution.", "warning")
-                                                self.stream.write("="*60 + "\n", "info")
+                                            if user_input.lower() in [
+                                                "exit",
+                                                "quit",
+                                                "stop",
+                                                "abort",
+                                            ]:
+                                                self.stream.write(
+                                                    "\n⛔ User requested to exit. Terminating test execution.",
+                                                    "warning",
+                                                )
+                                                self.stream.write(
+                                                    "=" * 60 + "\n", "info"
+                                                )
                                                 # Raise a custom exception to exit gracefully
-                                                raise KeyboardInterrupt("User requested exit during HIL interaction")
-                                            
+                                                raise KeyboardInterrupt(
+                                                    "User requested exit during HIL interaction"
+                                                )
+
                                             if user_input:
                                                 # Use user's input
                                                 actual_response = user_input
-                                                self.stream.write(f"  Using your response: {actual_response}", "info")
+                                                self.stream.write(
+                                                    f"  Using your response: {actual_response}",
+                                                    "info",
+                                                )
                                             else:
                                                 # Use suggested response
                                                 actual_response = suggested_response
-                                                self.stream.write(f"  Using suggested response: {actual_response}", "info")
+                                                self.stream.write(
+                                                    f"  Using suggested response: {actual_response}",
+                                                    "info",
+                                                )
                                         except KeyboardInterrupt:
                                             # Re-raise keyboard interrupt to exit
                                             raise
-                                        except Exception as e:
+                                        except Exception:
                                             # Fallback to suggested response on any error
                                             actual_response = suggested_response
-                                            self.stream.write(f"  Error reading input, using suggested: {actual_response}", "warning")
-                                        
-                                        self.stream.write("="*60 + "\n", "info")
+                                            self.stream.write(
+                                                f"  Error reading input, using suggested: {actual_response}",
+                                                "warning",
+                                            )
+
+                                        self.stream.write("=" * 60 + "\n", "info")
                                     else:
                                         # Automated mode - use suggested response
                                         actual_response = suggested_response
                                         if self.verbose_logger:
-                                            self.stream.write(f"  Auto-resuming with: {actual_response}", "info")
-                                    
+                                            self.stream.write(
+                                                f"  Auto-resuming with: {actual_response}",
+                                                "info",
+                                            )
+
                                     # Resume with Command
                                     from langgraph.types import Command
+
                                     agent_input = Command(resume=actual_response)
-                                    
+
                                     # Log the HIL event (don't create ExecutionStep as it has invalid type)
                                     if self.verbose_logger:
-                                        self.stream.write(f"[HIL] Continuing execution after auto-response", "debug")
-                                    
+                                        self.stream.write(
+                                            "[HIL] Continuing execution after auto-response",
+                                            "debug",
+                                        )
+
                                     continue
-                                
+
                                 # No interrupt, process result
                                 if "messages" in result:
                                     for msg in result["messages"]:
                                         if hasattr(msg, "content") and msg.content:
                                             final_response = msg
                                 break
-                                
+
                             except Exception as e:
                                 if "interrupt" in str(e).lower():
                                     # This is expected for interrupt errors
                                     if self.verbose_logger:
-                                        self.stream.write(f"Interrupt exception (expected): {e}", "debug")
+                                        self.stream.write(
+                                            f"Interrupt exception (expected): {e}",
+                                            "debug",
+                                        )
                                     continue
-                                elif "recursion limit" in str(e).lower() or isinstance(e, RecursionError) or "GraphRecursionError" in str(type(e)):
+                                elif (
+                                    "recursion limit" in str(e).lower()
+                                    or isinstance(e, RecursionError)
+                                    or "GraphRecursionError" in str(type(e))
+                                ):
                                     # Handle recursion limit gracefully
                                     self.stream.write(
                                         f"\n⚠️ Recursion limit reached. The agent has exceeded the maximum number of steps ({recursion_limit}).",
-                                        "warning"
+                                        "warning",
                                     )
-                                    self.stream.write("This usually indicates the test is too complex or stuck in a loop.", "warning")
-                                    raise RuntimeError(f"Agent recursion limit ({recursion_limit}) exceeded") from e
+                                    self.stream.write(
+                                        "This usually indicates the test is too complex or stuck in a loop.",
+                                        "warning",
+                                    )
+                                    raise RuntimeError(
+                                        f"Agent recursion limit ({recursion_limit}) exceeded"
+                                    ) from e
                                 else:
                                     raise
                     else:
@@ -518,16 +651,18 @@ class BrowserPilot:
                                 for tool_msg in chunk.get("tools", {}).get(
                                     "messages", []
                                 ):
-                                    if hasattr(tool_msg, "name") and hasattr(tool_msg, "content"):
+                                    if hasattr(tool_msg, "name") and hasattr(
+                                        tool_msg, "content"
+                                    ):
                                         # Create ExecutionStep for tool call
                                         step = ExecutionStep(
                                             type="tool_call",
                                             name=tool_msg.name,
                                             content=str(tool_msg.content),
-                                            timestamp=datetime.now(UTC)
+                                            timestamp=datetime.now(UTC),
                                         )
                                         execution_steps.append(step)
-                                        
+
                                         self.stream.write(
                                             f"  Tool: {tool_msg.name}", "info"
                                         )
@@ -549,15 +684,17 @@ class BrowserPilot:
                                         and agent_msg.content
                                     ):
                                         content = str(agent_msg.content)
-                                        if len(content) > 50:  # Only include substantial messages
+                                        if (
+                                            len(content) > 50
+                                        ):  # Only include substantial messages
                                             step = ExecutionStep(
                                                 type="agent_message",
                                                 name=None,
                                                 content=content,
-                                                timestamp=datetime.now(UTC)
+                                                timestamp=datetime.now(UTC),
                                             )
                                             execution_steps.append(step)
-                                        
+
                                         self.stream.write(
                                             f"  Agent thinking: {content[:200]}...",
                                             "debug",
@@ -583,27 +720,28 @@ class BrowserPilot:
 
                     # Extract token usage from telemetry
                     token_metrics = self._get_token_usage()
-                    
+
                     # Get context management metrics if available
                     context_metrics = None
-                    if hasattr(agent, '_context_manager'):
+                    if hasattr(agent, "_context_manager"):
                         context_metrics = agent._context_manager.get_metrics()
                         # Log context management summary
                         if self.verbose_logger:
-                            self.stream.write("\n" + agent._context_manager.get_summary(), "debug")
-                    
+                            self.stream.write(
+                                "\n" + agent._context_manager.get_summary(), "debug"
+                            )
+
                     # Determine success
                     success = self._check_success(report_content)
-                    
-                    
+
                     # Create timing information
                     timing = ExecutionTiming(
                         start=start_time,
                         end=end_time,
                         duration_seconds=duration,
-                        timezone="UTC"
+                        timezone="UTC",
                     )
-                    
+
                     # Build verbose log if enabled
                     verbose_log = None
                     if self.verbose_logger:
@@ -616,25 +754,29 @@ class BrowserPilot:
                             "log_file": str(self.verbose_logger.get_log_file_path()),
                             "summary": self.verbose_logger.get_execution_summary(),
                         }
-                    
+
                     # Create the result model
                     result = BrowserTestResult(
                         success=success,
                         test_name=test_name,
                         duration=duration,
-                        report=report_content if success else None,
+                        report=report_content if success else "",
                         error=error_message if not success else None,
                         steps=execution_steps,
                         execution_time=timing,
                         metrics={
                             "total_steps": len(steps),
                             "execution_time_ms": duration * 1000,
-                            "avg_step_time_ms": (duration * 1000) / len(steps) if steps else 0,
+                            "avg_step_time_ms": (duration * 1000) / len(steps)
+                            if steps
+                            else 0,
                         },
                         token_usage=token_metrics,
                         environment={
                             "token_optimization": self.token_optimizer is not None,
-                            "compression_level": self.config.get("compression_level", "medium"),
+                            "compression_level": self.config.get(
+                                "compression_level", "medium"
+                            ),
                             "context_strategy": context_strategy,
                             "context_metrics": context_metrics,
                         },
@@ -645,48 +787,52 @@ class BrowserPilot:
                         browser=browser,
                         headless=headless,
                         viewport_size=viewport_size,
-                        steps_executed=len(steps)
+                        steps_executed=len(steps),
                     )
-                    
+
                     # Return the result as dict for backward compatibility
                     return result.to_dict()
 
-        except TimeoutError as e:
+        except TimeoutError:
             # Handle timeout specifically
             timeout_step = ExecutionStep(
                 type="agent_message",
                 name="timeout_error",
                 content=f"Test execution timed out after {timeout} seconds",
-                timestamp=datetime.now(UTC)
+                timestamp=datetime.now(UTC),
             )
             execution_steps.append(timeout_step)
-            
+
             duration = (datetime.now(UTC) - start_time).total_seconds()
             timing = ExecutionTiming(
                 start=start_time,
                 end=datetime.now(UTC),
                 duration_seconds=duration,
-                timezone="UTC"
+                timezone="UTC",
             )
-            
+
             result = BrowserTestResult(
                 success=False,
                 test_name=test_name,
                 duration=duration,
-                report=None,
+                report="",
                 error=f"Test execution timed out after {timeout} seconds",
                 steps=execution_steps,
                 execution_time=timing,
                 metrics={
                     "total_steps": len(execution_steps),
                     "execution_time_ms": duration * 1000,
-                    "avg_step_time_ms": (duration * 1000) / len(execution_steps) if execution_steps else 0,
+                    "avg_step_time_ms": (duration * 1000) / len(execution_steps)
+                    if execution_steps
+                    else 0,
                 },
                 token_usage=self._get_token_usage(),
                 environment={
                     "token_optimization": self.token_optimizer is not None,
                     "compression_level": self.config.get("compression_level", "medium"),
-                    "context_strategy": self.config.get("context_strategy", "sliding-window"),
+                    "context_strategy": self.config.get(
+                        "context_strategy", "sliding-window"
+                    ),
                     "context_metrics": None,
                 },
                 verbose_log=None,
@@ -695,18 +841,18 @@ class BrowserPilot:
                 browser=browser,
                 headless=headless,
                 viewport_size=viewport_size,
-                steps_executed=len(execution_steps)
+                steps_executed=len(execution_steps),
             )
-            
+
             if self.verbose_logger:
                 self.verbose_logger.log_test_complete(
                     False,
                     duration,
                     f"Timeout after {timeout} seconds",
                 )
-                
+
             return result.to_dict()
-            
+
         except BaseExceptionGroup as eg:
             # Handle ExceptionGroup (Python 3.11+)
             duration = (datetime.now(UTC) - start_time).total_seconds()
@@ -714,39 +860,43 @@ class BrowserPilot:
                 start=start_time,
                 end=datetime.now(UTC),
                 duration_seconds=duration,
-                timezone="UTC"
+                timezone="UTC",
             )
-            
+
             # Extract first meaningful exception
-            first_exception = None
+            first_exception: BaseException | None = None
             for exc in eg.exceptions:
                 if isinstance(exc, TimeoutError):
                     first_exception = exc
                     break
-                elif not isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                elif not isinstance(exc, KeyboardInterrupt | SystemExit):
                     first_exception = exc
                     break
-            
+
             error_msg = str(first_exception) if first_exception else str(eg)
-            
+
             result = BrowserTestResult(
                 success=False,
                 test_name=test_name,
                 duration=duration,
-                report=None,
+                report="",
                 error=error_msg,
                 steps=execution_steps,
                 execution_time=timing,
                 metrics={
                     "total_steps": len(execution_steps),
                     "execution_time_ms": duration * 1000,
-                    "avg_step_time_ms": (duration * 1000) / len(execution_steps) if execution_steps else 0,
+                    "avg_step_time_ms": (duration * 1000) / len(execution_steps)
+                    if execution_steps
+                    else 0,
                 },
                 token_usage=self._get_token_usage(),
                 environment={
                     "token_optimization": self.token_optimizer is not None,
                     "compression_level": self.config.get("compression_level", "medium"),
-                    "context_strategy": self.config.get("context_strategy", "sliding-window"),
+                    "context_strategy": self.config.get(
+                        "context_strategy", "sliding-window"
+                    ),
                     "context_metrics": None,
                 },
                 verbose_log=None,
@@ -755,22 +905,23 @@ class BrowserPilot:
                 browser=browser,
                 headless=headless,
                 viewport_size=viewport_size,
-                steps_executed=len(execution_steps)
+                steps_executed=len(execution_steps),
             )
-            
+
             if self.verbose_logger:
                 self.verbose_logger.log_test_complete(
                     False,
                     duration,
                     f"Error: {error_msg}",
                 )
-                
+
             if verbose:
                 import traceback
+
                 traceback.print_exc()
-                
+
             return result.to_dict()
-            
+
         except Exception as e:
             # Handle other exceptions
             duration = (datetime.now(UTC) - start_time).total_seconds()
@@ -778,27 +929,31 @@ class BrowserPilot:
                 start=start_time,
                 end=datetime.now(UTC),
                 duration_seconds=duration,
-                timezone="UTC"
+                timezone="UTC",
             )
-            
+
             result = BrowserTestResult(
                 success=False,
                 test_name=test_name,
                 duration=duration,
-                report=None,
+                report="",
                 error=str(e),
                 steps=execution_steps,
                 execution_time=timing,
                 metrics={
                     "total_steps": len(execution_steps),
                     "execution_time_ms": duration * 1000,
-                    "avg_step_time_ms": (duration * 1000) / len(execution_steps) if execution_steps else 0,
+                    "avg_step_time_ms": (duration * 1000) / len(execution_steps)
+                    if execution_steps
+                    else 0,
                 },
                 token_usage=self._get_token_usage(),
                 environment={
                     "token_optimization": self.token_optimizer is not None,
                     "compression_level": self.config.get("compression_level", "medium"),
-                    "context_strategy": self.config.get("context_strategy", "sliding-window"),
+                    "context_strategy": self.config.get(
+                        "context_strategy", "sliding-window"
+                    ),
                     "context_metrics": None,
                 },
                 verbose_log=None,
@@ -807,18 +962,19 @@ class BrowserPilot:
                 browser=browser,
                 headless=headless,
                 viewport_size=viewport_size,
-                steps_executed=len(execution_steps)
+                steps_executed=len(execution_steps),
             )
-            
+
             if self.verbose_logger:
                 self.verbose_logger.log_test_complete(
                     False,
                     duration,
                     f"Error: {str(e)}",
                 )
-                
+
             if verbose:
                 import traceback
+
                 traceback.print_exc()
 
         # Return the result as dict for backward compatibility
@@ -831,13 +987,13 @@ class BrowserPilot:
             system_prompt=self.system_prompt,
             token_optimizer=self.token_optimizer,
         )
-        
+
         # Build the prompt
         prompt = prompt_builder.build_test_prompt(
             test_suite_content=test_suite_content,
             browser=self.browser if hasattr(self, "browser") else "Unknown",
         )
-        
+
         # Log optimization if it occurred
         if self.token_optimizer:
             metrics = self.token_optimizer.get_metrics()
@@ -846,7 +1002,7 @@ class BrowserPilot:
                     f"Prompt optimized: {metrics['reduction_percentage']:.1f}% reduction",
                     "debug",
                 )
-        
+
         return prompt
 
     def _check_success(self, report_content: str) -> bool:
@@ -966,7 +1122,7 @@ class BrowserPilot:
                             optimized_tokens=opt_metrics["optimized_tokens"],
                             reduction_percentage=opt_metrics["reduction_percentage"],
                             strategies_applied=opt_metrics["strategies_applied"],
-                            estimated_savings=estimated_savings
+                            estimated_savings=estimated_savings,
                         )
 
                 # Return TokenMetrics even if counts are zero
@@ -978,7 +1134,7 @@ class BrowserPilot:
                     context_length=context_length,
                     max_context_length=max_context_length,
                     context_usage_percentage=context_usage_percentage,
-                    optimization_savings=optimization_savings
+                    optimization_savings=optimization_savings,
                 )
 
             return None
@@ -989,7 +1145,7 @@ class BrowserPilot:
 
     def _extract_steps(self, steps: list) -> list[ExecutionStep]:
         """Extract execution steps from agent execution
-        
+
         This method is kept for backward compatibility but could be removed
         since we now create ExecutionStep objects directly in the main loop.
         """

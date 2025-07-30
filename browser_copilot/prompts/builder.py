@@ -5,14 +5,12 @@ This module handles construction of prompts for test execution,
 including system prompts and test instructions.
 """
 
-from typing import Optional
-
 from ..token_optimizer import TokenOptimizer
 
 
 class PromptBuilder:
     """Builds prompts for test execution"""
-    
+
     # Default test execution instructions
     DEFAULT_INSTRUCTIONS = """
 IMPORTANT INSTRUCTIONS:
@@ -65,12 +63,12 @@ Execute the test now."""
 
     def __init__(
         self,
-        system_prompt: Optional[str] = None,
-        token_optimizer: Optional[TokenOptimizer] = None,
+        system_prompt: str | None = None,
+        token_optimizer: TokenOptimizer | None = None,
     ):
         """
         Initialize prompt builder
-        
+
         Args:
             system_prompt: Custom system prompt to use
             token_optimizer: Token optimizer for prompt compression
@@ -82,34 +80,34 @@ Execute the test now."""
         self,
         test_suite_content: str,
         browser: str = "Unknown",
-        custom_instructions: Optional[str] = None,
+        custom_instructions: str | None = None,
     ) -> str:
         """
         Build the test execution prompt with instructions
-        
+
         Args:
             test_suite_content: The test suite content
             browser: Browser being used
             custom_instructions: Custom instructions to use instead of defaults
-            
+
         Returns:
             Complete prompt for test execution
         """
         # Use custom system prompt if provided
         base_prompt = self.system_prompt if self.system_prompt else ""
-        
+
         # Use custom or default instructions
         instructions = custom_instructions or self.DEFAULT_INSTRUCTIONS.format(
             browser=browser
         )
-        
+
         # Combine all parts
         full_prompt = f"{base_prompt}{test_suite_content.strip()}\n{instructions}"
-        
+
         # Apply token optimization if enabled
         if self.token_optimizer:
             optimized_prompt = self.token_optimizer.optimize_prompt(full_prompt)
-            
+
             # Log optimization metrics
             metrics = self.token_optimizer.get_metrics()
             if metrics["reduction_percentage"] > 0:
@@ -117,9 +115,9 @@ Execute the test now."""
                     f"[PromptBuilder] Prompt optimized: "
                     f"{metrics['reduction_percentage']:.1f}% reduction"
                 )
-            
+
             return optimized_prompt
-        
+
         return full_prompt
 
     def build_hil_prompt(
@@ -127,17 +125,17 @@ Execute the test now."""
         test_name: str,
         current_step: str,
         error_message: str,
-        screenshot_description: Optional[str] = None,
+        screenshot_description: str | None = None,
     ) -> str:
         """
         Build prompt for Human-in-the-Loop intervention
-        
+
         Args:
             test_name: Name of the test
             current_step: Current test step
             error_message: Error that occurred
             screenshot_description: Optional screenshot context
-            
+
         Returns:
             HIL prompt for decision making
         """
@@ -148,10 +146,10 @@ Test: {test_name}
 Current Step: {current_step}
 Error: {error_message}
 """
-        
+
         if screenshot_description:
             prompt += f"Screenshot Context: {screenshot_description}\n"
-        
+
         prompt += """
 Analyze this situation and provide one of these responses:
 1. CONTINUE - If the error is minor and the test can proceed
@@ -161,16 +159,16 @@ Analyze this situation and provide one of these responses:
 
 Include reasoning and any specific instructions for retry scenarios.
 """
-        
+
         return prompt
 
     def build_analysis_prompt(self, report_content: str) -> str:
         """
         Build prompt for analyzing test results
-        
+
         Args:
             report_content: Test execution report
-            
+
         Returns:
             Analysis prompt
         """

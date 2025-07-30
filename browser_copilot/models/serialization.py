@@ -6,7 +6,7 @@ Provides custom JSON encoder and serialization helpers.
 
 import dataclasses
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -82,51 +82,51 @@ class ModelSerializer:
 def serialize_datetime(dt: datetime) -> str:
     """
     Serialize datetime to ISO format string.
-    
+
     Args:
         dt: Datetime object to serialize
-        
+
     Returns:
         ISO format string with timezone
     """
     # Ensure timezone awareness
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    
+        dt = dt.replace(tzinfo=UTC)
+
     return dt.isoformat()
 
 
 def deserialize_datetime(dt_str: str) -> datetime:
     """
     Deserialize ISO format string to datetime.
-    
+
     Args:
         dt_str: ISO format datetime string
-        
+
     Returns:
         Timezone-aware datetime object
     """
     # Handle 'Z' suffix for UTC
-    if dt_str.endswith('Z'):
-        dt_str = dt_str[:-1] + '+00:00'
-    
+    if dt_str.endswith("Z"):
+        dt_str = dt_str[:-1] + "+00:00"
+
     # Parse ISO format
     dt = datetime.fromisoformat(dt_str)
-    
+
     # Ensure timezone awareness
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    
+        dt = dt.replace(tzinfo=UTC)
+
     return dt
 
 
 def serialize_path(path: Path) -> str:
     """
     Serialize Path object to string.
-    
+
     Args:
         path: Path object to serialize
-        
+
     Returns:
         String representation of the path
     """
@@ -136,10 +136,10 @@ def serialize_path(path: Path) -> str:
 def deserialize_path(path_str: str) -> Path:
     """
     Deserialize string to Path object.
-    
+
     Args:
         path_str: String representation of a path
-        
+
     Returns:
         Path object
     """

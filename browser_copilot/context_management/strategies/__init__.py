@@ -13,7 +13,7 @@ from .smart_trim import SmartTrimStrategy
 __all__ = [
     "ContextStrategy",
     "PreModelHook",
-    "NoOpStrategy", 
+    "NoOpStrategy",
     "SlidingWindowStrategy",
     "SmartTrimStrategy",
 ]

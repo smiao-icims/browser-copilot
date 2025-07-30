@@ -5,7 +5,7 @@ This module provides the AgentFactory class that handles the creation
 and configuration of LangGraph ReAct agents for browser automation.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
@@ -36,9 +36,9 @@ class AgentFactory:
         session: ClientSession,
         recursion_limit: int = 100,
         context_strategy: str = "sliding-window",
-        context_config: Optional[ContextConfig] = None,
+        context_config: ContextConfig | None = None,
         hil_enabled: bool = False,
-        checkpointer: Optional[Any] = None,
+        checkpointer: Any | None = None,
         verbose: bool = False,
     ) -> Any:
         """
@@ -58,34 +58,36 @@ class AgentFactory:
         """
         # Load MCP tools from the browser session
         tools = await load_mcp_tools(session)
-        
+
         # Add HIL tools if enabled
         if hil_enabled:
             if verbose:
-                print(f"[Agent] HIL is enabled, loading HIL tools...")
-                
-            from .hil_detection import ask_human, confirm_action, configure_hil_llm
-            
+                print("[Agent] HIL is enabled, loading HIL tools...")
+
+            from .hil_detection import ask_human, configure_hil_llm, confirm_action
+
             # Configure HIL with current LLM settings if available
             if self.provider_name and self.model_alias:
                 configure_hil_llm(self.provider_name, self.model_alias)
                 if verbose:
-                    print(f"[Agent] Configured HIL with {self.provider_name}/{self.model_alias}")
-            
+                    print(
+                        f"[Agent] Configured HIL with {self.provider_name}/{self.model_alias}"
+                    )
+
             tools.extend([ask_human, confirm_action])
             if verbose:
-                print(f"[Agent] Added ask_human and confirm_action tools for HIL")
+                print("[Agent] Added ask_human and confirm_action tools for HIL")
                 print(f"[Agent] Total tools available: {len(tools)}")
                 tool_names = []
                 for t in tools:
-                    if hasattr(t, 'name'):
+                    if hasattr(t, "name"):
                         tool_names.append(t.name)
                     else:
                         tool_names.append(str(t))
                 print(f"[Agent] Tool names: {tool_names}")
         else:
             if verbose:
-                print(f"[Agent] HIL is disabled")
+                print("[Agent] HIL is disabled")
 
         # Create pre-model hook using the factory
         pre_model_hook = None
@@ -94,18 +96,17 @@ class AgentFactory:
             pass
         else:
             pre_model_hook = create_context_hook(
-                strategy=context_strategy,
-                config=context_config,
-                verbose=verbose
+                strategy=context_strategy, config=context_config, verbose=verbose
             )
 
         # No special configuration needed for HIL when using ask_human tools
         # The tools handle interrupts directly
         post_model_hook = None
-        
+
         # Create checkpointer if using HIL and not provided
         if hil_enabled and not checkpointer:
             from langgraph.checkpoint.memory import MemorySaver
+
             checkpointer = MemorySaver()
             if verbose:
                 print("[Agent] Created in-memory checkpointer for HIL mode")
@@ -117,25 +118,25 @@ class AgentFactory:
             "tools": tools,
             "version": "v2",  # Required for post-model hooks
         }
-        
+
         # Add hooks if configured
         if pre_model_hook:
             agent_kwargs["pre_model_hook"] = pre_model_hook
         if post_model_hook:
             agent_kwargs["post_model_hook"] = post_model_hook
-        
+
         # Add checkpointer if available (required for interrupt)
         if checkpointer:
             agent_kwargs["checkpointer"] = checkpointer
-            
+
         agent = create_react_agent(**agent_kwargs)
 
         # Configure agent with recursion limit
         agent = agent.with_config(recursion_limit=recursion_limit)
-        
-        # Store hook reference for metrics access
-        if hasattr(pre_model_hook, 'context_manager'):
-            agent._context_manager = pre_model_hook.context_manager
+
+        # Store hook reference for metrics access (commented out - not needed for compiled graph)
+        # if hasattr(pre_model_hook, "context_manager"):
+        #     agent._context_manager = pre_model_hook.context_manager
 
         return agent
 

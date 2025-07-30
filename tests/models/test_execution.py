@@ -3,7 +3,6 @@ Tests for execution-related data models
 """
 
 from datetime import UTC, datetime
-from typing import Any
 
 import pytest
 
@@ -21,14 +20,11 @@ class TestExecutionTiming:
         """Test valid ExecutionTiming construction"""
         start = datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)
         end = datetime(2024, 1, 15, 10, 0, 30, tzinfo=UTC)
-        
+
         timing = ExecutionTiming(
-            start=start,
-            end=end,
-            duration_seconds=30.0,
-            timezone="UTC"
+            start=start, end=end, duration_seconds=30.0, timezone="UTC"
         )
-        
+
         assert timing.start == start
         assert timing.end == end
         assert timing.duration_seconds == 30.0
@@ -38,14 +34,11 @@ class TestExecutionTiming:
         """Test ExecutionTiming serialization"""
         start = datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)
         end = datetime(2024, 1, 15, 10, 0, 30, tzinfo=UTC)
-        
+
         timing = ExecutionTiming(
-            start=start,
-            end=end,
-            duration_seconds=30.0,
-            timezone="America/New_York"
+            start=start, end=end, duration_seconds=30.0, timezone="America/New_York"
         )
-        
+
         data = timing.to_dict()
         assert data == {
             "start": "2024-01-15T10:00:00+00:00",
@@ -62,7 +55,7 @@ class TestExecutionTiming:
             "duration_seconds": 30.0,
             "timezone": "UTC",
         }
-        
+
         timing = ExecutionTiming.from_dict(data)
         assert timing.start == datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)
         assert timing.end == datetime(2024, 1, 15, 10, 0, 30, tzinfo=UTC)
@@ -73,21 +66,13 @@ class TestExecutionTiming:
         """Test ExecutionTiming validation"""
         start = datetime(2024, 1, 15, 10, 0, 30, tzinfo=UTC)
         end = datetime(2024, 1, 15, 10, 0, 0, tzinfo=UTC)  # Before start
-        
+
         with pytest.raises(ValueError, match="End time must be after start time"):
-            ExecutionTiming(
-                start=start,
-                end=end,
-                duration_seconds=30.0
-            )
-        
+            ExecutionTiming(start=start, end=end, duration_seconds=30.0)
+
         # Negative duration
         with pytest.raises(ValueError, match="Duration cannot be negative"):
-            ExecutionTiming(
-                start=end,
-                end=start,
-                duration_seconds=-30.0
-            )
+            ExecutionTiming(start=end, end=start, duration_seconds=-30.0)
 
 
 class TestExecutionStep:
@@ -98,9 +83,9 @@ class TestExecutionStep:
         step = ExecutionStep(
             type="tool_call",
             name="browser_navigate",
-            content="Navigated to https://example.com"
+            content="Navigated to https://example.com",
         )
-        
+
         assert step.type == "tool_call"
         assert step.name == "browser_navigate"
         assert step.content == "Navigated to https://example.com"
@@ -110,11 +95,9 @@ class TestExecutionStep:
     def test_construction_agent_message(self):
         """Test ExecutionStep construction for agent message"""
         step = ExecutionStep(
-            type="agent_message",
-            name=None,
-            content="Analyzing page structure..."
+            type="agent_message", name=None, content="Analyzing page structure..."
         )
-        
+
         assert step.type == "agent_message"
         assert step.name is None
         assert step.content == "Analyzing page structure..."
@@ -126,9 +109,9 @@ class TestExecutionStep:
             type="tool_call",
             name="browser_click",
             content="Clicked button",
-            metadata=metadata
+            metadata=metadata,
         )
-        
+
         assert step.metadata == metadata
 
     def test_to_dict(self):
@@ -139,9 +122,9 @@ class TestExecutionStep:
             name="browser_snapshot",
             content="Page snapshot taken",
             timestamp=timestamp,
-            metadata={"size": 1024}
+            metadata={"size": 1024},
         )
-        
+
         data = step.to_dict()
         assert data == {
             "type": "tool_call",
@@ -160,7 +143,7 @@ class TestExecutionStep:
             "timestamp": "2024-01-15T10:30:45+00:00",
             "metadata": {"final": True},
         }
-        
+
         step = ExecutionStep.from_dict(data)
         assert step.type == "agent_message"
         assert step.name is None
@@ -175,24 +158,16 @@ class TestExecutionStep:
             ExecutionStep(
                 type="invalid_type",  # type: ignore
                 name="test",
-                content="content"
+                content="content",
             )
-        
+
         # Tool call without name
         with pytest.raises(ValueError, match="Tool call must have a name"):
-            ExecutionStep(
-                type="tool_call",
-                name=None,
-                content="content"
-            )
-        
+            ExecutionStep(type="tool_call", name=None, content="content")
+
         # Empty content
         with pytest.raises(ValueError, match="Content cannot be empty"):
-            ExecutionStep(
-                type="agent_message",
-                name=None,
-                content=""
-            )
+            ExecutionStep(type="agent_message", name=None, content="")
 
 
 class TestExecutionMetadata:
@@ -207,9 +182,9 @@ class TestExecutionMetadata:
             browser="chrome",
             headless=True,
             viewport_width=1920,
-            viewport_height=1080
+            viewport_height=1080,
         )
-        
+
         assert metadata.test_name == "Login Test"
         assert metadata.provider == "openai"
         assert metadata.model == "gpt-4"
@@ -221,12 +196,9 @@ class TestExecutionMetadata:
     def test_construction_with_defaults(self):
         """Test ExecutionMetadata with default values"""
         metadata = ExecutionMetadata(
-            test_name="Test",
-            provider="openai",
-            model="gpt-4",
-            browser="chrome"
+            test_name="Test", provider="openai", model="gpt-4", browser="chrome"
         )
-        
+
         # Check defaults
         assert metadata.headless is False
         assert metadata.viewport_width == 1920
@@ -253,9 +225,9 @@ class TestExecutionMetadata:
             verbose_enabled=True,
             session_id="test-123",
             tags=["regression", "critical"],
-            custom_data={"environment": "staging", "version": "2.0"}
+            custom_data={"environment": "staging", "version": "2.0"},
         )
-        
+
         assert metadata.token_optimization_enabled is True
         assert metadata.compression_level == "high"
         assert metadata.verbose_enabled is True
@@ -271,9 +243,9 @@ class TestExecutionMetadata:
             model="gpt-4",
             browser="chrome",
             session_id="abc-123",
-            tags=["smoke", "ui"]
+            tags=["smoke", "ui"],
         )
-        
+
         data = metadata.to_dict()
         assert data["test_name"] == "Test"
         assert data["provider"] == "openai"
@@ -300,9 +272,9 @@ class TestExecutionMetadata:
             "verbose_enabled": True,
             "session_id": "xyz-789",
             "tags": ["api", "integration"],
-            "custom_data": {"api_version": "v2"}
+            "custom_data": {"api_version": "v2"},
         }
-        
+
         metadata = ExecutionMetadata.from_dict(data)
         assert metadata.test_name == "API Test"
         assert metadata.provider == "anthropic"
@@ -317,21 +289,18 @@ class TestExecutionMetadata:
         # Empty test name
         with pytest.raises(ValueError, match="Test name cannot be empty"):
             ExecutionMetadata(
-                test_name="",
-                provider="openai",
-                model="gpt-4",
-                browser="chrome"
+                test_name="", provider="openai", model="gpt-4", browser="chrome"
             )
-        
+
         # Invalid browser
         with pytest.raises(ValueError, match="Invalid browser"):
             ExecutionMetadata(
                 test_name="Test",
                 provider="openai",
                 model="gpt-4",
-                browser="invalid-browser"
+                browser="invalid-browser",
             )
-        
+
         # Invalid viewport dimensions
         with pytest.raises(ValueError, match="Viewport width must be positive"):
             ExecutionMetadata(
@@ -339,9 +308,9 @@ class TestExecutionMetadata:
                 provider="openai",
                 model="gpt-4",
                 browser="chrome",
-                viewport_width=0
+                viewport_width=0,
             )
-        
+
         # Invalid compression level
         with pytest.raises(ValueError, match="Invalid compression level"):
             ExecutionMetadata(
@@ -349,5 +318,5 @@ class TestExecutionMetadata:
                 provider="openai",
                 model="gpt-4",
                 browser="chrome",
-                compression_level="invalid"  # type: ignore
+                compression_level="invalid",  # type: ignore
             )

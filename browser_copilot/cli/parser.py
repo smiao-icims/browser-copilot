@@ -173,10 +173,10 @@ Examples:
         choices=["no-op", "sliding-window", "smart-trim"],
         default="sliding-window",
         help="Context management strategy: "
-             "no-op (no trimming, baseline for comparison), "
-             "sliding-window (preserves first N Human/System messages, fills rest with recent), "
-             "smart-trim (importance-based intelligent trimming) "
-             "(default: sliding-window)",
+        "no-op (no trimming, baseline for comparison), "
+        "sliding-window (preserves first N Human/System messages, fills rest with recent), "
+        "smart-trim (importance-based intelligent trimming) "
+        "(default: sliding-window)",
     )
     optimization_group.add_argument(
         "--context-window-size",

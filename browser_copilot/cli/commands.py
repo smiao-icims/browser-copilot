@@ -29,21 +29,21 @@ async def run_test_command(args) -> int:
     # Initialize storage and config
     storage = StorageManager()
     config = ConfigManager(storage_manager=storage)
-    
+
     # Convert no_hil to hil for backwards compatibility
     cli_args = vars(args)
-    if 'no_hil' in cli_args:
+    if "no_hil" in cli_args:
         # HIL is enabled by default, so only set hil=False if --no-hil is specified
-        cli_args['hil'] = not cli_args.pop('no_hil')
+        cli_args["hil"] = not cli_args.pop("no_hil")
     else:
         # HIL is enabled by default
-        cli_args['hil'] = True
-    
+        cli_args["hil"] = True
+
     # Handle hil_interactive flag
-    if 'hil_interactive' in cli_args and cli_args['hil_interactive']:
+    if "hil_interactive" in cli_args and cli_args["hil_interactive"]:
         # Interactive mode requires HIL to be enabled
-        cli_args['hil'] = True
-    
+        cli_args["hil"] = True
+
     config.set_cli_args(cli_args)
 
     # Initialize stream handler

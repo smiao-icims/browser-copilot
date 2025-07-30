@@ -3,17 +3,16 @@ Tests for Reporter
 """
 
 import json
-from pathlib import Path
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
 
 # Import from the package properly
 from browser_copilot import reporter
-from browser_copilot.models.results import BrowserTestResult
-from browser_copilot.models.execution import ExecutionTiming, ExecutionStep
+from browser_copilot.models.execution import ExecutionStep, ExecutionTiming
 from browser_copilot.models.metrics import TokenMetrics
-from datetime import datetime, UTC
+from browser_copilot.models.results import BrowserTestResult
 
 
 @pytest.mark.unit
@@ -307,31 +306,31 @@ class TestReporter:
         timing = ExecutionTiming(
             start=datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
             end=datetime(2024, 1, 1, 10, 0, 30, tzinfo=UTC),
-            duration_seconds=30.0
+            duration_seconds=30.0,
         )
-        
+
         token_metrics = TokenMetrics(
             total_tokens=1000,
             prompt_tokens=800,
             completion_tokens=200,
-            estimated_cost=0.05
+            estimated_cost=0.05,
         )
-        
+
         steps = [
             ExecutionStep(
                 type="tool_call",
                 name="browser_navigate",
                 content="Navigating to example.com",
-                timestamp=datetime.now(UTC)
+                timestamp=datetime.now(UTC),
             ),
             ExecutionStep(
                 type="agent_message",
                 name=None,
                 content="Test completed successfully",
-                timestamp=datetime.now(UTC)
-            )
+                timestamp=datetime.now(UTC),
+            ),
         ]
-        
+
         result = BrowserTestResult(
             success=True,
             test_name="Model Compatibility Test",
@@ -345,27 +344,27 @@ class TestReporter:
             viewport_size="1920,1080",
             execution_time=timing,
             token_usage=token_metrics,
-            steps=steps
+            steps=steps,
         )
-        
+
         # Test print_results with model
         reporter.print_results(result)  # Should not raise
-        
+
         # Test save_results with model
         saved_files = reporter.save_results(result, str(temp_dir))
         assert saved_files["report"].exists()
         assert saved_files["results"].exists()
-        
+
         # Test generate_summary with model
         summary = reporter.generate_summary(result)
         assert "PASSED" in summary
         assert "chromium" in summary  # Browser is included in summary
-        
+
         # Test generate_markdown_report with model
         markdown = reporter.generate_markdown_report(result)
         assert "✅ **PASSED**" in markdown
         assert "gpt-4" in markdown  # Model is included in markdown report
-        
+
         # Test create_html_report with model
         html_path = reporter.create_html_report(result, temp_dir)
         assert html_path.exists()

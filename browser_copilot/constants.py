@@ -5,10 +5,8 @@ This module contains all constant values, limits, and configuration
 defaults used throughout the application.
 """
 
-from typing import Dict
-
 # Model context limits (fallback when model-forge metadata is unavailable)
-MODEL_CONTEXT_LIMITS: Dict[str, int] = {
+MODEL_CONTEXT_LIMITS: dict[str, int] = {
     # Common fallback limits - model-forge should provide accurate data
     "github_copilot_gpt_4o": 128000,
     "openai_gpt_4o": 128000,
@@ -18,11 +16,7 @@ MODEL_CONTEXT_LIMITS: Dict[str, int] = {
 
 # Browser configurations
 VALID_BROWSERS = ["chromium", "chrome", "firefox", "safari", "webkit", "edge", "msedge"]
-BROWSER_ALIASES = {
-    "chrome": "chromium",
-    "edge": "msedge",
-    "safari": "webkit"
-}
+BROWSER_ALIASES = {"chrome": "chromium", "edge": "msedge", "safari": "webkit"}
 
 # Default viewport settings
 DEFAULT_VIEWPORT_WIDTH = 1280
@@ -47,7 +41,7 @@ OPTIMIZATION_LEVELS = {
     "off": "No compression",
     "low": "Basic whitespace removal",
     "medium": "Moderate compression (default)",
-    "high": "Aggressive compression"
+    "high": "Aggressive compression",
 }
 
 # Report formats
@@ -59,5 +53,5 @@ LOG_LEVELS = {
     "debug": "Detailed debugging information",
     "info": "General information",
     "warning": "Warning messages",
-    "error": "Error messages only"
+    "error": "Error messages only",
 }

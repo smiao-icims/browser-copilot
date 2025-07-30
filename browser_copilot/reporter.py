@@ -7,7 +7,7 @@ This module handles test result formatting, saving, and display.
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from .models.results import BrowserTestResult
 
@@ -20,7 +20,9 @@ def print_header() -> None:
     print("╚═══════════════════════════════════════════╝")
 
 
-def print_results(result: Union[dict[str, Any], BrowserTestResult], no_color: bool = False) -> None:
+def print_results(
+    result: dict[str, Any] | BrowserTestResult, no_color: bool = False
+) -> None:
     """
     Print test execution results to console
 
@@ -75,7 +77,7 @@ def print_results(result: Union[dict[str, Any], BrowserTestResult], no_color: bo
 
 
 def save_results(
-    result: Union[dict[str, Any], BrowserTestResult], output_dir: str = "reports"
+    result: dict[str, Any] | BrowserTestResult, output_dir: str = "reports"
 ) -> dict[str, Path]:
     """
     Save test results to disk in multiple formats
@@ -131,7 +133,7 @@ Token Usage: {result.get("token_usage", {}).get("total_tokens", 0):,}
     return {"report": report_path, "results": json_path}
 
 
-def generate_summary(result: Union[dict[str, Any], BrowserTestResult]) -> str:
+def generate_summary(result: dict[str, Any] | BrowserTestResult) -> str:
     """
     Generate a brief summary of test execution
 
@@ -186,7 +188,7 @@ def generate_summary(result: Union[dict[str, Any], BrowserTestResult]) -> str:
     return "\n".join(summary_lines)
 
 
-def generate_markdown_report(result: Union[dict[str, Any], BrowserTestResult]) -> str:
+def generate_markdown_report(result: dict[str, Any] | BrowserTestResult) -> str:
     """
     Generate a markdown report from test results
 
@@ -297,7 +299,9 @@ def format_duration(seconds: float) -> str:
     return f"{hours}h {remaining_minutes}m"
 
 
-def create_html_report(result: Union[dict[str, Any], BrowserTestResult], output_path: Path) -> Path:
+def create_html_report(
+    result: dict[str, Any] | BrowserTestResult, output_path: Path
+) -> Path:
     """
     Create an HTML version of the test report
 

@@ -5,16 +5,23 @@ This package provides strategies for managing conversation context
 to optimize token usage in ReAct agents.
 """
 
-from .base import ContextConfig, ContextManager, ContextStrategy, Message, MessageType, MessageImportance
+from .analyzer import ImportanceScorer, MessageAnalyzer
+from .base import (
+    ContextConfig,
+    ContextManager,
+    ContextStrategy,
+    Message,
+    MessageImportance,
+    MessageType,
+)
 from .hooks import create_context_hook, get_strategy_info, list_strategies
 from .metrics import ContextMetrics
-from .analyzer import MessageAnalyzer, ImportanceScorer
 
 __all__ = [
     # Core classes
     "ContextConfig",
     "ContextManager",
-    "ContextStrategy", 
+    "ContextStrategy",
     "Message",
     "MessageType",
     "MessageImportance",
