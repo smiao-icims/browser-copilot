@@ -303,9 +303,10 @@ class BrowserPilot:
                         self.stream.write(f"Preserve first: {context_config.preserve_first_n}, last: {context_config.preserve_last_n}", "debug")
                     
                     # Create browser automation agent using AgentFactory with context management
+                    recursion_limit = 200
                     agent = await self.agent_factory.create_browser_agent(
                         session=session, 
-                        recursion_limit=100,
+                        recursion_limit=recursion_limit,
                         context_strategy=context_strategy,
                         context_config=context_config,
                         hil_enabled=self.config.get('hil', False),
@@ -461,7 +462,7 @@ class BrowserPilot:
                                     if self.verbose_logger:
                                         self.stream.write(f"Interrupt exception (expected): {e}", "debug")
                                     continue
-                                elif "recursion limit" in str(e).lower() or isinstance(e, RecursionError):
+                                elif "recursion limit" in str(e).lower() or isinstance(e, RecursionError) or "GraphRecursionError" in str(type(e)):
                                     # Handle recursion limit gracefully
                                     self.stream.write(
                                         f"\n⚠️ Recursion limit reached. The agent has exceeded the maximum number of steps ({recursion_limit}).",

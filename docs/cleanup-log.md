@@ -98,3 +98,62 @@ Total: 95 tests that test unused code
 - 1 TODO comment
 
 **Result**: Significantly cleaner codebase with no loss of functionality!
+
+## Critical Bug Fix: Sliding Window Algorithm
+
+**Issue**: The sliding window context management was breaking tool message pairs, causing the error:
+"Found AIMessages with tool_calls that do not have a corresponding ToolMessage"
+
+**Root Cause**: When filling middle messages backwards, the algorithm was:
+1. Counting tokens for already-selected messages (showing "0 tokens" in logs)
+2. Not properly maintaining tool call/response pairs
+3. Adding AIMessages without their corresponding ToolMessages
+
+**First Fix Applied**:
+- Only count tokens for NEW messages being added
+- Ensure complete tool pairs are added together
+- Check `new_to_add = to_add - selected_indices` before calculating tokens
+- Skip iteration if no new messages to add
+
+**Second Issue**: Algorithm was continuing to search for smaller messages that might fit after encountering a message that exceeded the budget, leading to non-sequential message selection.
+
+**Second Fix Applied**:
+- Changed from `continue` to `break` when a message doesn't fit
+- Algorithm now stops at the first non-fitting message when filling middle
+- This ensures messages are selected sequentially backwards until budget is exhausted
+- Prevents skipping around to find smaller messages that might fit
+
+**Third Clarification**: Budget is SOFT - message integrity takes priority
+- Updated documentation to clarify window_size is a soft limit
+- Tool message pairs are kept together even if it exceeds budget
+- Changed "WARNING" to "NOTE" when exceeding budget for integrity
+- This is expected behavior - message integrity is more critical than token limits
+
+**Result**: Tool message integrity is now properly maintained, messages are selected sequentially, and the soft budget approach ensures complete tool pairs are never broken.
+
+## Bug Fix: Recursion Limit Error Handling
+
+**Issue**: NameError when agent hits recursion limit - `recursion_limit` variable was not defined in error handling scope.
+
+**Error**: 
+```
+NameError: name 'recursion_limit' is not defined
+```
+
+**Fix Applied**:
+- Moved `recursion_limit = 100` to a scope accessible by error handling code
+- Improved error detection to catch `GraphRecursionError` by checking type name
+- Now properly handles recursion limit errors with clear user messaging
+
+**Result**: Recursion limit errors are now handled gracefully with proper error messages.
+
+## Configuration Update: Increased Recursion Limit
+
+**Issue**: Tests hitting recursion limit of 100 steps, indicating complex test scenarios need more steps.
+
+**Change Applied**:
+- Increased recursion limit from 100 to 200 in `core.py`
+- This allows the agent to handle more complex test scenarios with many steps
+- Particularly useful for long e-commerce flows with multiple pages and interactions
+
+**Result**: Agent can now execute up to 200 steps before hitting the recursion limit.

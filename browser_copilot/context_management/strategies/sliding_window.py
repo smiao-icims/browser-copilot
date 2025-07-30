@@ -22,7 +22,11 @@ class SlidingWindowStrategy(ContextStrategy):
     1. Preserves the first N Human and System messages (test instructions & system prompts)
     2. Preserves the last M messages (with integrity for tool pairs)
     3. Fills remaining budget with messages working backwards from (last M - 1)
-    4. May exceed window size to preserve integrity
+    4. Uses a SOFT budget - message integrity is prioritized over token limit
+    
+    Note: The window_size is treated as a soft limit. Tool message pairs 
+    (AIMessage with tool_calls + corresponding ToolMessages) are kept together
+    even if it means exceeding the budget.
     """
     
     def create_hook(self) -> PreModelHook:
@@ -96,6 +100,7 @@ class SlidingWindowStrategy(ContextStrategy):
                 print(f"[Sliding Window] Preserved first {preserve_count} Human/System messages ({current_tokens:,} tokens)")
             
             # Step 3: ALWAYS add the last M messages (with integrity)
+            # NOTE: Message integrity is MORE important than token budget - we use a soft budget
             last_m_start = max(preserve_count, len(messages) - self.config.preserve_last_n)
             
             # Add last M messages
@@ -106,6 +111,7 @@ class SlidingWindowStrategy(ContextStrategy):
             
             # Ensure integrity: if any message in last M is a ToolMessage, include its AIMessage
             # if any message in last M is an AIMessage with tools, include its ToolMessages
+            # This may cause us to exceed our budget, but message integrity is critical
             integrity_additions = set()
             for i in range(last_m_start, len(messages)):
                 # If it's a ToolMessage, we need its AIMessage
@@ -119,12 +125,12 @@ class SlidingWindowStrategy(ContextStrategy):
                         if dep_idx not in selected_indices:
                             integrity_additions.add(dep_idx)
             
-            # Add integrity dependencies
+            # Add integrity dependencies (even if it exceeds budget)
             for idx in integrity_additions:
                 selected_indices.add(idx)
                 current_tokens += self.count_tokens(messages[idx])
                 if self.verbose:
-                    print(f"[Sliding Window] Added message {idx} for integrity")
+                    print(f"[Sliding Window] Added message {idx} for integrity (soft budget)")
             
             last_m_count = len([i for i in selected_indices if i >= last_m_start])
             if self.verbose and last_m_count > 0:
@@ -193,8 +199,10 @@ class SlidingWindowStrategy(ContextStrategy):
                             else:
                                 print(f"[Sliding Window] Added middle messages {sorted_added} ({tokens_needed} tokens)")
                     else:
+                        # Cannot fit this message - STOP HERE
                         if self.verbose:
-                            print(f"[Sliding Window] Cannot fit message {i} ({tokens_needed} tokens) - continuing")
+                            print(f"[Sliding Window] Cannot fit message {i} ({tokens_needed} tokens) - stopping here")
+                        break
                     
                     i -= 1
             
@@ -263,4 +271,4 @@ class SlidingWindowStrategy(ContextStrategy):
         
         # Check if we exceeded budget for integrity
         if trimmed_tokens > self.config.window_size:
-            print(f"[Sliding Window] WARNING: Exceeded window size by {trimmed_tokens - self.config.window_size:,} tokens to maintain integrity")
+            print(f"[Sliding Window] NOTE: Exceeded window size by {trimmed_tokens - self.config.window_size:,} tokens to maintain message integrity (expected behavior)")
