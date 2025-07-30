@@ -323,7 +323,7 @@ class BrowserPilot:
                         recursion_limit=recursion_limit,
                         context_strategy=context_strategy,
                         context_config=context_config,
-                        hil_enabled=self.config.get('hil', False),
+                        hil_enabled=self.config.get('hil', True),
                         verbose=self.verbose_logger is not None
                     )
 
@@ -347,7 +347,7 @@ class BrowserPilot:
                     final_response = None
                     
                     # Configure for HIL mode if enabled
-                    hil_enabled = self.config.get('hil', False)
+                    hil_enabled = self.config.get('hil', True)
                     config = None
                     if hil_enabled:
                         # Create config with thread ID for checkpointing
