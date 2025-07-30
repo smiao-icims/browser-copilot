@@ -595,11 +595,6 @@ class BrowserPilot:
                     # Determine success
                     success = self._check_success(report_content)
                     
-                    # Debug logging for success determination
-                    if self.config.get('verbose', False):
-                        self.stream.write(f"[DEBUG] Report content length: {len(report_content)}", "debug")
-                        self.stream.write(f"[DEBUG] Report preview: {report_content[:200]}...", "debug")
-                        self.stream.write(f"[DEBUG] Success check result: {success}", "debug")
                     
                     # Create timing information
                     timing = ExecutionTiming(
