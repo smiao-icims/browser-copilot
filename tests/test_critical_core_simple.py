@@ -12,7 +12,9 @@ import pytest
 from browser_copilot.core import BrowserPilot
 
 
-@pytest.mark.skip(reason="Integration tests require real components - pending test strategy refactor")
+@pytest.mark.skip(
+    reason="Integration tests require real components - pending test strategy refactor"
+)
 class TestCriticalCore:
     """Critical tests for BrowserPilot core functionality"""
 
@@ -45,7 +47,9 @@ class TestCriticalCore:
                 assert pilot.model == model
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Integration test requires real components - pending test strategy refactor")
+    @pytest.mark.skip(
+        reason="Integration test requires real components - pending test strategy refactor"
+    )
     async def test_run_test_suite_basic_execution(self):
         """Test basic test suite execution flow"""
         with (
