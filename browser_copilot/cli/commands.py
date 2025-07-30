@@ -80,7 +80,6 @@ async def run_test_command(args) -> int:
 
     # Save configuration if requested
     if hasattr(args, "save_config") and args.save_config:
-        # TODO: Implement save_defaults method in ConfigManager
         stream.write("Configuration save requested (not yet implemented)", "info")
 
     # Build playwright kwargs
