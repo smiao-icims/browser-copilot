@@ -74,7 +74,7 @@ class ContextConfig:
     compression_level: str = "medium"  # low, medium, high
 
     # Sliding window config
-    window_size: int = 50000  # Target window size in tokens
+    window_size: int = 25000  # Target window size in tokens
     overlap_size: int = 10000  # Overlap between windows
 
     # Preservation rules

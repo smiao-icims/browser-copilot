@@ -167,7 +167,7 @@ class InputValidator:
         Raises:
             ValidationError: If configuration is invalid
         """
-        window_size = config.get("context_window_size", 50000)
+        window_size = config.get("context_window_size", 25000)
         if not isinstance(window_size, int) or window_size < 1000:
             raise ValidationError(
                 f"Invalid context window size: {window_size}. "

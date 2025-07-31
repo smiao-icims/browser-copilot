@@ -181,7 +181,7 @@ Examples:
     optimization_group.add_argument(
         "--context-window-size",
         type=int,
-        help="Target window size in tokens for sliding-window strategy (default: 50000)",
+        help="Target window size in tokens for sliding-window strategy (default: 25000)",
     )
     optimization_group.add_argument(
         "--context-preserve-first",

@@ -88,7 +88,7 @@ class TestContextManagementBase:
         assert config.max_tokens == 100000
         assert config.preserve_first_n == 2  # Default is 2 (system + human)
         assert config.preserve_last_n == 10
-        assert config.window_size == 50000  # Window size in tokens
+        assert config.window_size == 25000  # Window size in tokens
         assert config.preserve_errors is True
         assert config.preserve_screenshots is True
         assert config.enable_compression is True

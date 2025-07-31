@@ -60,7 +60,7 @@ Browser Copilot provides three context management strategies:
 ### Window Size
 Controls the maximum token budget for message content:
 ```bash
---context-window-size 25000  # Default: 50000
+--context-window-size 25000  # Default: 25000
 ```
 
 ### Preserve First Messages
@@ -241,7 +241,7 @@ browser-copilot quick-test.md --context-strategy no-op
 
 | Test Length | Recommended Window | Strategy |
 |-------------|-------------------|----------|
-| < 10 steps | 50000 (default) | Any |
+| < 10 steps | 25000 (default) | Any |
 | 10-30 steps | 15000-25000 | sliding-window |
 | 30+ steps | 10000-15000 | smart-trim |
 | Very long | 5000-10000 | smart-trim |

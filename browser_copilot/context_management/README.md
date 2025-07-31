@@ -51,7 +51,7 @@ from browser_copilot.context_management import create_context_hook, ContextConfi
 
 # Create configuration
 config = ContextConfig(
-    window_size=50000,
+    window_size=25000,
     preserve_first_n=2
 )
 

@@ -69,6 +69,13 @@
 - **Visual Execution**: Watch the AI navigate and interact with your app in real-time
 - **Collaborative**: Everyone can read and contribute to tests
 
+### Important Considerations 🤔
+- **Cost**: LLM API usage costs ~$0.01-0.10 per test run (free with GitHub Copilot subscription!)
+- **Execution Time**: Tests run slower than traditional scripts due to LLM processing
+- **Non-Deterministic**: AI may interpret instructions differently between runs
+- **Best For**: Exploratory testing, smoke tests, and scenarios that change frequently
+- **Less Ideal For**: High-frequency regression tests or performance-critical suites
+
 ---
 
 ## 3. How It Works - The Architecture
@@ -408,6 +415,12 @@ browser-copilot --test-suite examples/weather-forecast.md --provider github_copi
 **Q: How accurate is the AI?**
 A: Very accurate for common patterns, learns from context
 
+**Q: Is it deterministic? Will tests produce the same results?**
+A: AI interpretation can vary slightly between runs. Best practices:
+- Use specific, unambiguous instructions
+- Add verification steps to confirm expected state
+- Use for exploratory/smoke tests rather than strict regression
+
 **Q: Can it handle complex enterprise apps?**
 A: Yes, with proper guidance and human-in-the-loop
 
@@ -415,7 +428,15 @@ A: Yes, with proper guidance and human-in-the-loop
 A: Supports variables, external data sources, and dynamic generation
 
 **Q: How does it compare cost-wise?**
-A: Saves development time, minimal token costs (~$0.01-0.10 per test)
+A: Higher runtime costs but saves development time:
+- Traditional: High upfront dev cost, low runtime cost
+- Browser Copilot: Low dev cost, ~$0.01-0.10 per run (free with GitHub Copilot)
+
+**Q: When should I use traditional automation instead?**
+A: Use traditional for:
+- High-frequency regression tests (100+ runs/day)
+- Performance testing
+- Tests requiring exact timing or pixel-perfect validation
 
 ---
 

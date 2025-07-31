@@ -131,7 +131,33 @@ class SlidingWindowAlgorithm:
         # Remove orphaned ToolMessages from final selection
         final_indices = middle_result.selected_indices - orphaned_tool_indices
 
-        # Recalculate tokens after removing orphaned messages and filling gaps
+        # Final integrity check: ensure no gaps in selected messages
+        # This prevents issues like having messages [0, 33, 35, 36] and missing 34
+        # Pass the boundary to avoid filling gap between first N and the rest
+        first_n_boundary = (
+            max(first_selection.selected_indices)
+            if first_selection.selected_indices
+            else -1
+        )
+        final_indices = self._fill_sequence_gaps(
+            messages,
+            final_indices,
+            middle_result.total_tokens,
+            self.config.window_size,
+            first_n_boundary,
+        )
+
+        # Critical: Ensure all tool call dependencies are satisfied
+        # This prevents errors like "AIMessages with tool_calls that do not have corresponding ToolMessage"
+        final_indices = self._ensure_tool_call_integrity(
+            messages,
+            final_indices,
+            dependencies,
+            self.config.window_size,
+            first_n_boundary,
+        )
+
+        # Recalculate tokens after all adjustments
         final_tokens = sum(
             self.token_counter.count_tokens(messages[i]) for i in final_indices
         )
@@ -287,32 +313,66 @@ class SlidingWindowAlgorithm:
         working_indices = selected_indices.copy()
         working_tokens = current_tokens
 
-        # Work backwards from right boundary
+        # Start from right_boundary - 1 (M-1) and work backwards
+        # This ensures we fill contiguously from the last M messages backwards
         i = right_boundary - 1
+
         while i >= left_boundary and remaining_budget > 0:
             if i in working_indices:
                 i -= 1
                 continue
 
-            # Get all messages needed for this index
+            # Get all messages needed for this index (including tool dependencies)
             needed_indices = self._get_message_group(i, dependencies, working_indices)
 
             if not needed_indices:
                 i -= 1
                 continue
 
-            # Calculate tokens for new messages
+            # Calculate tokens for all messages in the group
             tokens_needed = sum(
                 self.token_counter.count_tokens(messages[idx]) for idx in needed_indices
             )
 
-            # Check if fits in budget
+            # Check if the entire group fits in budget
             if tokens_needed <= remaining_budget:
+                # Add all messages in the group
                 working_indices.update(needed_indices)
                 working_tokens += tokens_needed
                 remaining_budget -= tokens_needed
+
+                # After adding messages, check for integrity dependencies
+                # This ensures if we added an AIMessage, we also have its ToolMessages
+                added_indices = list(needed_indices)
+                for idx in added_indices:
+                    # Check if this message has dependencies we need to add
+                    if idx in dependencies.tool_dependencies:
+                        for tool_idx in dependencies.tool_dependencies[idx]:
+                            if tool_idx not in working_indices and tool_idx < len(
+                                messages
+                            ):
+                                tool_tokens = self.token_counter.count_tokens(
+                                    messages[tool_idx]
+                                )
+                                if tool_tokens <= remaining_budget:
+                                    working_indices.add(tool_idx)
+                                    working_tokens += tool_tokens
+                                    remaining_budget -= tool_tokens
+
+                    # If it's a ToolMessage, ensure we have its AIMessage
+                    if idx in dependencies.reverse_dependencies:
+                        for ai_idx in dependencies.reverse_dependencies[idx]:
+                            if ai_idx not in working_indices and ai_idx >= 0:
+                                ai_tokens = self.token_counter.count_tokens(
+                                    messages[ai_idx]
+                                )
+                                if ai_tokens <= remaining_budget:
+                                    working_indices.add(ai_idx)
+                                    working_tokens += ai_tokens
+                                    remaining_budget -= ai_tokens
             else:
-                # Can't fit, stop here
+                # Can't fit this message group
+                # Since we're filling contiguously backwards, we stop here
                 break
 
             i -= 1
@@ -335,3 +395,129 @@ class SlidingWindowAlgorithm:
 
         # Return only new indices
         return to_add - existing
+
+    def _fill_sequence_gaps(
+        self,
+        messages: list[Any],
+        indices: set[int],
+        current_tokens: int,
+        window_size: int,
+        first_n_boundary: int = -1,
+    ) -> set[int]:
+        """Fill gaps in message sequence to maintain continuity."""
+        if not indices:
+            return indices
+
+        working_indices = indices.copy()
+        working_tokens = current_tokens
+        remaining_budget = window_size - current_tokens
+
+        # Keep filling gaps until no more gaps can be filled
+        gaps_filled = True
+        while gaps_filled and remaining_budget > 0:
+            gaps_filled = False
+            sorted_indices = sorted(working_indices)
+
+            # Look for any gaps in the sequence
+            for i in range(len(sorted_indices) - 1):
+                curr_idx = sorted_indices[i]
+                next_idx = sorted_indices[i + 1]
+                gap_size = next_idx - curr_idx - 1
+
+                # Skip the gap between first N messages and the rest
+                # This preserves the sliding window structure
+                if (
+                    first_n_boundary >= 0
+                    and curr_idx <= first_n_boundary
+                    and next_idx > first_n_boundary
+                ):
+                    continue
+
+                # Fill any gap to maintain continuity
+                if gap_size > 0:
+                    # Try to fill all messages in the gap
+                    gap_messages = []
+                    gap_total_tokens = 0
+
+                    for gap_idx in range(curr_idx + 1, next_idx):
+                        if gap_idx not in working_indices:
+                            tokens = self.token_counter.count_tokens(messages[gap_idx])
+                            gap_messages.append((gap_idx, tokens))
+                            gap_total_tokens += tokens
+
+                    # If we can afford to fill the entire gap, do it
+                    if gap_total_tokens <= remaining_budget:
+                        for gap_idx, tokens in gap_messages:
+                            working_indices.add(gap_idx)
+                            working_tokens += tokens
+                            remaining_budget -= tokens
+                        gaps_filled = True
+                        break
+                    # Otherwise, fill as many as we can from the beginning of the gap
+                    else:
+                        for gap_idx, tokens in gap_messages:
+                            if tokens <= remaining_budget:
+                                working_indices.add(gap_idx)
+                                working_tokens += tokens
+                                remaining_budget -= tokens
+                                gaps_filled = True
+                            else:
+                                break
+                        if gaps_filled:
+                            break
+
+        return working_indices
+
+    def _ensure_tool_call_integrity(
+        self,
+        messages: list[Any],
+        indices: set[int],
+        dependencies: MessageDependencies,
+        window_size: int,
+        first_n_boundary: int = -1,
+    ) -> set[int]:
+        """Ensure tool call integrity at gap boundaries to prevent validation errors."""
+        if not indices:
+            return indices
+
+        working_indices = indices.copy()
+        sorted_indices = sorted(working_indices)
+
+        # Since messages are ordered, we only need to check at gap boundaries
+        # where we might have broken tool call pairs
+
+        # Find gaps in the sequence (excluding the intentional gap after first N)
+        gaps = []
+        for i in range(len(sorted_indices) - 1):
+            curr_idx = sorted_indices[i]
+            next_idx = sorted_indices[i + 1]
+            if next_idx - curr_idx > 1:
+                # Skip the gap between first N messages and the rest
+                if (
+                    first_n_boundary >= 0
+                    and curr_idx <= first_n_boundary
+                    and next_idx > first_n_boundary
+                ):
+                    continue
+                # Found a gap from curr_idx to next_idx
+                gaps.append((curr_idx, next_idx))
+
+        # For each gap, check if we broke any tool call relationships
+        for last_before_gap, first_after_gap in gaps:
+            # Check if the last message before gap has unsatisfied tool calls
+            if last_before_gap in dependencies.tool_dependencies:
+                for tool_idx in dependencies.tool_dependencies[last_before_gap]:
+                    if tool_idx > last_before_gap and tool_idx < first_after_gap:
+                        # This tool message was skipped, remove the AI message
+                        working_indices.discard(last_before_gap)
+                        break
+
+            # Check if the first message after gap is a tool message missing its AI
+            if first_after_gap in dependencies.reverse_dependencies:
+                for ai_idx in dependencies.reverse_dependencies[first_after_gap]:
+                    if ai_idx > last_before_gap and ai_idx < first_after_gap:
+                        # The AI message for this tool was skipped, remove the tool message
+                        working_indices.discard(first_after_gap)
+                        break
+
+        return working_indices
