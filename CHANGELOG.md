@@ -5,6 +5,26 @@ All notable changes to Browser Copilot will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-01-31
+
+### Fixed
+- **Sliding Window Algorithm** - Critical fixes to maintain message sequence integrity
+  - Fixed message index tracking to prevent skipping messages (e.g., 34, 39)
+  - Ensured middle messages are filled contiguously from M-1 backwards
+  - Added comprehensive gap filling while preserving conversation flow
+  - Added tool call integrity checks at gap boundaries to prevent validation errors
+  - Prevented expansion of first N messages beyond Human/System messages
+  - Preserved sliding window structure (e.g., 0-1, 23-58) without incorrect expansion
+
+### Improved
+- **Documentation**
+  - Added cookie consent handling to iCIMS test example
+  - Created QA engineer presentation with architecture diagram
+  - Fixed step numbering in test examples
+
+### Dependencies
+- Added python-dotenv as optional dependency for future .env file support
+
 ## [1.1.0] - 2025-01-30
 
 ### Added

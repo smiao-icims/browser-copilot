@@ -7,9 +7,9 @@ packages = ["browser_copilot"]
 
 [project]
 name = "browser-copilot"
-version = "1.2.0"
+version = "1.2.1"
 authors = [
-    {name = "Browser Copilot Team", email = "browser-copilot@example.com"},
+    {name = "Browser Copilot Team", email = "smiao-icims@icims.com"},
 ]
 description = "AI-powered browser automation copilot for testing"
 readme = "README.md"
