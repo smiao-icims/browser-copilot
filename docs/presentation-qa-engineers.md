@@ -326,10 +326,14 @@ def test_login():
 - **No selectors to maintain**
 - **Self-documenting**
 - **Accessible to all team members**
+- **Note**: Be aware of LLM API costs (~$0.01-0.10 per test run, free with GitHub Copilot)
 
 ---
 
 ## 9. Getting Started
+
+📦 **PyPI**: https://pypi.org/project/browser-copilot/
+📖 **GitHub**: https://github.com/smiao-icims/browser-copilot
 
 ### Installation (One Command!)
 ```bash
@@ -424,10 +428,9 @@ A: Saves development time, minimal token costs (~$0.01-0.10 per test)
 4. **Join our community** for tips and best practices
 
 ### Resources
-- 📖 Documentation: [browser-copilot.dev](https://github.com/your-org/browser-copilot)
-- 💬 Discord Community: [Join us](https://discord.gg/browser-copilot)
-- 🎥 Video Tutorials: [YouTube Channel](https://youtube.com/@browser-copilot)
-- 📧 Support: support@browser-copilot.dev
+- 📦 PyPI Package: [pypi.org/project/browser-copilot](https://pypi.org/project/browser-copilot)
+- 📖 GitHub Repository: [github.com/smiao-icims/browser-copilot](https://github.com/smiao-icims/browser-copilot)
+- 📧 Support: smiao@icims.com
 
 ---
 
