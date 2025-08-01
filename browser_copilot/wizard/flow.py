@@ -125,8 +125,19 @@ class WizardFlow:
 
     def _show_progress(self):
         """Show progress indicator."""
-        total = len([s for s in self.steps if not s.can_skip(self.state)])
-        current = self.current_step_index + 1
+        # Calculate total non-skippable steps
+        non_skippable_steps = [s for s in self.steps if not s.can_skip(self.state)]
+        total = len(non_skippable_steps)
+
+        # Calculate current step number (how many non-skippable steps we've completed)
+        current = 0
+        for i in range(self.current_step_index):
+            if not self.steps[i].can_skip(self.state):
+                current += 1
+
+        # Add 1 for the current step if it's not skippable
+        if not self.steps[self.current_step_index].can_skip(self.state):
+            current += 1
 
         # Don't show progress for welcome/completion steps
         step_name = self.steps[self.current_step_index].get_name()
