@@ -121,7 +121,7 @@ Create a file `my-test.md` with natural language instructions:
 ```markdown
 # My First Test
 
-1. Navigate to https://www.wikipedia.org
+1. Navigate to https://www.google.com
 2. Search for "artificial intelligence"
 3. Verify the page shows results about AI
 4. Take a screenshot
