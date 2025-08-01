@@ -8,44 +8,7 @@ A streamlined browser automation framework that uses AI-powered agents to execut
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Code Coverage](https://codecov.io/gh/smiao-icims/browser-copilot/branch/main/graph/badge.svg)](https://codecov.io/gh/smiao-icims/browser-copilot)
 
-## 🎯 Getting Started in 3 Minutes
 
-### Option 1: Install from PyPI (Recommended)
-```bash
-# 1. Install Browser Copilot from PyPI
-pip install browser-copilot
-
-# 2. Run the setup wizard (2 minutes)
-browser-copilot --setup-wizard
-
-# 3. Create a test file (test.md)
-cat > test.md << 'EOF'
-# My First Test
-1. Go to https://www.google.com
-2. Search for "Browser Copilot AI testing"
-3. Click on the first result
-4. Take a screenshot
-EOF
-
-# 4. Run your test!
-browser-copilot test.md
-```
-
-### Option 2: Install from Source
-```bash
-# 1. Clone and install
-git clone https://github.com/smiao-icims/browser-copilot.git
-cd browser-copilot
-uv sync
-
-# 2. Run the setup wizard
-uv run browser-copilot --setup-wizard
-
-# 3. Create and run your test
-uv run browser-copilot test.md
-```
-
-That's it! You've just automated your first browser test. 🎉
 
 ## ✨ Features
 
@@ -67,22 +30,72 @@ That's it! You've just automated your first browser test. 🎉
 
 ### 1️⃣ Install Browser Copilot
 
+#### Prerequisites
+Before installing Browser Copilot, ensure you have:
+- **Python 3.11+** (required by ModelForge)
+- **Node.js** (for Playwright MCP server)
+- **Git** (for cloning the repository)
+
 #### Option A: Install from PyPI (Recommended)
+
+**Step 1: Set up a virtual environment**
+```bash
+# Create a new directory for your project
+mkdir browser-copilot-project
+cd browser-copilot-project
+
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Verify Python version (must be 3.11+)
+python --version
+```
+
+**Step 2: Install Browser Copilot**
 ```bash
 # Install with pip
 pip install browser-copilot
 
-# Or with uv (faster)
+# Or with uv (faster - recommended)
+# First install uv if you don't have it
+curl -LsSf https://astral.sh/uv/install.sh | sh
 uv pip install browser-copilot
 ```
 
 #### Option B: Install from Source
+
+**Step 1: Set up a virtual environment**
 ```bash
-# Clone and install
+# Clone the repository
 git clone https://github.com/smiao-icims/browser-copilot.git
 cd browser-copilot
-curl -LsSf https://astral.sh/uv/install.sh | sh  # Install uv if needed
-uv sync  # Install dependencies
+
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Verify Python version (must be 3.11+)
+python --version
+```
+
+**Step 2: Install dependencies**
+```bash
+# Install uv if you don't have it
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install project dependencies
+uv sync
 ```
 
 ### 2️⃣ Run Setup Wizard (2 minutes)
@@ -188,6 +201,53 @@ bp your-test.md --compression-level high  # 30% less tokens!
 bp failing-test.md --verbose --save-trace
 ```
 
+### 🔧 Troubleshooting Common Issues
+
+**Virtual Environment Issues:**
+```bash
+# If you get "command not found" errors:
+# Make sure your virtual environment is activated
+# You should see (venv) at the start of your command prompt
+
+# To reactivate if needed:
+source venv/bin/activate  # macOS/Linux
+# or
+venv\Scripts\activate     # Windows
+```
+
+**Python Version Issues:**
+```bash
+# Check your Python version
+python --version
+
+# If it's below 3.11, upgrade Python or use pyenv
+# On macOS with Homebrew:
+brew install python@3.11
+
+# On Ubuntu/Debian:
+sudo apt update
+sudo apt install python3.11 python3.11-venv
+```
+
+**Node.js Issues:**
+```bash
+# Check Node.js version
+node --version
+
+# If not installed, install Node.js:
+# On macOS with Homebrew:
+brew install node
+
+# On Ubuntu/Debian:
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+**Permission Issues:**
+```bash
+# If you get permission errors on macOS/Linux:
+sudo chown -R $(whoami) ~/.browser_copilot/
+```
 
 👉 **[See More Examples](docs/common-use-cases.md)** | 📘 **[Full Quick Start Guide](docs/quick-start.md)**
 

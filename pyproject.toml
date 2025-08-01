@@ -7,7 +7,7 @@ packages = ["browser_copilot"]
 
 [project]
 name = "browser-copilot"
-version = "1.2.1"
+version = "1.2.2"
 authors = [
     {name = "Browser Copilot Team", email = "smiao-icims@icims.com"},
 ]
